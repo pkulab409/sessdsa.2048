@@ -143,7 +143,7 @@ class dir_select():  # 处理选择方向
 
 
 class Board():  # 对于棋盘的处理
-    def __init__(self, main_window, ln, col, player1):
+    def __init__(self, main_window, ln, col):
         def board_init():
             self.ln, self.col = ln, col
             self.phase = 3
@@ -154,7 +154,8 @@ class Board():  # 对于棋盘的处理
             self.button = [[None for _ in range(self.col * 2)] for _ in range(self.ln)]
             self.label = Label(main_window, width=30, height=2, bg='white', anchor='se', text="请选择模式")
             self.label.grid(row=0, columnspan=8)
-            self.player1 = player1
+            self.player1 = Player()
+            self.player2 = Player()
             for i in range(self.ln):
                 for j in range(self.col * 2):
                     self.button[i][j] = Button(main_window, width=5, command=pos_click(self, i, j).proc)
@@ -195,9 +196,13 @@ class Board():  # 对于棋盘的处理
                 board_init()
 
             def option3():
+                def next_phase():
+                    self.sleep = False
+                    self.handle_phase()
+
                 self.option = 3
                 option_window.destroy()
-                Button(main_window, text="继续", width=5, command=nextphase).grid(row=ln + 4, column=1)
+                Button(main_window, text="继续", width=5, command=next_phase).grid(row=ln + 4, column=1)
                 board_init()
 
             option_window = tkinter.Tk()
@@ -211,6 +216,7 @@ class Board():  # 对于棋盘的处理
         option()
 
     def handle_phase(self):  # 具体分为5个阶段，最后一阶段为处理移动的阶段
+        board = self
         if board.sleep and board.option == 3 and board.phase == 3:
             return
         board.sleep = True
@@ -218,29 +224,32 @@ class Board():  # 对于棋盘的处理
         if board.phase == 0:
             board.label["text"] = "A摆放阶段"
             if board.option in [1, 3]:
-                pos = board.getPlayer().play(board.ln, board.col, board.numbers, board.ownership, 0, 0)
+                pos = board.getPlayer1().play(board.ln, board.col, board.numbers, board.ownership, 0, 0)
                 pos_click(board, pos[0], pos[1]).proc()
         elif board.phase == 1:
             board.label["text"] = "B摆放阶段"
             if board.option in [2, 3]:
-                pos = board.getPlayer().play(board.ln, board.col, board.numbers, board.ownership, 1, 0)
+                pos = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, 1, 0)
                 pos_click(board, pos[0], pos[1]).proc()
         elif board.phase == 2:
             board.label["text"] = "A指定方向阶段"
             if board.option in [1, 3]:
-                direction = board.getPlayer().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
+                direction = board.getPlayer1().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
                 dir_select(board, "A", direction).proc()
         elif board.phase == 3:
             board.label["text"] = "B指定方向阶段"
             if board.option in [2, 3]:
-                direction = board.getPlayer().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
+                direction = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
                 dir_select(board, "B", direction).proc()
         else:
             proc_move(board)
             self.handle_phase()
 
-    def getPlayer(self):
+    def getPlayer1(self):
         return self.player1
+
+    def getPlayer2(self):
+        return self.player2
 
     def refresh(self):
         for i in range(self.ln):
@@ -259,8 +268,7 @@ def init():
     main_window = tkinter.Tk()
     main_window.title("2048平台")
     main_window.resizable(0, 0)
-    global board
-    board = Board(main_window, 4, 4, Player())
+    Board(main_window, 4, 4)
     main_window.mainloop()
 
 
