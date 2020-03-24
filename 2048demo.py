@@ -1,12 +1,18 @@
 import turtle as t
 
-import tkinter,time,decimal,math,string
+import tkinter,time,decimal,math,string,os
 
-global board
+if os.name == "nt":
+    from tkinter import Label, Button
+else:
+    from tkmacosx import Label, Button
 
-root=tkinter.Tk()
-root.title('计算器')
-root.resizable(0,0)
+def init():
+    root=tkinter.Tk()
+    root.title("2048平台")
+    root.resizable(0,0)
+    board=Board(root,4,4)
+    root.mainloop()
 
 def phase(board):#具体分为5个阶段，最后一阶段为处理移动的阶段
     board.phase = (board.phase + 1) % 5
@@ -50,120 +56,53 @@ def proc_move(board):#处理移动
     board.refresh()
 
 def work(board, player):#实际处理移动
+    dirxy=[[1,0],[-1,0],[0,1],[0,-1]]
     def inboard(x, y):
         return x in range(board.ln) and y in range(board.col * 2)
+    def move(ln, col):
+        direction = board.dirAB[player]
+        while inboard(ln,col):
+            lst1=[]
+            while inboard(ln,col) and board.ownership[ln][col] == 1 ^ player:
+                ln += dirxy[direction][0]
+                col += dirxy[direction][1]
+            start = [ln, col]
+            while inboard(ln,col) and board.ownership[ln][col] == 0 ^ player:
+                if board.numbers[ln][col]:
+                    lst1.append(board.numbers[ln][col])
+                ln += dirxy[direction][0]
+                col += dirxy[direction][1]
+            stop = [ln, col]
+            i = 0
+            lst2 = []
+            while i < len(lst1) - 1:
+                if lst1[i] == lst1[i+1]:
+                    lst2.append(lst1[i] * 2)
+                    i += 2
+                else:
+                    lst2.append(lst1[i])
+                    i += 1
+            if i == len(lst1) - 1:
+                lst2.append(lst1[i])
+            while len(lst2) < abs(start[0] + start[1] - stop[0] - stop[1]):
+                lst2.append(0)
+            temp = [start[0],start[1]]
+            while temp != stop:
+                board.numbers[temp[0]][temp[1]] = lst2[abs(start[0] + start[1] - temp[0] - temp[1])]
+                temp[0] += dirxy[direction][0]
+                temp[1] += dirxy[direction][1]
     if board.dirAB[player] == 0:
         for col in range(board.col * 2):
-            ln = 0
-            while inboard(ln,col):
-                lst1=[]
-                while inboard(ln,col) and board.ownership[ln][col] == 1 ^ player:
-                    ln += 1
-                start = ln
-                while inboard(ln,col) and board.ownership[ln][col] == 0 ^ player:
-                    if board.numbers[ln][col]:
-                        lst1.append(board.numbers[ln][col])
-                    ln += 1
-                stop = ln
-                i = 0
-                lst2 = []
-                while i < len(lst1) - 1:
-                    if lst1[i] == lst1[i+1]:
-                        lst2.append(lst1[i] * 2)
-                        i += 2
-                    else:
-                        lst2.append(lst1[i])
-                        i += 1
-                if i == len(lst1) - 1:
-                    lst2.append(lst1[i])
-                while len(lst2) < abs(start - stop):
-                    lst2.append(0)
-                for i in range(start, stop, 1 if stop - start > 0 else -1):
-                    board.numbers[i][col] = lst2[abs(start - i)]
+            move(0, col)
     elif board.dirAB[player] == 1:
         for col in range(board.col * 2):
-            ln = board.ln - 1
-            while inboard(ln,col):
-                lst1=[]
-                while inboard(ln,col) and board.ownership[ln][col] == 1 ^ player:
-                    ln -= 1
-                start = ln
-                while inboard(ln,col) and board.ownership[ln][col] == 0 ^ player:
-                    if board.numbers[ln][col]:
-                        lst1.append(board.numbers[ln][col])
-                    ln -= 1
-                stop = ln
-                i = 0
-                lst2 = []
-                while i < len(lst1) - 1:
-                    if lst1[i] == lst1[i+1]:
-                        lst2.append(lst1[i] * 2)
-                        i += 2
-                    else:
-                        lst2.append(lst1[i])
-                        i += 1
-                if i == len(lst1) - 1:
-                    lst2.append(lst1[i])
-                while len(lst2) < abs(start - stop):
-                    lst2.append(0)
-                for i in range(start, stop, 1 if stop - start > 0 else -1):
-                    board.numbers[i][col] = lst2[abs(start - i)]
+            move(board.ln - 1, col)
     elif board.dirAB[player] == 2:
         for ln in range(board.ln):
-            col = 0
-            while inboard(ln,col):
-                lst1=[]
-                while inboard(ln,col) and board.ownership[ln][col] == 1 ^ player:
-                    col += 1
-                start = col
-                while inboard(ln,col) and board.ownership[ln][col] == 0 ^ player:
-                    if board.numbers[ln][col]:
-                        lst1.append(board.numbers[ln][col])
-                    col += 1
-                stop = col
-                i = 0
-                lst2 = []
-                while i < len(lst1) - 1:
-                    if lst1[i] == lst1[i+1]:
-                        lst2.append(lst1[i] * 2)
-                        i += 2
-                    else:
-                        lst2.append(lst1[i])
-                        i += 1
-                if i == len(lst1) - 1:
-                    lst2.append(lst1[i])
-                while len(lst2) < abs(start - stop):
-                    lst2.append(0)
-                for i in range(start, stop, 1 if stop - start > 0 else -1):
-                    board.numbers[ln][i] = lst2[abs(start - i)]
+            move(ln, 0)
     elif board.dirAB[player] == 3:
         for ln in range(board.ln):
-            col = board.col * 2 - 1
-            while inboard(ln,col):
-                lst1=[]
-                while inboard(ln,col) and board.ownership[ln][col] == 1 ^ player:
-                    col -= 1
-                start = col
-                while inboard(ln,col) and board.ownership[ln][col] == 0 ^ player:
-                    if board.numbers[ln][col]:
-                        lst1.append(board.numbers[ln][col])
-                    col -= 1
-                stop = col
-                i = 0
-                lst2 = []
-                while i < len(lst1) - 1:
-                    if lst1[i] == lst1[i+1]:
-                        lst2.append(lst1[i] * 2)
-                        i += 2
-                    else:
-                        lst2.append(lst1[i])
-                        i += 1
-                if i == len(lst1) - 1:
-                    lst2.append(lst1[i])
-                while len(lst2) < abs(start - stop):
-                    lst2.append(0)
-                for i in range(start, stop, 1 if stop - start > 0 else -1):
-                    board.numbers[ln][i] = lst2[abs(start - i)]
+            move(ln, board.col * 2 - 1)
 
 class posclick():#处理点击 采用这种写法是tkinter特性使然
     def __init__(self, board, ln, col):
@@ -191,30 +130,28 @@ class dirselect():#处理选择方向
                 phase(board)
 
 class Board():#对于棋盘的处理
-    global vartext
-    
-    def __init__(self, ln, col):
+    def __init__(self, root, ln, col):
         self.ln, self.col = ln, col
         self.phase = 0
         self.dirAB = [0,0]
         self.numbers = [[0 for i in range(self.col * 2)]for i in range(self.ln)]
         self.ownership = [[i // self.col for i in range(self.col * 2)]for i in range(self.ln)]
         self.button = [[None for i in range(self.col * 2)]for i in range(self.ln)]
-        self.label = tkinter.Label(root, width=30, height=2, bg='white', anchor='se', text="A摆放阶段")
+        self.label = Label(root, width=30, height=2, bg='white', anchor='se', text="A摆放阶段")
         self.label.grid(row=0, columnspan=8)
         for ln in range(self.ln):
             for col in range(self.col * 2):
-                self.button[ln][col] = tkinter.Button(root,width=5,command=posclick(self,ln,col).proc)
+                self.button[ln][col] = Button(root,width=5,command=posclick(self,ln,col).proc)
                 self.button[ln][col].grid(row=ln+1,column=col)
-        tkinter.Label(root,text="").grid(row=self.ln+2,columnspan=8)
-        tkinter.Button(root,text="上",width=5,command=dirselect(self,"A",0).proc).grid(row=self.ln+3,column=0)
-        tkinter.Button(root,text="下",width=5,command=dirselect(self,"A",1).proc).grid(row=self.ln+3,column=1)
-        tkinter.Button(root,text="左",width=5,command=dirselect(self,"A",2).proc).grid(row=self.ln+3,column=2)
-        tkinter.Button(root,text="右",width=5,command=dirselect(self,"A",3).proc).grid(row=self.ln+3,column=3)
-        tkinter.Button(root,text="上",width=5,command=dirselect(self,"B",0).proc).grid(row=self.ln+3,column=4)
-        tkinter.Button(root,text="下",width=5,command=dirselect(self,"B",1).proc).grid(row=self.ln+3,column=5)
-        tkinter.Button(root,text="左",width=5,command=dirselect(self,"B",2).proc).grid(row=self.ln+3,column=6)
-        tkinter.Button(root,text="右",width=5,command=dirselect(self,"B",3).proc).grid(row=self.ln+3,column=7)
+        Label(root,text="").grid(row=self.ln+2,columnspan=8)
+        Button(root,text="上",width=5,command=dirselect(self,"A",0).proc).grid(row=self.ln+3,column=0)
+        Button(root,text="下",width=5,command=dirselect(self,"A",1).proc).grid(row=self.ln+3,column=1)
+        Button(root,text="左",width=5,command=dirselect(self,"A",2).proc).grid(row=self.ln+3,column=2)
+        Button(root,text="右",width=5,command=dirselect(self,"A",3).proc).grid(row=self.ln+3,column=3)
+        Button(root,text="上",width=5,command=dirselect(self,"B",0).proc).grid(row=self.ln+3,column=4)
+        Button(root,text="下",width=5,command=dirselect(self,"B",1).proc).grid(row=self.ln+3,column=5)
+        Button(root,text="左",width=5,command=dirselect(self,"B",2).proc).grid(row=self.ln+3,column=6)
+        Button(root,text="右",width=5,command=dirselect(self,"B",3).proc).grid(row=self.ln+3,column=7)
         self.refresh()
     
     def refresh(self):
@@ -229,6 +166,4 @@ class Board():#对于棋盘的处理
                 else:
                     self.button[i][j]["bg"]="#FF9F9F"
 
-board=Board(4,4)
-root.mainloop()
-#write_board()
+init()
