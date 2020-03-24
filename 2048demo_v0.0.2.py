@@ -32,36 +32,6 @@ class Player:
             return random.randrange(4)
 
 
-def proc_move(board):  # 处理移动
-    def inboard(x, y):
-        return x in range(board.ln) and y in range(board.col * 2)
-
-    work(board, 0)
-    work(board, 1)
-    dirxy = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-    numbers = [[None for _ in range(board.col * 2)] for _ in range(board.ln)]
-    for ln in range(board.ln):
-        for col in range(board.col * 2):
-            numbers[ln][col] = board.numbers[ln][col]
-    for ln in range(board.ln):
-        for col in range(board.col * 2):
-            if numbers[ln][col]:
-                owner = board.ownership[ln][col]
-                direction = board.dirAB[owner]
-                dln = ln + dirxy[direction][0]
-                dcol = col + dirxy[direction][1]
-                if inboard(dln, dcol) and numbers[dln][dcol] == 0 and owner != board.ownership[dln][dcol]:
-                    board.ownership[dln][dcol] = owner
-                    dln -= dirxy[direction][0]
-                    dcol -= dirxy[direction][1]
-                    while inboard(dln, dcol) and board.ownership[dln][dcol] == owner:
-                        board.numbers[dln + dirxy[direction][0]][dcol + dirxy[direction][1]], board.numbers[dln][dcol] = \
-                            board.numbers[dln][dcol], 0
-                        dln -= dirxy[direction][0]
-                        dcol -= dirxy[direction][1]
-    board.refresh()
-
-
 def work(board, player):  # 实际处理移动
     dir_xy = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
@@ -242,7 +212,7 @@ class Board():  # 对于棋盘的处理
                 direction = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
                 dir_select(board, "B", direction).proc()
         else:
-            proc_move(board)
+            self.proc_move()
             self.handle_phase()
 
     def getPlayer1(self):
@@ -250,6 +220,38 @@ class Board():  # 对于棋盘的处理
 
     def getPlayer2(self):
         return self.player2
+
+    def proc_move(self):  # 处理移动
+        board = self
+
+        def inboard(x, y):
+            return x in range(board.ln) and y in range(board.col * 2)
+
+        work(board, 0)
+        work(board, 1)
+        dirxy = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+        numbers = [[None for _ in range(board.col * 2)] for _ in range(board.ln)]
+        for ln in range(board.ln):
+            for col in range(board.col * 2):
+                numbers[ln][col] = board.numbers[ln][col]
+        for ln in range(board.ln):
+            for col in range(board.col * 2):
+                if numbers[ln][col]:
+                    owner = board.ownership[ln][col]
+                    direction = board.dirAB[owner]
+                    dln = ln + dirxy[direction][0]
+                    dcol = col + dirxy[direction][1]
+                    if inboard(dln, dcol) and numbers[dln][dcol] == 0 and owner != board.ownership[dln][dcol]:
+                        board.ownership[dln][dcol] = owner
+                        dln -= dirxy[direction][0]
+                        dcol -= dirxy[direction][1]
+                        while inboard(dln, dcol) and board.ownership[dln][dcol] == owner:
+                            board.numbers[dln + dirxy[direction][0]][dcol + dirxy[direction][1]], board.numbers[dln][
+                                dcol] = \
+                                board.numbers[dln][dcol], 0
+                            dln -= dirxy[direction][0]
+                            dcol -= dirxy[direction][1]
+        board.refresh()
 
     def refresh(self):
         for i in range(self.ln):
