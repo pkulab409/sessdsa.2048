@@ -8,6 +8,12 @@ else:
     from tkmacosx import Label, Button
 
 
+######################################
+# TODO:
+# 1. 将人类输入抽象为Player类
+# 2. 优化代码结构
+######################################
+
 class Player:
     def __init__(self):
         pass
@@ -154,14 +160,22 @@ class Board():  # 对于棋盘的处理
                     self.button[i][j] = Button(main_window, width=5, command=pos_click(self, i, j).proc)
                     self.button[i][j].grid(row=i + 1, column=j)
             Label(main_window, text="").grid(row=self.ln + 2, columnspan=8)
-            Button(main_window, text="上", width=5, command=dir_select(self, "A", 0).proc).grid(row=self.ln + 3, column=0)
-            Button(main_window, text="下", width=5, command=dir_select(self, "A", 1).proc).grid(row=self.ln + 3, column=1)
-            Button(main_window, text="左", width=5, command=dir_select(self, "A", 2).proc).grid(row=self.ln + 3, column=2)
-            Button(main_window, text="右", width=5, command=dir_select(self, "A", 3).proc).grid(row=self.ln + 3, column=3)
-            Button(main_window, text="上", width=5, command=dir_select(self, "B", 0).proc).grid(row=self.ln + 3, column=4)
-            Button(main_window, text="下", width=5, command=dir_select(self, "B", 1).proc).grid(row=self.ln + 3, column=5)
-            Button(main_window, text="左", width=5, command=dir_select(self, "B", 2).proc).grid(row=self.ln + 3, column=6)
-            Button(main_window, text="右", width=5, command=dir_select(self, "B", 3).proc).grid(row=self.ln + 3, column=7)
+            Button(main_window, text="上", width=5, command=dir_select(self, "A", 0).proc).grid(row=self.ln + 3,
+                                                                                               column=0)
+            Button(main_window, text="下", width=5, command=dir_select(self, "A", 1).proc).grid(row=self.ln + 3,
+                                                                                               column=1)
+            Button(main_window, text="左", width=5, command=dir_select(self, "A", 2).proc).grid(row=self.ln + 3,
+                                                                                               column=2)
+            Button(main_window, text="右", width=5, command=dir_select(self, "A", 3).proc).grid(row=self.ln + 3,
+                                                                                               column=3)
+            Button(main_window, text="上", width=5, command=dir_select(self, "B", 0).proc).grid(row=self.ln + 3,
+                                                                                               column=4)
+            Button(main_window, text="下", width=5, command=dir_select(self, "B", 1).proc).grid(row=self.ln + 3,
+                                                                                               column=5)
+            Button(main_window, text="左", width=5, command=dir_select(self, "B", 2).proc).grid(row=self.ln + 3,
+                                                                                               column=6)
+            Button(main_window, text="右", width=5, command=dir_select(self, "B", 3).proc).grid(row=self.ln + 3,
+                                                                                               column=7)
             self.handle_phase()
 
         def option():
