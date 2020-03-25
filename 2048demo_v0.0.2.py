@@ -2,10 +2,12 @@ import os
 import random
 import tkinter
 
+from tkinter import Label
+
 if os.name == "nt":
-    from tkinter import Label, Button
+    from tkinter import Button
 else:
-    from tkmacosx import Label, Button
+    from tkmacosx import Button
 
 
 ######################################
@@ -127,31 +129,23 @@ class Board():  # 对于棋盘的处理
             self.numbers = [[0 for _ in range(self.col * 2)] for _ in range(self.ln)]
             self.ownership = [[i // self.col for i in range(self.col * 2)] for _ in range(self.ln)]
             self.button = [[None for _ in range(self.col * 2)] for _ in range(self.ln)]
-            self.label = Label(main_window, width=30, height=2, bg='white', anchor='se', text="请选择模式")
+            self.label = Label(main_window, width=30, height=2, bg='white', anchor='se', text=" ")
             self.label.grid(row=0, columnspan=8)
             self.player1 = Player()
             self.player2 = Player()
             for i in range(self.ln):
                 for j in range(self.col * 2):
-                    self.button[i][j] = Button(main_window, width=5, command=pos_click(self, i, j).proc)
+                    self.button[i][j] = Button(main_window, text = ' ', width=5, command=pos_click(self, i, j).proc)
                     self.button[i][j].grid(row=i + 1, column=j)
             Label(main_window, text="").grid(row=self.ln + 2, columnspan=8)
-            Button(main_window, text="上", width=5, command=dir_select(self, "A", 0).proc).grid(row=self.ln + 3,
-                                                                                               column=0)
-            Button(main_window, text="下", width=5, command=dir_select(self, "A", 1).proc).grid(row=self.ln + 3,
-                                                                                               column=1)
-            Button(main_window, text="左", width=5, command=dir_select(self, "A", 2).proc).grid(row=self.ln + 3,
-                                                                                               column=2)
-            Button(main_window, text="右", width=5, command=dir_select(self, "A", 3).proc).grid(row=self.ln + 3,
-                                                                                               column=3)
-            Button(main_window, text="上", width=5, command=dir_select(self, "B", 0).proc).grid(row=self.ln + 3,
-                                                                                               column=4)
-            Button(main_window, text="下", width=5, command=dir_select(self, "B", 1).proc).grid(row=self.ln + 3,
-                                                                                               column=5)
-            Button(main_window, text="左", width=5, command=dir_select(self, "B", 2).proc).grid(row=self.ln + 3,
-                                                                                               column=6)
-            Button(main_window, text="右", width=5, command=dir_select(self, "B", 3).proc).grid(row=self.ln + 3,
-                                                                                               column=7)
+            Button(main_window, text="上", width=50, command=dir_select(self, "A", 0).proc).grid(row=self.ln + 3,column=0)
+            Button(main_window, text="下", width=50, command=dir_select(self, "A", 1).proc).grid(row=self.ln + 3,column=1)
+            Button(main_window, text="左", width=50, command=dir_select(self, "A", 2).proc).grid(row=self.ln + 3,column=2)
+            Button(main_window, text="右", width=50, command=dir_select(self, "A", 3).proc).grid(row=self.ln + 3,column=3)
+            Button(main_window, text="上", width=50, command=dir_select(self, "B", 0).proc).grid(row=self.ln + 3,column=4)
+            Button(main_window, text="下", width=50, command=dir_select(self, "B", 1).proc).grid(row=self.ln + 3,column=5)
+            Button(main_window, text="左", width=50, command=dir_select(self, "B", 2).proc).grid(row=self.ln + 3,column=6)
+            Button(main_window, text="右", width=50, command=dir_select(self, "B", 3).proc).grid(row=self.ln + 3,column=7)
             self.handle_phase()
 
         def option():
@@ -177,16 +171,16 @@ class Board():  # 对于棋盘的处理
 
                 self.option = 3
                 option_window.destroy()
-                Button(main_window, text="继续", width=5, command=next_phase).grid(row=ln + 4, column=1)
+                Button(main_window, text="继续", width=50, command=next_phase).grid(row=0, column=7)
                 board_init()
 
             option_window = tkinter.Tk()
-            self.label = Label(option_window, width=30, height=2, bg='white', anchor='se', text="请选择模式")
-            self.label.grid(row=0, columnspan=8)
-            Button(option_window, text="左右互搏", width=9, command=option0).grid(row=0, column=0, columnspan=2)
-            Button(option_window, text="先手随机", width=9, command=option1).grid(row=0, column=2, columnspan=2)
-            Button(option_window, text="后手随机", width=9, command=option2).grid(row=0, column=4, columnspan=2)
-            Button(option_window, text="全部随机", width=9, command=option3).grid(row=0, column=6, columnspan=2)
+            option_window.attributes('-topmost', True)
+            option_window.title("请选择模式")
+            Button(option_window, text="左右互搏", width=90, command=option0).grid(row=0, column=0, columnspan=2)
+            Button(option_window, text="先手随机", width=90, command=option1).grid(row=0, column=2, columnspan=2)
+            Button(option_window, text="后手随机", width=90, command=option2).grid(row=0, column=4, columnspan=2)
+            Button(option_window, text="全部随机", width=90, command=option3).grid(row=0, column=6, columnspan=2)
 
         option()
 
@@ -283,13 +277,13 @@ class Board():  # 对于棋盘的处理
                 else:
                     self.button[i][j]["text"] = ""
                 if self.ownership[i][j]:
-                    self.button[i][j]["bg"] = "#9F9FFF"
+                    self.button[i][j]["bg"] = "#FFC0CB"
                 else:
-                    self.button[i][j]["bg"] = "#FF9F9F"
+                    self.button[i][j]["bg"] = "#66CCFF"
                 if [i, j] == self.self_place[0]:
-                    self.button[i][j]["bg"] = "#FF0000"
+                    self.button[i][j]["bg"] = "#46A3FF"
                 if [i, j] == self.self_place[1]:
-                    self.button[i][j]["bg"] = "#0000FF"
+                    self.button[i][j]["bg"] = "#FF9F9F"
 
 
 def init():
