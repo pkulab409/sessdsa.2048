@@ -18,16 +18,19 @@ class Player:
     def __init__(self):
         pass
 
-    def play(self, board_ln, board_col, numbers, ownership, player, mode):
+    def play(self, board_ln, board_col, numbers, ownership, self_place, player, mode):
         if mode == 0:
-            ln = random.randrange(board_ln)
-            col = random.randrange(board_col * 2)
-            i = 0
-            while ownership[ln][col] != player or numbers[ln][col] and i < 200:
+            if random.randrange(2):
                 ln = random.randrange(board_ln)
                 col = random.randrange(board_col * 2)
-                i += 1
-            return [ln, col]
+                i = 0
+                while [ln, col] == self_place[player ^ 1] or ownership[ln][col] == player or numbers[ln][col] and i < 200:
+                    ln = random.randrange(board_ln)
+                    col = random.randrange(board_col * 2)
+                    i += 1
+                return [ln, col]
+            else:
+                return self_place[player]
         else:
             return random.randrange(4)
 
@@ -87,11 +90,12 @@ def work(board, player):  # 实际处理移动
 
 class pos_click():  # 处理点击 采用这种写法是tkinter特性使然
     def __init__(self, board, ln, col):
-        self.board, self.ln, self.col = board, ln, col
+        self.board, self.ln, self.col, self.player = board, ln, col, board.phase
 
     def proc(self):
         board, ln, col = self.board, self.ln, self.col
-        if not board.numbers[ln][col] and board.phase in [0, 1] and not (board.ownership[ln][col] ^ board.phase):
+        player = board.phase
+        if [ln, col] != board.self_place[player ^ 1] and ([ln, col] == board.self_place[player] or not board.numbers[ln][col] and board.phase in [0, 1] and board.ownership[ln][col] ^ player):
             board.numbers[ln][col] = 2
             board.button[ln][col]["text"] = 2
             board.handle_phase()
@@ -119,6 +123,7 @@ class Board():  # 对于棋盘的处理
             self.phase = 3
             self.sleep = False
             self.dirAB = [0, 0]
+            self.self_place = [None, None]
             self.numbers = [[0 for _ in range(self.col * 2)] for _ in range(self.ln)]
             self.ownership = [[i // self.col for i in range(self.col * 2)] for _ in range(self.ln)]
             self.button = [[None for _ in range(self.col * 2)] for _ in range(self.ln)]
@@ -178,12 +183,23 @@ class Board():  # 对于棋盘的处理
             option_window = tkinter.Tk()
             self.label = Label(option_window, width=30, height=2, bg='white', anchor='se', text="请选择模式")
             self.label.grid(row=0, columnspan=8)
-            Button(option_window, text="左右互搏", width=5, command=option0).grid(row=0, column=0, columnspan=2)
-            Button(option_window, text="先手随机", width=5, command=option1).grid(row=0, column=2, columnspan=2)
-            Button(option_window, text="后手随机", width=5, command=option2).grid(row=0, column=4, columnspan=2)
-            Button(option_window, text="全部随机", width=5, command=option3).grid(row=0, column=6, columnspan=2)
+            Button(option_window, text="左右互搏", width=9, command=option0).grid(row=0, column=0, columnspan=2)
+            Button(option_window, text="先手随机", width=9, command=option1).grid(row=0, column=2, columnspan=2)
+            Button(option_window, text="后手随机", width=9, command=option2).grid(row=0, column=4, columnspan=2)
+            Button(option_window, text="全部随机", width=9, command=option3).grid(row=0, column=6, columnspan=2)
 
         option()
+
+    def random_place(self, player):
+        board = self
+        ln = random.randrange(board.ln)
+        col = random.randrange(board.col * 2)
+        i = 0
+        while (board.ownership[ln][col] != player or board.numbers[ln][col]) and i < 200:
+            ln = random.randrange(board.ln)
+            col = random.randrange(board.col * 2)
+            i += 1
+        board.self_place[player] = [ln, col]
 
     def handle_phase(self):  # 具体分为5个阶段，最后一阶段为处理移动的阶段
         board = self
@@ -194,22 +210,22 @@ class Board():  # 对于棋盘的处理
         if board.phase == 0:
             board.label["text"] = "A摆放阶段"
             if board.option in [1, 3]:
-                pos = board.getPlayer1().play(board.ln, board.col, board.numbers, board.ownership, 0, 0)
+                pos = board.getPlayer1().play(board.ln, board.col, board.numbers, board.ownership, board.self_place, 0, 0)
                 pos_click(board, pos[0], pos[1]).proc()
         elif board.phase == 1:
             board.label["text"] = "B摆放阶段"
             if board.option in [2, 3]:
-                pos = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, 1, 0)
+                pos = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, board.self_place, 1, 0)
                 pos_click(board, pos[0], pos[1]).proc()
         elif board.phase == 2:
             board.label["text"] = "A指定方向阶段"
             if board.option in [1, 3]:
-                direction = board.getPlayer1().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
+                direction = board.getPlayer1().play(board.ln, board.col, board.numbers, board.ownership, board.self_place, 0, 1)
                 dir_select(board, "A", direction).proc()
         elif board.phase == 3:
             board.label["text"] = "B指定方向阶段"
             if board.option in [2, 3]:
-                direction = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, 1, 1)
+                direction = board.getPlayer2().play(board.ln, board.col, board.numbers, board.ownership, board.self_place, 1, 1)
                 dir_select(board, "B", direction).proc()
         else:
             self.proc_move()
@@ -251,6 +267,12 @@ class Board():  # 对于棋盘的处理
                                 board.numbers[dln][dcol], 0
                             dln -= dirxy[direction][0]
                             dcol -= dirxy[direction][1]
+        for ln in range(board.ln):
+            for col in range(board.col * 2):
+                if not board.numbers[ln][col] and board.ownership[ln][col] ^ (col // board.col):
+                    board.ownership[ln][col] ^= 1
+        self.random_place(0)
+        self.random_place(1)
         board.refresh()
 
     def refresh(self):
@@ -264,6 +286,10 @@ class Board():  # 对于棋盘的处理
                     self.button[i][j]["bg"] = "#9F9FFF"
                 else:
                     self.button[i][j]["bg"] = "#FF9F9F"
+                if [i, j] == self.self_place[0]:
+                    self.button[i][j]["bg"] = "#FF0000"
+                if [i, j] == self.self_place[1]:
+                    self.button[i][j]["bg"] = "#0000FF"
 
 
 def init():
