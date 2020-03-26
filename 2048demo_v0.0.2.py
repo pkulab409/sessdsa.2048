@@ -6,8 +6,10 @@ from tkinter import Label
 
 if os.name == "nt":
     from tkinter import Button
+    button_width = 5
 else:
     from tkmacosx import Button
+    button_width = 50
 
 
 ######################################
@@ -121,6 +123,7 @@ class dir_select():  # 处理选择方向
 class Board():  # 对于棋盘的处理
     def __init__(self, main_window, ln, col):
         def board_init():
+            main_window.attributes('-topmost', True)
             self.ln, self.col = ln, col
             self.phase = 3
             self.sleep = False
@@ -135,17 +138,17 @@ class Board():  # 对于棋盘的处理
             self.player2 = Player()
             for i in range(self.ln):
                 for j in range(self.col * 2):
-                    self.button[i][j] = Button(main_window, text = ' ', width=5, command=pos_click(self, i, j).proc)
+                    self.button[i][j] = Button(main_window, text = ' ', width=button_width, command=pos_click(self, i, j).proc)
                     self.button[i][j].grid(row=i + 1, column=j)
             Label(main_window, text="").grid(row=self.ln + 2, columnspan=8)
-            Button(main_window, text="上", width=50, command=dir_select(self, "A", 0).proc).grid(row=self.ln + 3,column=0)
-            Button(main_window, text="下", width=50, command=dir_select(self, "A", 1).proc).grid(row=self.ln + 3,column=1)
-            Button(main_window, text="左", width=50, command=dir_select(self, "A", 2).proc).grid(row=self.ln + 3,column=2)
-            Button(main_window, text="右", width=50, command=dir_select(self, "A", 3).proc).grid(row=self.ln + 3,column=3)
-            Button(main_window, text="上", width=50, command=dir_select(self, "B", 0).proc).grid(row=self.ln + 3,column=4)
-            Button(main_window, text="下", width=50, command=dir_select(self, "B", 1).proc).grid(row=self.ln + 3,column=5)
-            Button(main_window, text="左", width=50, command=dir_select(self, "B", 2).proc).grid(row=self.ln + 3,column=6)
-            Button(main_window, text="右", width=50, command=dir_select(self, "B", 3).proc).grid(row=self.ln + 3,column=7)
+            Button(main_window, text="上", width=button_width, command=dir_select(self, "A", 0).proc).grid(row=self.ln + 3,column=0)
+            Button(main_window, text="下", width=button_width, command=dir_select(self, "A", 1).proc).grid(row=self.ln + 3,column=1)
+            Button(main_window, text="左", width=button_width, command=dir_select(self, "A", 2).proc).grid(row=self.ln + 3,column=2)
+            Button(main_window, text="右", width=button_width, command=dir_select(self, "A", 3).proc).grid(row=self.ln + 3,column=3)
+            Button(main_window, text="上", width=button_width, command=dir_select(self, "B", 0).proc).grid(row=self.ln + 3,column=4)
+            Button(main_window, text="下", width=button_width, command=dir_select(self, "B", 1).proc).grid(row=self.ln + 3,column=5)
+            Button(main_window, text="左", width=button_width, command=dir_select(self, "B", 2).proc).grid(row=self.ln + 3,column=6)
+            Button(main_window, text="右", width=button_width, command=dir_select(self, "B", 3).proc).grid(row=self.ln + 3,column=7)
             self.handle_phase()
 
         def option():
@@ -177,10 +180,10 @@ class Board():  # 对于棋盘的处理
             option_window = tkinter.Tk()
             option_window.attributes('-topmost', True)
             option_window.title("请选择模式")
-            Button(option_window, text="左右互搏", width=90, command=option0).grid(row=0, column=0, columnspan=2)
-            Button(option_window, text="先手随机", width=90, command=option1).grid(row=0, column=2, columnspan=2)
-            Button(option_window, text="后手随机", width=90, command=option2).grid(row=0, column=4, columnspan=2)
-            Button(option_window, text="全部随机", width=90, command=option3).grid(row=0, column=6, columnspan=2)
+            Button(option_window, text="左右互搏", width=button_width * 2, command=option0).grid(row=0, column=0, columnspan=2)
+            Button(option_window, text="先手随机", width=button_width * 2, command=option1).grid(row=0, column=2, columnspan=2)
+            Button(option_window, text="后手随机", width=button_width * 2, command=option2).grid(row=0, column=4, columnspan=2)
+            Button(option_window, text="全部随机", width=button_width * 2, command=option3).grid(row=0, column=6, columnspan=2)
 
         option()
 
