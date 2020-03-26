@@ -141,7 +141,7 @@ class Platform:
             self.update(0, 'position')                      # 更新棋盘 
             self.record[0]['position'].append(self.position[0])
 
-            self.next = self.get_next(0)                    # 按照随机序列得到下一个位置
+            self.next = self.get_next(1)                    # 按照随机序列得到下一个位置
             self.player[1].input_position(*self.position[0])
             self.position[1] = self.player[1].output_position()
             if self.checkTime(1): break                     # 判断是否超时
@@ -326,7 +326,6 @@ class Platform:
         '''
         -> 用于复盘
         -> 可以接上UI
-        -> 先pass了
         '''
         pass
         
