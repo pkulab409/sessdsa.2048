@@ -163,7 +163,6 @@ class Platform:
             if self.checkViolate(1, 'direction'): break     # 判断是否违规
             self.record[1]['direction'].append(self.direction[1])
             
-            
             if self.checkEnd(): break      # 判断是否进入终局
             
         else:  # 总回合数耗尽
@@ -176,7 +175,7 @@ class Platform:
 
     def checkTime(self, playerNumber):
         if globals()['time%d' % playerNumber] >= self.maxtime:
-            self.timeout = playerNumber
+            if self.timeout == None: self.timeout = playerNumber
             return True
         else:
             return False
@@ -191,7 +190,7 @@ class Platform:
         if name == 'position':
             
             if not (isinstance(self.position[playerNumber], tuple) and len(self.position[playerNumber]) == 2):
-                self.violator = playerNumber
+                if self.violator == None: self.violator = playerNumber
                 return True
             
             row, column = self.position[playerNumber]
@@ -199,14 +198,14 @@ class Platform:
                            (self.belong[row][column] == self.player[not playerNumber] or self.position[playerNumber] == self.next):
                 return False
             else:
-                self.violator = playerNumber
+                if self.violator == None: self.violator = playerNumber
                 return True
 
         else:
             if self.change:
                 return False
             else:
-                self.violator = playerNumber
+                if self.violator == None: self.violator = playerNumber
                 return True
 
     def update(self, playerNumber, name):
@@ -250,12 +249,14 @@ class Platform:
                 if change:
                     for locals()[myPhase['p2']] in myPhase['r2']:
                         self.platform[row][column] = queue.pop(0) if queue != [] else None  # 更新地图
-
      
         if name == 'position':
             self.platform[self.position[playerNumber][0]][self.position[playerNumber][1]] = 2
         else:
-            self.change = move(self, playerNumber)
+            if self.direction[playerNumber] in range(4):
+                self.change = move(self, playerNumber)
+            else:
+                self.change = False  # 不合规格的输入
 
     def checkEnd(self):
         '''
@@ -297,8 +298,6 @@ class Platform:
                     score1[self.platform[row][column]] += 1
         # 获取所有棋子
         self.score = (score0, score1)
-        print('score of player 0 is', score0)
-        print('score of player 1 is', score1)
         
         for _ in reversed(range(15)):
             if score0[2**_] > score1[2**_] and self.winner == None:
@@ -314,24 +313,55 @@ class Platform:
         '''
         -> winner继续游戏
         '''
-        pass
-        
+        for _ in range(self.currentRound + 1, self.rounds):
+            
+            self.next = self.get_next(self.winner)                    # 按照随机序列得到下一个位置
+            self.player[self.winner].input_direction(None)
+            self.position[self.winner] = self.player[self.winner].output_position()
+            if self.checkTime(self.winner): break                     # 判断是否超时
+            if self.checkViolate(self.winner, 'position'): break      # 判断是否违规
+            self.update(self.winner, 'position')                      # 更新棋盘 
+            self.record[self.winner]['position'].append(self.position[self.winner])
+
+            self.player[self.winner].input_position(None, None)
+            self.direction[self.winner] = self.player[self.winner].output_direction()
+            if self.checkTime(self.winner): break                     # 判断是否超时
+            self.update(self.winner, 'direction')                     # 更新棋盘
+            if self.checkViolate(self.winner, 'direction'): break     # 判断是否违规
+            self.record[self.winner]['direction'].append(self.direction[self.winner])
+
     def get_next(self, playerNumber):
         '''
         -> 根据随机序列得到在本方领域允许下棋的位置
+        -> 样例算法:
+        -> 按照行列获得己方全部可放置位置, 通过对随机数求余数的方法得到结果
         '''
-        pass
-
+        available = []
+        for row in range(4):
+            for column in range(8):
+                if self.belong[row][column] == playerNumber and self.platform[row][column] == None:
+                    available.append((row, column))
+        if available == []:
+            return None
+        else:
+            return available[self.array[self.currentRound] % len(available)]
+                    
     def review(self):
         '''
         -> 用于复盘
         -> 可以接上UI
         '''
-        pass
+        print('score of player 0 is', self.score[0])
+        print('score of player 1 is', self.score[1])
         
+        if self.timeout != None: print('player', self.timeout, 'time out.')
+        elif self.violator != None: print('player', self.violator, 'violate.')
+        elif self.end != None: print('player', self.end, 'end.')
+        print('player', self.winner, 'win.')
             
 if __name__ == '__main__':
     player0 = Player0()
     player1 = Player1()
-    platform = Platform(3, None, 3, player0, player1)
+    platform = Platform(3, [1, 1, 1], 3, player0, player1)
     platform.game_start()
+    platform.review()
