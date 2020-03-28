@@ -4,7 +4,11 @@
 # 有bug可以找@SophieARG讨论
 
 # 参赛队伍的AI请写在Player类里
-# 须实现五个方法:
+# 须实现六个方法:
+#
+# __init__(self, isFirst):
+#   -> 初始化
+#   -> 参数: isFirst是否先手, 为bool变量, isFirst = True 表示为先手
 #
 # init_process(self, array):
 #   -> 接受随机序列
@@ -31,69 +35,39 @@
 # 其余的方法与属性请自行设计
 # AI中不允许出现对全局变量time1和time2的手动修改, 因为这是作弊哦!
 
+from player import Player as Player0
+from player import Player as Player1
+
 import time
 import functools
-
-time0 = 0  # player0已用时间
-time1 = 0  # player1已用时间
 
 def timeManager(playerNumber):  # 计算用时的装饰器
     def decorator(func):
         @functools.wraps(func)
         def wrappedFunc(*args, **kwargs):
             begin = time.time()
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
             end = time.time()
             globals()['time%d' % playerNumber] += end - begin
+            return result
         return wrappedFunc
     return decorator
 
-# AI编写位置
+time0 = 0  # player0已用时间
+time1 = 0  # player1已用时间
 
-class Player0:
+# 重载方法, 加上计时功能
+Player0.init_process = timeManager(0)(Player0.init_process)
+Player0.input_position = timeManager(0)(Player0.input_position)
+Player0.input_direction = timeManager(0)(Player0.input_direction)
+Player0.output_position = timeManager(0)(Player0.output_position)
+Player0.output_direction = timeManager(0)(Player0.output_direction)
     
-    @timeManager(0)
-    def init_process(self, array):
-        pass
-    
-    @timeManager(0)
-    def input_position(self, row, column):
-        pass
-
-    @timeManager(0)
-    def input_direction(self, direction):
-        pass
-    
-    @timeManager(0)
-    def output_position(self):
-        pass
-    
-    @timeManager(0)
-    def output_direction(self):
-        pass
-    
-
-class Player1:
-
-    @timeManager(1)
-    def init_process(self, array):
-        pass
-
-    @timeManager(1)
-    def input_position(self, row, column):
-        pass
-
-    @timeManager(1)
-    def input_direction(self, direction):
-        pass
-    
-    @timeManager(1)
-    def output_position(self):
-        pass
-    
-    @timeManager(1)
-    def output_direction(self):
-        pass
+Player1.init_process = timeManager(1)(Player1.init_process)
+Player1.input_position = timeManager(1)(Player1.input_position)
+Player1.input_direction = timeManager(1)(Player1.input_direction)
+Player1.output_position = timeManager(1)(Player1.output_position)
+Player1.output_direction = timeManager(1)(Player1.output_direction)
 
 
 # 对战平台
@@ -140,7 +114,7 @@ class Platform:
             if self.checkViolate(0, 'position'): break      # 判断是否违规
             self.update(0, 'position')                      # 更新棋盘 
             self.record[0]['position'].append(self.position[0])
-
+            
             self.next = self.get_next(1)                    # 按照随机序列得到下一个位置
             self.player[1].input_position(*self.position[0])
             self.position[1] = self.player[1].output_position()
@@ -162,6 +136,8 @@ class Platform:
             self.update(1, 'direction')                     # 更新棋盘
             if self.checkViolate(1, 'direction'): break     # 判断是否违规
             self.record[1]['direction'].append(self.direction[1])
+
+            #self.monitor()  # 调试用
             
             if self.checkEnd(): break      # 判断是否进入终局
             
@@ -195,7 +171,7 @@ class Platform:
             
             row, column = self.position[playerNumber]
             if row in range(4) and column in range(8) and self.platform[row][column] == None and \
-                           (self.belong[row][column] == self.player[not playerNumber] or self.position[playerNumber] == self.next):
+                           (self.belong[row][column] == 1 - playerNumber or self.position[playerNumber] == self.next):
                 return False
             else:
                 if self.violator == None: self.violator = playerNumber
@@ -215,41 +191,48 @@ class Platform:
         '''
         def move(self, playerNumber):  # 合并, 同时返回棋盘是否改变
             
-            change = False
-            myPhase = [{'p1':'column', 'p2':'row', 'r1':range(8), 'r2':range(4), 'delta_c':0, 'delta_r':1},
-                       {'p1':'column', 'p2':'row', 'r1':range(8), 'r2':reversed(range(4)), 'delta_c':0, 'delta_r':-1},
-                       {'p1':'row', 'p2':'column', 'r1':range(8), 'r2':range(4), 'delta_c':1, 'delta_r':0},
-                       {'p1':'row', 'p2':'column', 'r1':reversed(range(8)), 'r2':range(4), 'delta_c':-1, 'delta_r':0}
+            myPhase = [{'p1':'column', 'p2':'row', 'r1':range(8), 'r2':range(4)},
+                       {'p1':'column', 'p2':'row', 'r1':range(8), 'r2':range(3, -1, -1)},
+                       {'p1':'row', 'p2':'column', 'r1':range(4), 'r2':range(8)},
+                       {'p1':'row', 'p2':'column', 'r1':range(4), 'r2':range(7, -1, -1)}
                       ][self.direction[playerNumber]]
-             
-            for locals()[myPhase['p1']] in myPhase['r1']:
-                queue = []      # 用类队列实现合并
-                count = 0       # 计数
-                stable = []     # 遵循不可多次吃棋的规则
-                for locals()[myPhase['p2']] in myPhase['r2']:
-                    if self.belong[row][column] != playerNumber:  # 苟非吾之所有
-                        while count > len(queue): queue.append(None)
-                        queue.append(self.platform[row][column])
-                    elif self.platform[row][column] != None:
+            
+            change = False
+            myDict = {}  # 变量字典
+            for myDict[myPhase['p1']] in myPhase['r1']:
+                queue = []                  # 用类队列实现合并
+                position = (None, None)     # 队尾的位置
+                count = 0                   # 计数
+                stable = []                 # 遵循不可多次吃棋的规则
+                for myDict[myPhase['p2']] in myPhase['r2']:
+                    if self.belong[myDict['row']][myDict['column']] != playerNumber:  # 苟非吾之所有
+                        while count > len(queue):
+                            change = True   # 发生改变的情况1
+                            queue.append(None)
+                        queue.append(self.platform[myDict['row']][myDict['column']])
+                        position = (myDict['row'], myDict['column'])
+                    elif self.platform[myDict['row']][myDict['column']] != None:
                         if queue == []:
-                            queue.append(self.platform[row][column])
+                            queue.append(self.platform[myDict['row']][myDict['column']])
+                            position = (myDict['row'], myDict['column'])
                         elif queue[-1] == None:  # 越界填补空位
-                            change = True
-                            queue[-1] = self.platform[row][column]
-                            self.belong[row-myPhase['delta_r']][column-myPhase['delta_c']] = playerNumber  # 修改领域归属
-                        elif queue[-1] == self.platform[row][column] and len(queue) not in stable:  # 不可多次吃棋
-                            change = True
-                            queue[-1] = self.platform[row][column] * 2
-                            self.belong[row-myPhase['delta_r']][column-myPhase['delta_c']] = playerNumber  # 修改领域归属
-                            stable.append(len(queue))
+                            queue[-1] = self.platform[myDict['row']][myDict['column']]
+                            self.belong[position[0]][position[1]] = playerNumber  # 修改领域归属
+                        elif queue[-1] == self.platform[myDict['row']][myDict['column']] and position not in stable:  # 不可多次吃棋
+                            queue[-1] = self.platform[myDict['row']][myDict['column']] * 2
+                            self.belong[position[0]][position[1]] = playerNumber  # 修改领域归属
+                            stable.append(position)
                         else:
-                            queue.append(self.platform[row][column])
+                            queue.append(self.platform[myDict['row']][myDict['column']])
+                            position = (myDict['row'], myDict['column'])
                     count += 1
+
+                if count > len(queue): change = True   # 发生改变的情况2
+                for myDict[myPhase['p2']] in myPhase['r2']:
+                    self.platform[myDict['row']][myDict['column']] = queue.pop(0) if queue != [] else None  # 更新地图
                     
-                if change:
-                    for locals()[myPhase['p2']] in myPhase['r2']:
-                        self.platform[row][column] = queue.pop(0) if queue != [] else None  # 更新地图
-     
+            return change
+        
         if name == 'position':
             self.platform[self.position[playerNumber][0]][self.position[playerNumber][1]] = 2
         else:
@@ -314,7 +297,6 @@ class Platform:
         -> winner继续游戏
         '''
         for _ in range(self.currentRound + 1, self.rounds):
-            
             self.next = self.get_next(self.winner)                    # 按照随机序列得到下一个位置
             self.player[self.winner].input_direction(None)
             self.position[self.winner] = self.player[self.winner].output_position()
@@ -329,6 +311,8 @@ class Platform:
             self.update(self.winner, 'direction')                     # 更新棋盘
             if self.checkViolate(self.winner, 'direction'): break     # 判断是否违规
             self.record[self.winner]['direction'].append(self.direction[self.winner])
+
+            #self.monitor()  # 调试用
 
     def get_next(self, playerNumber):
         '''
@@ -351,17 +335,32 @@ class Platform:
         -> 用于复盘
         -> 可以接上UI
         '''
+        print('total rounds are', self.currentRound + 1)
         print('score of player 0 is', self.score[0])
         print('score of player 1 is', self.score[1])
+        print('time of player 0 is', time0)
+        print('time of player 1 is', time1)
         
         if self.timeout != None: print('player', self.timeout, 'time out.')
         elif self.violator != None: print('player', self.violator, 'violate.')
         elif self.end != None: print('player', self.end, 'end.')
         print('player', self.winner, 'win.')
+
+    def monitor(self):
+        '''
+        -> 监控运行状态
+        '''
+        print('round:', self.currentRound)
+        print('player 0 chose position', self.position[0])
+        print('player 1 chose position', self.position[1])
+        print('player 0 chose direction', self.direction[0])
+        self.player[0].show()
+        print('player 1 chose direction', self.direction[1])
+        self.player[1].show()
             
 if __name__ == '__main__':
-    player0 = Player0()
-    player1 = Player1()
-    platform = Platform(3, [1, 1, 1], 3, player0, player1)
+    player0 = Player0(True)
+    player1 = Player1(False)
+    platform = Platform(100, list(range(100)), 10, player0, player1)
     platform.game_start()
     platform.review()
