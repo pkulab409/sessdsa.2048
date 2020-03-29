@@ -191,6 +191,7 @@ class Platform:
         else:
             if self.direction[playerNumber] not in range(4):
                 self.log.append('-e player %d violate by illegal output of direction' % playerNumber)
+                return True
             elif self.change:
                 return False
             else:
