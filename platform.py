@@ -1,9 +1,11 @@
-# <!>--平台的pass部分待补充--<!>
-
 # 对战平台接口
 # 有bug可以找@SophieARG讨论
 
 # 参赛队伍的AI请写在Player类里
+#
+# 须维护一个属性: 
+# currentRound 当前轮数, 确保平台与AI共享同一状态
+#
 # 须实现六个方法:
 #
 # __init__(self, isFirst):
@@ -95,7 +97,7 @@ class Platform:
         self.currentRound = 0                           # 当前轮数
         self.change = False                             # 监控棋盘是否改变
         self.next = (None, None)                        # 按照随机序列得到的下一个位置
-        self.record = [{'position':[], 'direction':[]}, {'position':[], 'direction':[]}]    # 记录决策
+        self.log = []                                   # 日志, -d 决策 decision, -p 棋盘 platform, -e 事件 event
         self.belong = [[0 if _ <= 3 else 1 for _ in range(8)] for _ in range(4)]            # 记录领域信息
         self.platform = [[None for _ in range(8)] for _ in range(4)]                        # 记录棋子信息
         
@@ -105,53 +107,58 @@ class Platform:
         # 载入随机序列
         
         for _ in range(self.rounds):
+            self.log.append('-e round %d' % _)
             self.currentRound = _                           # 记录当前轮数, 从0开始
             
             self.next = self.get_next(0)                    # 按照随机序列得到下一个位置
             self.player[0].input_direction(self.direction[1])
             self.position[0] = self.player[0].output_position()
             if self.checkTime(0): break                     # 判断是否超时
+            self.log.append('-d player 0 set position %s' % str(self.position[0]))
             if self.checkViolate(0, 'position'): break      # 判断是否违规
             self.update(0, 'position')                      # 更新棋盘 
-            self.record[0]['position'].append(self.position[0])
+            self.log.append('-p\n' + self.__repr__())
             
             self.next = self.get_next(1)                    # 按照随机序列得到下一个位置
             self.player[1].input_position(*self.position[0])
             self.position[1] = self.player[1].output_position()
             if self.checkTime(1): break                     # 判断是否超时
+            self.log.append('-d player 1 set position %s' % str(self.position[1]))
             if self.checkViolate(1, 'position'): break      # 判断是否违规
             self.update(1, 'position')                      # 更新棋盘 
-            self.record[1]['position'].append(self.position[1])
+            self.log.append('-p\n' + self.__repr__())
             
             self.player[0].input_position(*self.position[1])
             self.direction[0] = self.player[0].output_direction()
             if self.checkTime(0): break                     # 判断是否超时
+            self.log.append('-d player 0 set direction %s' % str(self.direction[0]))
             self.update(0, 'direction')                     # 更新棋盘
             if self.checkViolate(0, 'direction'): break     # 判断是否违规
-            self.record[0]['direction'].append(self.direction[0])
+            self.log.append('-p\n' + self.__repr__())
             
             self.player[1].input_direction(self.direction[0])
             self.direction[1] = self.player[1].output_direction()
             if self.checkTime(1): break                     # 判断是否超时
+            self.log.append('-d player 1 set direction %s' % str(self.direction[1]))
             self.update(1, 'direction')                     # 更新棋盘
             if self.checkViolate(1, 'direction'): break     # 判断是否违规
-            self.record[1]['direction'].append(self.direction[1])
-
-            #self.monitor()  # 调试用
+            self.log.append('-p\n' + self.__repr__())
             
             if self.checkEnd(): break      # 判断是否进入终局
             
         else:  # 总回合数耗尽
             self.scoring()      # 计分
             return
-
+        
         self.comment()          # 得到winner
         self.go_on()            # 胜方继续游戏
         self.scoring()          # 计分
 
     def checkTime(self, playerNumber):
         if globals()['time%d' % playerNumber] >= self.maxtime:
-            if self.timeout == None: self.timeout = playerNumber
+            if self.timeout == None:
+                self.log.append('-e player %d time out' % playerNumber)
+                self.timeout = playerNumber
             return True
         else:
             return False
@@ -166,7 +173,9 @@ class Platform:
         if name == 'position':
             
             if not (isinstance(self.position[playerNumber], tuple) and len(self.position[playerNumber]) == 2):
-                if self.violator == None: self.violator = playerNumber
+                if self.violator == None:
+                    self.log.append('-e player %d violate by illegal output of position' % playerNumber)
+                    self.violator = playerNumber
                 return True
             
             row, column = self.position[playerNumber]
@@ -174,14 +183,20 @@ class Platform:
                            (self.belong[row][column] == 1 - playerNumber or self.position[playerNumber] == self.next):
                 return False
             else:
-                if self.violator == None: self.violator = playerNumber
+                if self.violator == None:
+                    self.log.append('-e player %d violate by not achievable position' % playerNumber)
+                    self.violator = playerNumber
                 return True
 
         else:
-            if self.change:
+            if self.direction[playerNumber] not in range(4):
+                self.log.append('-e player %d violate by illegal output of direction' % playerNumber)
+            elif self.change:
                 return False
             else:
-                if self.violator == None: self.violator = playerNumber
+                if self.violator == None:
+                    self.log.append('-e player %d violate by not achievable direction' % playerNumber)
+                    self.violator = playerNumber
                 return True
 
     def update(self, playerNumber, name):
@@ -238,8 +253,6 @@ class Platform:
         else:
             if self.direction[playerNumber] in range(4):
                 self.change = move(self, playerNumber)
-            else:
-                self.change = False  # 不合规格的输入
 
     def checkEnd(self):
         '''
@@ -261,6 +274,7 @@ class Platform:
                                or self.platform[row][column] == None or self.platform[row+1][column] == None:
                         return False
                     
+        self.log.append('-e player 0 end')
         self.end = 0
         return True
 
@@ -268,6 +282,7 @@ class Platform:
         for _ in (self.timeout, self.violator, self.end):
             if _ != None:
                 self.winner = 0 if _ == 1 else 1
+                self.log.append('-e player %d win' % self.winner)
                 return
 
     def scoring(self):
@@ -281,38 +296,49 @@ class Platform:
                     score1[self.platform[row][column]] += 1
         # 获取所有棋子
         self.score = (score0, score1)
-        
-        for _ in reversed(range(15)):
-            if score0[2**_] > score1[2**_] and self.winner == None:
-                self.winner = 0
-                break
-            if score0[2**_] < score1[2**_] and self.winner == None:
-                self.winner = 0
-                break
-        else:
-            if self.winner == None: raise Exception('Tied')  # 平局
+        if self.winner == None:
+            for _ in reversed(range(15)):
+                self.log.append('-e check %d' % 2**_)
+                if score0[2**_] > score1[2**_]:
+                    self.winner = 0
+                    self.log.append('-e player %d win' % self.winner)
+                    break
+                if score0[2**_] < score1[2**_]:
+                    self.winner = 1
+                    self.log.append('-e player %d win' % self.winner)
+                    break
+            else:
+                if self.winner == None:
+                    self.log.append('-e tied')
+                    raise Exception('Tied')  # 平局
 
     def go_on(self):
         '''
         -> winner继续游戏
         '''
-        for _ in range(self.currentRound + 1, self.rounds):
+        self.log.append('-e winner going on...')
+        self.player[self.winner].currentRound = self.currentRound + 1
+        for _ in range(self.player[self.winner].currentRound, self.rounds):
+            self.log.append('-e round %d' % _)
+            self.currentRound = _
+            
             self.next = self.get_next(self.winner)                    # 按照随机序列得到下一个位置
             self.player[self.winner].input_direction(None)
             self.position[self.winner] = self.player[self.winner].output_position()
             if self.checkTime(self.winner): break                     # 判断是否超时
+            self.log.append('-d player %d set position %s' % (self.winner, str(self.position[self.winner])))
             if self.checkViolate(self.winner, 'position'): break      # 判断是否违规
             self.update(self.winner, 'position')                      # 更新棋盘 
-            self.record[self.winner]['position'].append(self.position[self.winner])
+            self.log.append('-p\n' + self.__repr__())
 
             self.player[self.winner].input_position(None, None)
             self.direction[self.winner] = self.player[self.winner].output_direction()
             if self.checkTime(self.winner): break                     # 判断是否超时
+            self.log.append('-d player %d set direction %s' % (self.winner, str(self.direction[self.winner])))
             self.update(self.winner, 'direction')                     # 更新棋盘
             if self.checkViolate(self.winner, 'direction'): break     # 判断是否违规
-            self.record[self.winner]['direction'].append(self.direction[self.winner])
-
-            #self.monitor()  # 调试用
+            self.log.append('-p\n' + self.__repr__())
+        self.log.append('-e winner ending...')
 
     def get_next(self, playerNumber):
         '''
@@ -335,32 +361,41 @@ class Platform:
         -> 用于复盘
         -> 可以接上UI
         '''
+        
+        while True:
+            choice = input('for complete record...(y/n): ')
+            if choice == 'y':
+                print('\n'.join(self.log))
+                break
+            elif choice == 'n':
+                break
+
+        print('=' * 50)    
         print('total rounds are', self.currentRound + 1)
         print('score of player 0 is', self.score[0])
         print('score of player 1 is', self.score[1])
         print('time of player 0 is', time0)
         print('time of player 1 is', time1)
         
-        if self.timeout != None: print('player', self.timeout, 'time out.')
-        elif self.violator != None: print('player', self.violator, 'violate.')
-        elif self.end != None: print('player', self.end, 'end.')
-        print('player', self.winner, 'win.')
+        if self.timeout != None: print('player', self.timeout, 'time out')
+        elif self.violator != None: print('player', self.violator, 'violate')
+        elif self.end != None: print('player', self.end, 'end')
+        print('player', self.winner, 'win')
 
-    def monitor(self):
-        '''
-        -> 监控运行状态
-        '''
-        print('round:', self.currentRound)
-        print('player 0 chose position', self.position[0])
-        print('player 1 chose position', self.position[1])
-        print('player 0 chose direction', self.direction[0])
-        self.player[0].show()
-        print('player 1 chose direction', self.direction[1])
-        self.player[1].show()
+    def __str__(self):
+        # 打印棋盘, + 代表先手, - 代表后手
+        platform = ''
+        for row in range(4):
+            for column in range(8):
+                platform += ('+' if self.belong[row][column] == 0 else '-') + \
+                repr(self.platform[row][column] if self.platform[row][column] != None else 0).zfill(4) + ' '
+            platform += '\n'
+        return platform[:-1]
+    __repr__ = __str__
             
 if __name__ == '__main__':
     player0 = Player0(True)
     player1 = Player1(False)
-    platform = Platform(100, list(range(100)), 10, player0, player1)
+    platform = Platform(100, list(range(100)), 0.03, player0, player1)
     platform.game_start()
     platform.review()
