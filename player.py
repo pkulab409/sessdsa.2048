@@ -1,3 +1,42 @@
+# 基于随机算法的模版AI
+
+# 参赛队伍的AI要求:
+#
+# 须写在Player类里
+#
+# 须维护一个属性: 
+# currentRound 当前轮数, 确保对战平台与AI共享同一状态
+#
+# 须实现六个方法:
+#
+# __init__(self, isFirst):
+#   -> 初始化
+#   -> 参数: isFirst是否先手, 为bool变量, isFirst = True 表示先手
+#
+# init_process(self, array):
+#   -> 接受随机序列
+#   -> 参数: array随机序列, 为一个长度等于总回合数的list
+#
+# input_position(self, row, column):
+#   -> 接受对方下棋的位置
+#   -> 参数: row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
+#   -> 说明: row = None, column = None 表示对方没有下棋
+#
+# input_direction(self, direction):
+#   -> 接受对方合并的方向
+#   -> 参数: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
+#   -> 说明: direction = None 表示对方没有选择合并方向
+#
+# output_position(self):
+#   -> 给出己方下棋的位置
+#   -> 返回: (row, column), row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
+#
+# output_direction(self):
+#   -> 给出己方合并的方向
+#   -> 返回: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
+#
+# 其余的属性与方法请自行设计
+
 class Player:
     def __init__(self, isFirst):
         # 初始化
@@ -21,30 +60,35 @@ class Player:
             position = (None, None)     # 队尾的位置
             count = 0                   # 计数
             stable = []                 # 遵循不可多次吃棋的规则
+            exist = False               # 存在空方格
             for myDict[myPhase['p2']] in myPhase['r2']:
                 if self.belong[myDict['row']][myDict['column']] != isSelf:
-                    while count > len(queue):
-                        change = True   # 发生改变的情况1
-                        queue.append(None)
+                    while count > len(queue): queue.append(None)
                     queue.append(self.platform[myDict['row']][myDict['column']])
                     position = (myDict['row'], myDict['column'])
+                    exist = False
                 elif self.platform[myDict['row']][myDict['column']] != None:
                     if queue == []:
                         queue.append(self.platform[myDict['row']][myDict['column']])
                         position = (myDict['row'], myDict['column'])
+                        if exist: change = True
                     elif queue[-1] == None:  # 越界填补空位
                         queue[-1] = self.platform[myDict['row']][myDict['column']]
                         self.belong[position[0]][position[1]] = isSelf  # 修改领域归属
+                        change = True
                     elif queue[-1] == self.platform[myDict['row']][myDict['column']] and position not in stable:   # 不可多次吃棋
                         queue[-1] = self.platform[myDict['row']][myDict['column']] * 2
                         self.belong[position[0]][position[1]] = isSelf  # 修改领域归属
+                        change = True
                         stable.append(position)
                     else:
                         queue.append(self.platform[myDict['row']][myDict['column']])
                         position = (myDict['row'], myDict['column'])
+                        if exist: change = True
+                else:
+                    exist = True
                 count += 1
-                
-            if count > len(queue): change = True   # 发生改变的情况2
+
             for myDict[myPhase['p2']] in myPhase['r2']:
                 self.platform[myDict['row']][myDict['column']] = queue.pop(0) if queue != [] else None  # 更新地图
                 
