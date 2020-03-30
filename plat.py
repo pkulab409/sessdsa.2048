@@ -1,42 +1,6 @@
 # 对战平台接口
 # 有bug可以找@SophieARG讨论
 
-# 参赛队伍的AI请写在Player类里
-#
-# 须维护一个属性: 
-# currentRound 当前轮数, 确保平台与AI共享同一状态
-#
-# 须实现六个方法:
-#
-# __init__(self, isFirst):
-#   -> 初始化
-#   -> 参数: isFirst是否先手, 为bool变量, isFirst = True 表示先手
-#
-# init_process(self, array):
-#   -> 接受随机序列
-#   -> 参数: array随机序列, 为一个长度等于总回合数的list
-#
-# input_position(self, row, column):
-#   -> 接受对方下棋的位置
-#   -> 参数: row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
-#   -> 说明: row = None, column = None 表示对方没有下棋
-#
-# input_direction(self, direction):
-#   -> 接受对方合并的方向
-#   -> 参数: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
-#   -> 说明: direction = None 表示对方没有选择合并方向
-#
-# output_position(self):
-#   -> 给出己方下棋的位置
-#   -> 返回: (row, column), row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
-#
-# output_direction(self):
-#   -> 给出己方合并的方向
-#   -> 返回: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
-#
-# 其余的属性与方法请自行设计
-# AI中不允许出现对全局变量time1和time2的手动修改, 因为这是作弊哦!
-
 from player import Player as Player0  # 先手
 from player import Player as Player1  # 后手
 import constants as c                 # 游戏常数
@@ -65,13 +29,12 @@ Player0.input_position = timeManager(0)(Player0.input_position)
 Player0.input_direction = timeManager(0)(Player0.input_direction)
 Player0.output_position = timeManager(0)(Player0.output_position)
 Player0.output_direction = timeManager(0)(Player0.output_direction)
-    
+        
 Player1.init_process = timeManager(1)(Player1.init_process)
 Player1.input_position = timeManager(1)(Player1.input_position)
 Player1.input_direction = timeManager(1)(Player1.input_direction)
 Player1.output_position = timeManager(1)(Player1.output_position)
 Player1.output_direction = timeManager(1)(Player1.output_direction)
-
 
 # 对战平台
 
@@ -98,7 +61,7 @@ class Platform:
         self.currentRound = 0                           # 当前轮数
         self.change = False                             # 监控棋盘是否改变
         self.next = (None, None)                        # 按照随机序列得到的下一个位置
-        self.log = []                                   # 日志, -d 决策 decision, -p 棋盘 platform, -e 事件 event
+        self.log = []                                   # 日志, &d 决策 decision, &p 棋盘 platform, &e 事件 event
         self.belong = c.INIT_BELONG                     # 记录领域信息
         self.platform = c.INIT_PLATFORM                 # 记录棋子信息
         
@@ -108,42 +71,42 @@ class Platform:
         # 载入随机序列
         
         for _ in range(self.rounds):
-            self.log.append('-e round %d' % _)
+            self.log.append('&e round %d' % _)
             self.currentRound = _                           # 记录当前轮数, 从0开始
             
             self.next = self.get_next(0)                    # 按照随机序列得到下一个位置
             self.player[0].input_direction(self.direction[1])
             self.position[0] = self.player[0].output_position()
             if self.checkTime(0): break                     # 判断是否超时
-            self.log.append('-d player 0 set position %s' % str(self.position[0]))
+            self.log.append('&d player 0 set position %s' % str(self.position[0]))
             if self.checkViolate(0, 'position'): break      # 判断是否违规
             self.update(0, 'position')                      # 更新棋盘 
-            self.log.append('-p\n' + self.__repr__())
+            self.log.append('&p\n' + self.__repr__())
             
             self.next = self.get_next(1)                    # 按照随机序列得到下一个位置
             self.player[1].input_position(*self.position[0])
             self.position[1] = self.player[1].output_position()
             if self.checkTime(1): break                     # 判断是否超时
-            self.log.append('-d player 1 set position %s' % str(self.position[1]))
+            self.log.append('&d player 1 set position %s' % str(self.position[1]))
             if self.checkViolate(1, 'position'): break      # 判断是否违规
             self.update(1, 'position')                      # 更新棋盘 
-            self.log.append('-p\n' + self.__repr__())
+            self.log.append('&p\n' + self.__repr__())
             
             self.player[0].input_position(*self.position[1])
             self.direction[0] = self.player[0].output_direction()
             if self.checkTime(0): break                     # 判断是否超时
-            self.log.append('-d player 0 set direction %s' % str(self.direction[0]))
+            self.log.append('&d player 0 set direction %s' % str(self.direction[0]))
             self.update(0, 'direction')                     # 更新棋盘
             if self.checkViolate(0, 'direction'): break     # 判断是否违规
-            self.log.append('-p\n' + self.__repr__())
+            self.log.append('&p\n' + self.__repr__())
             
             self.player[1].input_direction(self.direction[0])
             self.direction[1] = self.player[1].output_direction()
             if self.checkTime(1): break                     # 判断是否超时
-            self.log.append('-d player 1 set direction %s' % str(self.direction[1]))
+            self.log.append('&d player 1 set direction %s' % str(self.direction[1]))
             self.update(1, 'direction')                     # 更新棋盘
             if self.checkViolate(1, 'direction'): break     # 判断是否违规
-            self.log.append('-p\n' + self.__repr__())
+            self.log.append('&p\n' + self.__repr__())
             
             if self.checkEnd(): break      # 判断是否进入终局
             
@@ -158,7 +121,7 @@ class Platform:
     def checkTime(self, playerNumber):
         if globals()['time%d' % playerNumber] >= self.maxtime:
             if self.winner == None:
-                self.log.append('-e player %d time out' % playerNumber)
+                self.log.append('&e player %d time out' % playerNumber)
                 self.timeout = playerNumber
             return True
         else:
@@ -175,7 +138,7 @@ class Platform:
             
             if not (isinstance(self.position[playerNumber], tuple) and len(self.position[playerNumber]) == 2):
                 if self.winner == None:
-                    self.log.append('-e player %d violate by illegal output of position' % playerNumber)
+                    self.log.append('&e player %d violate by illegal output of position' % playerNumber)
                     self.violator = playerNumber
                 return True
             
@@ -185,22 +148,23 @@ class Platform:
                 return False
             else:
                 if self.winner == None:
-                    self.log.append('-e player %d violate by not achievable position' % playerNumber)
+                    self.log.append('&e player %d violate by not achievable position' % playerNumber)
                     self.violator = playerNumber
                 return True
 
         else:
             if self.direction[playerNumber] not in range(4):
-                self.log.append('-e player %d violate by illegal output of direction' % playerNumber)
+                self.log.append('&e player %d violate by illegal output of direction' % playerNumber)
                 self.violator = playerNumber
                 return True
             elif self.change:
                 return False
             else:
                 if self.winner == None:
-                    self.log.append('-e player %d violate by not achievable direction' % playerNumber)
+                    self.log.append('&e player %d violate by not achievable direction' % playerNumber)
                     self.violator = playerNumber
                 return True
+            self.change = False
 
     def update(self, playerNumber, name):
         '''
@@ -222,30 +186,35 @@ class Platform:
                 position = (None, None)     # 队尾的位置
                 count = 0                   # 计数
                 stable = []                 # 遵循不可多次吃棋的规则
+                exist = False               # 存在空方格
                 for myDict[myPhase['p2']] in myPhase['r2']:
                     if self.belong[myDict['row']][myDict['column']] != playerNumber:  # 苟非吾之所有
-                        while count > len(queue):
-                            change = True   # 发生改变的情况1
-                            queue.append(0)
+                        while count > len(queue): queue.append(0)
                         queue.append(self.platform[myDict['row']][myDict['column']])
                         position = (myDict['row'], myDict['column'])
+                        exist = False
                     elif self.platform[myDict['row']][myDict['column']] != 0:
                         if queue == []:
                             queue.append(self.platform[myDict['row']][myDict['column']])
                             position = (myDict['row'], myDict['column'])
+                            if exist: change = True
                         elif queue[-1] == 0:  # 越界填补空位
                             queue[-1] = self.platform[myDict['row']][myDict['column']]
                             self.belong[position[0]][position[1]] = playerNumber  # 修改领域归属
+                            change = True
                         elif queue[-1] == self.platform[myDict['row']][myDict['column']] and position not in stable:  # 不可多次吃棋
                             queue[-1] = self.platform[myDict['row']][myDict['column']] + 1
                             self.belong[position[0]][position[1]] = playerNumber  # 修改领域归属
+                            change = True
                             stable.append(position)
                         else:
                             queue.append(self.platform[myDict['row']][myDict['column']])
                             position = (myDict['row'], myDict['column'])
+                            if exist: change = True
+                    else:
+                        exist = True
                     count += 1
 
-                if count > len(queue): change = True   # 发生改变的情况2
                 for myDict[myPhase['p2']] in myPhase['r2']:
                     self.platform[myDict['row']][myDict['column']] = queue.pop(0) if queue != [] else 0  # 更新地图
                     
@@ -277,7 +246,7 @@ class Platform:
                                or self.platform[row][column] == 0 or self.platform[row+1][column] == 0:
                         return False
                     
-        self.log.append('-e player 0 end')
+        self.log.append('&e player 0 end')
         self.end = 0
         return True
 
@@ -285,7 +254,7 @@ class Platform:
         for _ in (self.timeout, self.violator, self.end):
             if _ != None:
                 self.winner = 0 if _ == 1 else 1
-                self.log.append('-e player %d win' % self.winner)
+                self.log.append('&e player %d win' % self.winner)
                 return
 
     def scoring(self):
@@ -301,48 +270,48 @@ class Platform:
         self.score = (score0, score1)
         if self.winner == None:
             for _ in reversed(range(c.MAXLEVEL)):
-                self.log.append('-e check level %d' % _)
+                self.log.append('&e check level %d' % _)
                 if score0[_] > score1[_]:
                     self.winner = 0
-                    self.log.append('-e player 0 win by level %d: %d to %d' % (_, score0[_], score1[_]))
+                    self.log.append('&e player 0 win by level %d: %d to %d' % (_, score0[_], score1[_]))
                     break
                 if score0[_] < score1[_]:
                     self.winner = 1
-                    self.log.append('-e player 1 win by level %d: %d to %d' % (_, score1[_], score0[_]))
+                    self.log.append('&e player 1 win by level %d: %d to %d' % (_, score1[_], score0[_]))
                     break
-                self.log.append('-e level %d tied by %d' % (_, score0[_]))
+                self.log.append('&e level %d tied by %d' % (_, score0[_]))
             else:
                 if self.winner == None:
-                    self.log.append('-e tied')
+                    self.log.append('&e tied')
                     raise Exception('Tied')  # 平局
 
     def go_on(self):
         '''
         -> winner继续游戏
         '''
-        self.log.append('-e winner going on...')
+        self.log.append('&e winner going on...')
         self.player[self.winner].currentRound = self.currentRound + 1
         for _ in range(self.player[self.winner].currentRound, self.rounds):
-            self.log.append('-e round %d' % _)
+            self.log.append('&e round %d' % _)
             self.currentRound = _
             
             self.next = self.get_next(self.winner)                    # 按照随机序列得到下一个位置
             self.player[self.winner].input_direction(None)
             self.position[self.winner] = self.player[self.winner].output_position()
             if self.checkTime(self.winner): break                     # 判断是否超时
-            self.log.append('-d player %d set position %s' % (self.winner, str(self.position[self.winner])))
+            self.log.append('&d player %d set position %s' % (self.winner, str(self.position[self.winner])))
             if self.checkViolate(self.winner, 'position'): break      # 判断是否违规
             self.update(self.winner, 'position')                      # 更新棋盘 
-            self.log.append('-p\n' + self.__repr__())
+            self.log.append('&p\n' + self.__repr__())
 
             self.player[self.winner].input_position(None, None)
             self.direction[self.winner] = self.player[self.winner].output_direction()
             if self.checkTime(self.winner): break                     # 判断是否超时
-            self.log.append('-d player %d set direction %s' % (self.winner, str(self.direction[self.winner])))
+            self.log.append('&d player %d set direction %s' % (self.winner, str(self.direction[self.winner])))
             self.update(self.winner, 'direction')                     # 更新棋盘
             if self.checkViolate(self.winner, 'direction'): break     # 判断是否违规
-            self.log.append('-p\n' + self.__repr__())
-        self.log.append('-e winner ending...')
+            self.log.append('&p\n' + self.__repr__())
+        self.log.append('&e winner ending...')
 
     def get_next(self, playerNumber):
         '''
@@ -363,9 +332,7 @@ class Platform:
     def review(self):
         '''
         -> 用于复盘
-        -> 可以接上UI
         '''
-        
         while True:
             choice = input('for complete record...(y/n): ')
             if choice == 'y':
@@ -373,7 +340,7 @@ class Platform:
                 break
             elif choice == 'n':
                 break
-
+            
         print('=' * 50)    
         print('total rounds are', self.currentRound + 1)
         print('score of player 0 is', self.score[0])
@@ -385,18 +352,54 @@ class Platform:
         elif self.violator != None: print('player', self.violator, 'violate')
         elif self.end != None: print('player', self.end, 'end')
         print('player', self.winner, 'win')
+        print('=' * 50)
+        
+        while True:
+            choice = input('save record...(y/n): ')
+            if choice == 'y':
+                self.savelog()
+                break
+            elif choice == 'n':
+                break
 
     def __str__(self):
         # 打印棋盘, + 代表先手, - 代表后手
         platform = ''
         for row in range(c.ROWS):
             for column in range(c.COLUMNS):
-                platform += ('+' if self.belong[row][column] == 0 else '-') + c.NAMES[self.platform[row][column]] + ' '
+                platform += ('+' if self.belong[row][column] == 0 else '-') + str(self.platform[row][column]).zfill(2) + ' '
             platform += '\n'
         return platform[:-1]
     __repr__ = __str__
-            
+
+    def savelog(self):
+        '''
+        -> 保存对局信息
+        -> 保存的信息可以用analyser.py解析
+        '''
+        filename = input('filename: ')
+        file = open('%s.txt' % filename,'w')
+        myDict = {0:'player 0', 1:'player 1', None:'None'}  # 协助转换为字符串
+        title = 'name: %s\n' % filename + \
+                'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
+                '<- basic record ->\n' + \
+                'timeout: %s\n' % myDict[self.timeout] + \
+                'violator: %s\n' % myDict[self.violator] + \
+                'end: %s\n' % myDict[self.end] + \
+                'score of player 0: %s\n' % self.score[0] + \
+                'score of player 1: %s\n' % self.score[1] + \
+                'winner: %s\n' % myDict[self.winner]
+        file.write(title)
+        file.flush()
+        file.write('<- complete record ->\n')
+        for log in self.log:
+            file.write(log + '\n')  # '&'表示一条log的开始
+            file.flush()
+        file.close()
+
+        
 if __name__ == '__main__':
+    # 开始游戏
     player0 = Player0(True)
     player1 = Player1(False)
     platform = Platform(player0, player1)
