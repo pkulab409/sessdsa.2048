@@ -10,7 +10,7 @@
 #
 # __init__(self, isFirst):
 #   -> 初始化
-#   -> 参数: isFirst是否先手, 为bool变量, isFirst = True 表示为先手
+#   -> 参数: isFirst是否先手, 为bool变量, isFirst = True 表示先手
 #
 # init_process(self, array):
 #   -> 接受随机序列
@@ -19,26 +19,27 @@
 # input_position(self, row, column):
 #   -> 接受对方下棋的位置
 #   -> 参数: row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
-#   -> 说明: row = None, column = None 表示第一轮先手
+#   -> 说明: row = None, column = None 表示对方没有下棋
 #
 # input_direction(self, direction):
 #   -> 接受对方合并的方向
 #   -> 参数: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
-#   -> 说明: direction = None 表示第一轮先手
+#   -> 说明: direction = None 表示对方没有选择合并方向
 #
 # output_position(self):
 #   -> 给出己方下棋的位置
-#   -> 返回: row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
+#   -> 返回: (row, column), row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
 #
 # output_direction(self):
 #   -> 给出己方合并的方向
 #   -> 返回: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
 #
-# 其余的方法与属性请自行设计
+# 其余的属性与方法请自行设计
 # AI中不允许出现对全局变量time1和time2的手动修改, 因为这是作弊哦!
 
-from player import Player as Player0
-from player import Player as Player1
+from player import Player as Player0  # 先手
+from player import Player as Player1  # 后手
+import constants as c                 # 游戏常数
 
 import time
 import functools
@@ -76,7 +77,7 @@ Player1.output_direction = timeManager(1)(Player1.output_direction)
 
 class Platform:
     
-    def __init__(self, rounds, array, maxtime, player0, player1):
+    def __init__(self, player0, player1):
         '''
         -> rounds: 总回合数, 为一个正的int
         -> array: 随机序列, 为一个长度等于总回合数的list
@@ -84,9 +85,9 @@ class Platform:
         -> player1: 参赛队伍1, Player1对象
         -> player2: 参赛队伍2, Player2对象
         '''
-        self.rounds = rounds                            # 总回合数
-        self.array = array                              # 随机序列
-        self.maxtime = maxtime                          # 总时间限制
+        self.rounds = c.ROUNDS                          # 总回合数
+        self.array = c.ARRAY                            # 随机序列
+        self.maxtime = c.MAXTIME                        # 总时间限制
         self.winner = None                              # 胜利者
         self.violator = None                            # 违规者
         self.timeout = None                             # 超时者
@@ -98,8 +99,8 @@ class Platform:
         self.change = False                             # 监控棋盘是否改变
         self.next = (None, None)                        # 按照随机序列得到的下一个位置
         self.log = []                                   # 日志, -d 决策 decision, -p 棋盘 platform, -e 事件 event
-        self.belong = [[0 if _ <= 3 else 1 for _ in range(8)] for _ in range(4)]            # 记录领域信息
-        self.platform = [[None for _ in range(8)] for _ in range(4)]                        # 记录棋子信息
+        self.belong = c.INIT_BELONG                     # 记录领域信息
+        self.platform = c.INIT_PLATFORM                 # 记录棋子信息
         
     def game_start(self):
         self.player[0].init_process(self.array)
@@ -156,7 +157,7 @@ class Platform:
 
     def checkTime(self, playerNumber):
         if globals()['time%d' % playerNumber] >= self.maxtime:
-            if self.timeout == None:
+            if self.winner == None:
                 self.log.append('-e player %d time out' % playerNumber)
                 self.timeout = playerNumber
             return True
@@ -173,17 +174,17 @@ class Platform:
         if name == 'position':
             
             if not (isinstance(self.position[playerNumber], tuple) and len(self.position[playerNumber]) == 2):
-                if self.violator == None:
+                if self.winner == None:
                     self.log.append('-e player %d violate by illegal output of position' % playerNumber)
                     self.violator = playerNumber
                 return True
             
             row, column = self.position[playerNumber]
-            if row in range(4) and column in range(8) and self.platform[row][column] == None and \
+            if row in range(c.ROWS) and column in range(c.COLUMNS) and self.platform[row][column] == 0 and \
                            (self.belong[row][column] == 1 - playerNumber or self.position[playerNumber] == self.next):
                 return False
             else:
-                if self.violator == None:
+                if self.winner == None:
                     self.log.append('-e player %d violate by not achievable position' % playerNumber)
                     self.violator = playerNumber
                 return True
@@ -191,11 +192,12 @@ class Platform:
         else:
             if self.direction[playerNumber] not in range(4):
                 self.log.append('-e player %d violate by illegal output of direction' % playerNumber)
+                self.violator = playerNumber
                 return True
             elif self.change:
                 return False
             else:
-                if self.violator == None:
+                if self.winner == None:
                     self.log.append('-e player %d violate by not achievable direction' % playerNumber)
                     self.violator = playerNumber
                 return True
@@ -207,10 +209,10 @@ class Platform:
         '''
         def move(self, playerNumber):  # 合并, 同时返回棋盘是否改变
             
-            myPhase = [{'p1':'column', 'p2':'row', 'r1':range(8), 'r2':range(4)},
-                       {'p1':'column', 'p2':'row', 'r1':range(8), 'r2':range(3, -1, -1)},
-                       {'p1':'row', 'p2':'column', 'r1':range(4), 'r2':range(8)},
-                       {'p1':'row', 'p2':'column', 'r1':range(4), 'r2':range(7, -1, -1)}
+            myPhase = [{'p1':'column', 'p2':'row', 'r1':range(c.COLUMNS), 'r2':range(c.ROWS)},
+                       {'p1':'column', 'p2':'row', 'r1':range(c.COLUMNS), 'r2':range(c.ROWS - 1, -1, -1)},
+                       {'p1':'row', 'p2':'column', 'r1':range(c.ROWS), 'r2':range(c.COLUMNS)},
+                       {'p1':'row', 'p2':'column', 'r1':range(c.ROWS), 'r2':range(c.COLUMNS - 1, -1, -1)}
                       ][self.direction[playerNumber]]
             
             change = False
@@ -224,18 +226,18 @@ class Platform:
                     if self.belong[myDict['row']][myDict['column']] != playerNumber:  # 苟非吾之所有
                         while count > len(queue):
                             change = True   # 发生改变的情况1
-                            queue.append(None)
+                            queue.append(0)
                         queue.append(self.platform[myDict['row']][myDict['column']])
                         position = (myDict['row'], myDict['column'])
-                    elif self.platform[myDict['row']][myDict['column']] != None:
+                    elif self.platform[myDict['row']][myDict['column']] != 0:
                         if queue == []:
                             queue.append(self.platform[myDict['row']][myDict['column']])
                             position = (myDict['row'], myDict['column'])
-                        elif queue[-1] == None:  # 越界填补空位
+                        elif queue[-1] == 0:  # 越界填补空位
                             queue[-1] = self.platform[myDict['row']][myDict['column']]
                             self.belong[position[0]][position[1]] = playerNumber  # 修改领域归属
                         elif queue[-1] == self.platform[myDict['row']][myDict['column']] and position not in stable:  # 不可多次吃棋
-                            queue[-1] = self.platform[myDict['row']][myDict['column']] * 2
+                            queue[-1] = self.platform[myDict['row']][myDict['column']] + 1
                             self.belong[position[0]][position[1]] = playerNumber  # 修改领域归属
                             stable.append(position)
                         else:
@@ -245,12 +247,12 @@ class Platform:
 
                 if count > len(queue): change = True   # 发生改变的情况2
                 for myDict[myPhase['p2']] in myPhase['r2']:
-                    self.platform[myDict['row']][myDict['column']] = queue.pop(0) if queue != [] else None  # 更新地图
+                    self.platform[myDict['row']][myDict['column']] = queue.pop(0) if queue != [] else 0  # 更新地图
                     
             return change
         
         if name == 'position':
-            self.platform[self.position[playerNumber][0]][self.position[playerNumber][1]] = 2
+            self.platform[self.position[playerNumber][0]][self.position[playerNumber][1]] = 1
         else:
             if self.direction[playerNumber] in range(4):
                 self.change = move(self, playerNumber)
@@ -261,18 +263,18 @@ class Platform:
         -> 某方可并范围中没有空方格且任一本方棋子都没有数值相等的相邻棋子
         -> 只有先手才有可能在此时终局
         '''
-        for row in range(4):
-            for column in range(7):
-                if self.belong[row][column] == 1 or self.belong[row][column+1] == 1:
+        for row in range(c.ROWS):
+            for column in range(c.COLUMNS - 1):
+                if self.belong[row][column] == 0 or self.belong[row][column+1] == 0:
                     if self.platform[row][column] == self.platform[row][column+1] \
-                               or self.platform[row][column] == None or self.platform[row][column+1] == None:
+                               or self.platform[row][column] == 0 or self.platform[row][column+1] == 0:
                         return False
                     
-        for column in range(8):
-            for row in range(3):
-                if self.belong[row][column] == 1 or self.belong[row+1][column] == 1:
+        for column in range(c.COLUMNS):
+            for row in range(c.ROWS - 1):
+                if self.belong[row][column] == 0 or self.belong[row+1][column] == 0:
                     if self.platform[row][column] == self.platform[row+1][column] \
-                               or self.platform[row][column] == None or self.platform[row+1][column] == None:
+                               or self.platform[row][column] == 0 or self.platform[row+1][column] == 0:
                         return False
                     
         self.log.append('-e player 0 end')
@@ -287,27 +289,28 @@ class Platform:
                 return
 
     def scoring(self):
-        score0 = dict(zip([2**_ for _ in range(15)], [0 for _ in range(15)]))
-        score1 = dict(zip([2**_ for _ in range(15)], [0 for _ in range(15)]))
-        for column in range(8):
-            for row in range(4):
-                if self.belong[row][column] == 0 and self.platform[row][column] != None:
+        score0 = dict(zip(range(c.MAXLEVEL), [0 for _ in range(c.MAXLEVEL)]))
+        score1 = dict(zip(range(c.MAXLEVEL), [0 for _ in range(c.MAXLEVEL)]))
+        for column in range(c.COLUMNS):
+            for row in range(c.ROWS):
+                if self.belong[row][column] == 0:
                     score0[self.platform[row][column]] += 1
-                elif self.belong[row][column] == 1 and self.platform[row][column] != None:
+                elif self.belong[row][column] == 1:
                     score1[self.platform[row][column]] += 1
         # 获取所有棋子
         self.score = (score0, score1)
         if self.winner == None:
-            for _ in reversed(range(15)):
-                self.log.append('-e check %d' % 2**_)
-                if score0[2**_] > score1[2**_]:
+            for _ in reversed(range(c.MAXLEVEL)):
+                self.log.append('-e check level %d' % _)
+                if score0[_] > score1[_]:
                     self.winner = 0
-                    self.log.append('-e player %d win' % self.winner)
+                    self.log.append('-e player 0 win by level %d: %d to %d' % (_, score0[_], score1[_]))
                     break
-                if score0[2**_] < score1[2**_]:
+                if score0[_] < score1[_]:
                     self.winner = 1
-                    self.log.append('-e player %d win' % self.winner)
+                    self.log.append('-e player 1 win by level %d: %d to %d' % (_, score1[_], score0[_]))
                     break
+                self.log.append('-e level %d tied by %d' % (_, score0[_]))
             else:
                 if self.winner == None:
                     self.log.append('-e tied')
@@ -348,9 +351,9 @@ class Platform:
         -> 按照行列获得己方全部可放置位置, 通过对随机数求余数的方法得到结果
         '''
         available = []
-        for row in range(4):
-            for column in range(8):
-                if self.belong[row][column] == playerNumber and self.platform[row][column] == None:
+        for row in range(c.ROWS):
+            for column in range(c.COLUMNS):
+                if self.belong[row][column] == playerNumber and self.platform[row][column] == 0:
                     available.append((row, column))
         if available == []:
             return None
@@ -386,10 +389,9 @@ class Platform:
     def __str__(self):
         # 打印棋盘, + 代表先手, - 代表后手
         platform = ''
-        for row in range(4):
-            for column in range(8):
-                platform += ('+' if self.belong[row][column] == 0 else '-') + \
-                repr(self.platform[row][column] if self.platform[row][column] != None else 0).zfill(4) + ' '
+        for row in range(c.ROWS):
+            for column in range(c.COLUMNS):
+                platform += ('+' if self.belong[row][column] == 0 else '-') + c.NAMES[self.platform[row][column]] + ' '
             platform += '\n'
         return platform[:-1]
     __repr__ = __str__
@@ -397,6 +399,6 @@ class Platform:
 if __name__ == '__main__':
     player0 = Player0(True)
     player1 = Player1(False)
-    platform = Platform(100, list(range(100)), 0.03, player0, player1)
+    platform = Platform(player0, player1)
     platform.game_start()
     platform.review()
