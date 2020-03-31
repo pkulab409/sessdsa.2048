@@ -38,7 +38,7 @@ class GameScreen(Frame):
 
         declarations = self.log[0].split('\n')
         for declaration in declarations:
-            if declaration != '' and declaration[0] != '<':
+            if declaration != '' and declaration[0] != '*':
                 print(declaration)  # 打印说明信息
 
         Frame.__init__(self)
