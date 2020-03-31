@@ -1,6 +1,6 @@
 # 可视化复盘程序
 #
-# 按键盘的向右, 向左方向键分别对应前进, 回退操作
+# 按键盘的']', '['键分别对应前进, 回退操作
 #
 # 考虑到可扩展性, 内部逻辑为棋子级别
 #
@@ -79,9 +79,9 @@ class GameScreen(Frame):
                 self.gridCells.append(gridRow)
 
         if self.mode == 1:  # 柚子社版
-            self.photos = {'+': [PhotoImage(file='pic/%s_%d.png' % (c.PLAYERS[0], _)) for _ in range(14)],
-                           '-': [PhotoImage(file='pic/%s_%d.png' % (c.PLAYERS[1], _)) for _ in range(14)]}
-            photo = PhotoImage(file='pic/unknown.png')
+            self.photos = {'+': [PhotoImage(file='../pic/%s_%d.png' % (c.PLAYERS[0], _)) for _ in range(14)],
+                           '-': [PhotoImage(file='../pic/%s_%d.png' % (c.PLAYERS[1], _)) for _ in range(14)]}
+            photo = PhotoImage(file='../pic/unknown.png')
             for row in range(1, c.ROWS + 1):
                 gridRow = []  # 一行方格
                 for column in range(c.COLUMNS):
