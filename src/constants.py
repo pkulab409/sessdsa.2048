@@ -23,5 +23,5 @@ COLOR_NONE = '#9e948a'  # 初始界面方格色
 COLOR_CELL = {'+': '#eee4da', '-': '#f2b179'}  # 双方的方格色
 COLOR_WORD = {'+': '#776e65', '-': '#f9f6f2'}  # 双方的文字色
 
-KEY_BACKWARD = "\'\\uf702\'"  # 回退
-KEY_FORWARD = "\'\\uf703\'"  # 前进
+KEY_BACKWARD = "\'[\'"  # 回退
+KEY_FORWARD = "\']\'"  # 前进
