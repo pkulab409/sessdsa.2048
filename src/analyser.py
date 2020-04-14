@@ -2,14 +2,11 @@
 #
 # 按键盘的']', '['键分别对应前进, 回退操作
 #
-# 考虑到可扩展性, 内部逻辑为棋子级别
+# 考虑到可扩展性, 内部逻辑采用棋子的级别
 #
 # 顶端为事件栏, 显示当前轮数和超时, 违规, 终局, 胜利, 比分等信息
 # 底端为决策栏, 显示当前玩家的决策信息
 # 中间为实时棋盘
-#
-# 回退的时候轮数显示可能有延迟, 是为了减少空间开销
-# 有好的解决方案请随意动手
 
 from tkinter import Frame, Label, CENTER, PhotoImage  # UI
 
@@ -92,21 +89,23 @@ class GameScreen(Frame):
                     gridRow.append(number)
                 self.gridCells.append(gridRow)
 
-        self.cur = 0  # 读取单条记录的游标
+        self.cur = 0        # 读取单条记录的游标
+        self.state = True   # 游标运动的状态, True代表向前
 
         self.mainloop()
 
     def analyse(self, log):
         # 分析指令
-        if log[0] == 'e':  # 事件在顶端状态栏
-            self.topInfo.config(text=log[2:-1])
+        if log[0] == 'e':    # 事件在顶端状态栏
+            self.topInfo.config(text=log.split(':')[1][:-1])
         elif log[0] == 'd':  # 决策在底端状态栏
-            if 'direction' in log and 'None' not in log:
-                log = log.replace(log[-2], {'0': 'up', '1': 'down', '2': 'left', '3': 'right'}[log[-2]])  # 换算方向
-            self.bottomInfo.config(text=log[2:-1])
+            self.topInfo.config(text='round ' + log.split(':')[0][1:])  # 当前轮数
+            self.bottomInfo.config(text=log.split(':')[1][:-1])
         elif log[0] == 'p':  # 更新棋盘
+            self.topInfo.config(text='round ' + log.split(':')[0][1:])  # 当前轮数
+            
             platform = []
-            pieces = log[2:-1].split()
+            pieces = log.split(':')[1].split()
             for piece in pieces:
                 platform.append((piece[0], int(piece[1:])))
             cur = 0
@@ -137,19 +136,29 @@ class GameScreen(Frame):
             while True:
                 self.cur += 1
                 self.analyse(self.log[self.cur])
-                if self.cur >= self.size - 1 or self.log[self.cur][0] == 'p':
+                if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
                     break
-        elif key == c.KEY_BACKWARD and self.cur > 1:  # 回退
+        elif key == c.KEY_BACKWARD and self.cur > 1:     # 回退, 更新至决策
             while True:
+                while self.log[self.cur - 1][0] == 'e':  # 忽略全部事件
+                    self.cur -= 1
+                if self.state:
+                    if self.log[self.cur - 1][0] == 'd':  
+                        self.cur -= 1
+                    self.state = False
                 self.cur -= 1
                 self.analyse(self.log[self.cur])
-                if self.cur <= 1 or self.log[self.cur][0] == 'p':
+                if self.cur <= 1 or self.log[self.cur][0] != 'p':
                     break
-        elif key == c.KEY_FORWARD and self.cur < self.size - 1:  # 前进
+        elif key == c.KEY_FORWARD and self.cur < self.size - 1:  # 前进, 更新至棋盘
             while True:
+                if not self.state:
+                    if self.log[self.cur + 1][0] == 'p':
+                        self.cur += 1
+                    self.state = True
                 self.cur += 1
                 self.analyse(self.log[self.cur])
-                if self.cur >= self.size - 1 or self.log[self.cur][0] == 'p':
+                if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
                     break
 
 
