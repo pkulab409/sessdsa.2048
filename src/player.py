@@ -4,9 +4,6 @@
 #
 # 须写在Player类里
 #
-# 须维护一个属性: 
-# currentRound 当前轮数, 确保对战平台与AI共享同一状态
-#
 # 须实现六个方法:
 #
 # __init__(self, isFirst):
@@ -27,12 +24,14 @@
 #   -> 参数: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
 #   -> 说明: direction = None 表示对方没有选择合并方向
 #
-# output_position(self):
+# output_position(self, currentRound):
 #   -> 给出己方下棋的位置
+#   -> 参数: currentRound当前轮数, 为从0开始的int
 #   -> 返回: (row, column), row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
 #
-# output_direction(self):
+# output_direction(self, currentRound):
 #   -> 给出己方合并的方向
+#   -> 参数: currentRound当前轮数, 为从0开始的int
 #   -> 返回: direction = 0, 1, 2, 3 对应 上, 下, 左, 右
 #
 # 其余的属性与方法请自行设计
@@ -57,11 +56,11 @@ class Player:
         change = False
         myDict = {}  # 变量字典
         for myDict[myPhase['p1']] in myPhase['r1']:
-            queue = []  # 用类队列实现合并
+            queue = []               # 用类队列实现合并
             position = (None, None)  # 队尾的位置
-            count = 0  # 计数
-            stable = []  # 遵循不可多次吃棋的规则
-            exist = False  # 存在空方格
+            count = 0                # 计数
+            stable = []              # 遵循不可多次吃棋的规则
+            exist = False            # 存在空方格
             for myDict[myPhase['p2']] in myPhase['r2']:
                 if self.belong[myDict['row']][myDict['column']] != isSelf:
                     while count > len(queue): queue.append(None)
@@ -78,7 +77,7 @@ class Player:
                         self.belong[position[0]][position[1]] = isSelf  # 修改领域归属
                         change = True
                     elif queue[-1] == self.platform[myDict['row']][
-                        myDict['column']] and position not in stable:  # 不可多次吃棋
+                        myDict['column']] and position not in stable:   # 不可多次吃棋
                         queue[-1] = self.platform[myDict['row']][myDict['column']] * 2
                         self.belong[position[0]][position[1]] = isSelf  # 修改领域归属
                         change = True
@@ -121,22 +120,22 @@ class Player:
         if direction is not None:
             self.move(direction, False)
 
-    def output_position(self):
+    def output_position(self, currentRound):
         # 给出己方下棋的位置
+        self.currentRound = currentRound
         available = []
         for row in range(4):
             for column in range(8):
                 if not self.belong[row][column] and self.platform[row][column] == None:
                     available.append((row, column))
 
-        another = self.get_next()  # 在本方的允许处
-        self.currentRound += 1
-        if another is not None:
+        another = self.get_next()   # 本方的允许落子点
+        if another is not None:     # 此处采取的算法为优先在己方领域下, 己方满则在对方领域随机下
             row, column = another
             self.platform[row][column] = 2
             return another
 
-        if not available:
+        if not available:   # 整个棋盘已满
             return None
         else:
             from random import choice
@@ -144,8 +143,9 @@ class Player:
             self.platform[row][column] = 2
             return row, column
 
-    def output_direction(self):
+    def output_direction(self, currentRound):
         # 给出己方合并的方向
+        self.currentRound = currentRound
         from random import shuffle
         directionList = [0, 1, 2, 3]
         shuffle(directionList)
