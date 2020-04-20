@@ -6,7 +6,7 @@
    - [ ] UI接口
    - [ ] SQL数据库接口
  - [x] 棋盘
- - [ ] 样例Player AI算法
+ - [x] 样例Player AI算法
  - [x] 样例Player人工智障算法
  - [ ] 棋盘UI
    - [ ] 直播平台
