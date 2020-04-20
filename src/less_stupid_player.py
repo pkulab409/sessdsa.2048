@@ -77,7 +77,7 @@ class Player:
 
             return platform,belong,change
 
-        def internal_possible_place(platform, belong, another, isFirst):
+        def internal_possible_place(platform, belong, another, isFirst,array,currentRound):
             #计算所有放置情况的盘面结果
             if isFirst:
                 outcomes={}
@@ -86,13 +86,24 @@ class Player:
                     for column in range(8):
                         if not belong[row][column] and platform[row][column] == None:
                             available1.append((row, column))
-                available1.append(another)
+                if another!=None:
+                    available1.append(another)
                 for position1 in available1:
                     available2 = []
                     for row in range(4):
                         for column in range(8):
-                            if belong[row][column] and platform[row][column] == None:
+                            if belong[row][column] and platform[row][column] == None and (row,column)!=position1:
                                 available2.append((row, column))
+                    available_enemy = []
+                    for row in range(4):
+                        for column in range(8):
+                            if not belong[row][column] and platform[row][column] == None and (row,column)!=position1:
+                                available_enemy.append((row, column))
+                    if available_enemy == []:
+                        pass
+                    else:
+                        enemy_next=available_enemy[array[currentRound] % len(available_enemy)]
+                        available2.append(enemy_next)
                     for position2 in available2:
                         outcomes[(position1,position2)]=[internal_deepcopy(platform),internal_deepcopy(belong)]
                         outcomes[(position1,position2)][0][position1[0]][position1[1]]=2
@@ -104,7 +115,8 @@ class Player:
                     for column in range(8):
                         if not belong[row][column] and platform[row][column] == None:
                             available.append((row, column))
-                available.append(another)
+                if another!=None:
+                    available.append(another)
                 outcomes={}
                 for i in available:
                     outcomes[(i,1)]=[internal_deepcopy(platform),internal_deepcopy(belong)]
@@ -137,9 +149,8 @@ class Player:
                                 if change2:    
                                     moved[(position,direction1,direction2)]=[platform2,belong2]
                 return moved
-        if self.get_next()!=None:
-            another=self.get_next()
-        placed= internal_possible_place(self.platform,self.belong, another,self.isFirst)
+        another=self.get_next()
+        placed= internal_possible_place(self.platform,self.belong,another,self.isFirst,self.array,currentround)
         moved = internal_possible_move(placed,self.isFirst)
         for operation in moved:
             moved[operation]=internal_value(moved[operation][0],moved[operation][1])
