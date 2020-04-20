@@ -1,7 +1,7 @@
 ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
 ROUNDS = 100    # 总回合数
-MAXTIME = 0.02  # 总时间限制
+MAXTIME = 2  # 总时间限制
 MAXLEVEL = 14   # 总级别数
 
 ARRAY = list(range(ROUNDS))  # 随机(?)列表
