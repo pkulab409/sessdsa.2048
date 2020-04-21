@@ -1,7 +1,7 @@
 ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
-ROUNDS = 100    # 总回合数
-MAXTIME = 3     # 总时间限制
+ROUNDS = 1000   # 总回合数
+MAXTIME = 200   # 总时间限制
 MAXLEVEL = 14   # 总级别数
 
 ARRAY = list(range(ROUNDS))  # 随机(?)列表
@@ -70,6 +70,7 @@ class Chessboard:
             delta = [(-1,0), (1,0), (0,-1), (0,1)][direction]
             return (position[0] + delta[0], position[1] + delta[1])
         def conditionalSorted(chessmanList):  # 返回根据不同的条件排序结果
+            if direction == None: return []
             if direction == 0: return sorted(chessmanList, key = lambda x:x[0], reverse = False)
             if direction == 1: return sorted(chessmanList, key = lambda x:x[0], reverse = True )
             if direction == 2: return sorted(chessmanList, key = lambda x:x[1], reverse = False)
