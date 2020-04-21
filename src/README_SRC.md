@@ -5,7 +5,7 @@
 
 ## 使用方法介绍
 ### 对战平台内核
-```
+```python
 from player import Player as Player0  # 先手
 from player import Player as Player1  # 后手
 ```
@@ -105,7 +105,7 @@ enter 0 for original mode.
 enter 1 for YuzuSoft mode.
 mode: 
 ```
-输入0采用2048原版可视化，输入1采用<font color=Gold size=3>柚子社版可视化</font>。
+输入0采用2048原版可视化，输入1采用```<font color=Gold size=3>柚子社版可视化</font>```。
 
 作为例子，一次实际记录如下
 ```
