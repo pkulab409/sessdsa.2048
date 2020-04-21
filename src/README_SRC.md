@@ -9,19 +9,19 @@
 from player import Player as Player0  # 先手
 from player import Player as Player1  # 后手
 ```
-从```player.py```中引用Player对象参与对战，直接运行即可开始比赛。实际比赛时则从参赛队伍的提交文件中引用。
+从```player.py```中引用```Player```对象参与对战，直接运行即可开始比赛。实际比赛时则从参赛队伍的提交文件中引用。
 
 运行界面出现
 ```
 for complete record...(y/n): 
 ```
-输入y可以查看完整对战记录。
+输入```y```可以查看完整对战记录。
 运行界面出现
 ```
 save record...(y/n): 
 filename: 
 ```
-输入y和filename可以保存对战记录为filename.txt文件，后者可以由```analyser.py```解析并可视化。
+输入```y```和```filename```可以保存对战记录为```filename.txt```文件，后者可以由```analyser.py```解析并可视化。
 
 作为例子，一次实际记录如下
 ```
@@ -39,9 +39,9 @@ player 1 win
 save record...(y/n): y
 filename: match
 ```
-完整对局记录被折叠成Squeezed text，可以双击展开。
-输出结果记录了总回合数、双方各级别的棋子数目、双方的用时、可能的意外终局（violate非法输出，timeout超时）和胜利者。
-最后生成match.txt对局记录文件如下
+完整对局记录被折叠成```Squeezed text```，可以双击展开。
+输出结果记录了总回合数、双方各级别的棋子数目、双方的用时、可能的意外终局（```violate```非法输出，```timeout```超时）和胜利者。
+最后生成```match.txt```对局记录文件如下
 ```
 name: match
 time: 2020-04-21 13:25:54
@@ -93,7 +93,7 @@ time: 2020-04-21 13:25:54
 ```
 filename: 
 ```
-输入filename打开并解析filename.txt
+输入```filename```打开并解析```filename.txt```
 运行界面出现
 ```
 enter 0 for original mode.
