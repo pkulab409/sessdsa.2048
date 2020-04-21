@@ -67,7 +67,7 @@ time: 2020-04-21 13:25:54
 
 ### 样例随机ai
 在此文件中，有对参赛ai接口的详细说明，如下
-```
+```python
 # 参赛队伍的AI要求:
 #
 # 须写在Player类里
@@ -105,7 +105,7 @@ enter 0 for original mode.
 enter 1 for YuzuSoft mode.
 mode: 
 ```
-输入0采用2048原版可视化，输入1采用```<font color=Gold size=3>柚子社版可视化</font>```。
+输入0采用2048原版可视化，输入1采用<font color=gold size=7>柚子社版可视化</font>。
 
 作为例子，一次实际记录如下
 ```
@@ -151,7 +151,7 @@ UI界面在文件中有说明，如下
 包含游戏需要的常数和一个棋盘对象。此库参赛ai可以直接调用。
 
 棋盘对象说明如下
-```
+```python
 # __init__(self, array):
 #   -> 初始化棋盘
 #   -> 参数: array随机序列
