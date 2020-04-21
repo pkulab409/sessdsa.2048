@@ -95,9 +95,8 @@ class Platform:
 
     def checkTime(self, playerNumber):
         if globals()['time%d' % playerNumber] >= self.maxtime:
-            if self.winner == None:
-                self.log.append('&e:player %d time out' % playerNumber)
-                self.timeout = playerNumber
+            self.log.append('&e:player %d time out' % playerNumber)
+            if self.winner == None: self.timeout = playerNumber
             return True
         else:
             return False
@@ -112,30 +111,27 @@ class Platform:
         if name == 'position':
             
             if not (isinstance(value, tuple) and len(value) == 2 and value[0] in range(c.ROWS) and value[1] in range(c.COLUMNS)):
-                if self.winner == None:
-                    self.log.append('&e:player %d violate by illegal output of position' % playerNumber)
-                    self.violator = playerNumber
+                self.log.append('&e:player %d violate by illegal output of position' % playerNumber)
+                if self.winner == None: self.violator = playerNumber
                 return True
             
             if self.board.getValue(value) == 0 and (self.board.getBelong(value) == playerNumber or value == self.next):
                 return False
             else:
-                if self.winner == None:
-                    self.log.append('&e:player %d violate by not achievable position' % playerNumber)
-                    self.violator = playerNumber
+                self.log.append('&e:player %d violate by not achievable position' % playerNumber)
+                if self.winner == None: self.violator = playerNumber
                 return True
 
         else:
             if value not in range(4):
                 self.log.append('&e:player %d violate by illegal output of direction' % playerNumber)
-                self.violator = playerNumber
+                if self.winner == None: self.violator = playerNumber
                 return True
             elif self.change:
                 return False
             else:
-                if self.winner == None:
-                    self.log.append('&e:player %d violate by not achievable direction' % playerNumber)
-                    self.violator = playerNumber
+                self.log.append('&e:player %d violate by not achievable direction' % playerNumber)
+                if self.winner == None: self.violator = playerNumber
                 return True
             self.change = False
 
