@@ -28,30 +28,54 @@
             margin: auto;
         }
 
-        div.belongs-to-0 {
+        .free {
+            opacity: 60%;
+        }
+
+        @keyframes tile_left {
+            0% {}
+
+            100% {
+                opacity: 0%;
+                transform: translate(-100px, 0px);
+            }
+        }
+
+        .belongs-to-0 {
             background-color: cadetblue !important;
             border: 10px solid #ddd;
             font-size: 20px;
             text-align: center;
             display: flex;
             align-items: center;
+
+            /* animation: tile_left 2s;
+            animation-fill-mode: forwards;
+            animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1); */
         }
 
-        div.belongs-to-1 {
+        .belongs-to-1 {
             background-color: blueviolet !important;
             border: 10px solid #ddd;
             font-size: 20px;
             text-align: center;
             display: flex;
             align-items: center;
+
+            /* animation: tile_show 2s;
+            animation-fill-mode: forwards;
+            animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1); */
         }
 
         div p {
             margin: auto;
+            text-align: center;
         }
 
-        button.c_button_upload {
+        .c_button_upload {
             margin: auto;
+            margin-top: 30px;
+            text-align: center;
         }
     </style>
     <div id="main">
@@ -88,9 +112,11 @@
         <div class="belongs-to-1" id="tile72" style="grid-column: 8;grid-row: 3;"></div>
         <div class="belongs-to-1" id="tile73" style="grid-column: 8;grid-row: 4;"></div>
     </div>
-
-    <input type="file" name="record" id="i_input_file" autocomplete='off' style="visibility: hidden;">
-    <button class="c_button_upload" id="i_button_upload" onclick="$('#i_input_file').click();">Upload record</button>
+    <div id="comment"> </div>
+    <input type="file" name="record" id="i_input_file" autocomplete='off'
+        style="visibility: hidden;width: 0;height: 0;display: block;">
+    <div class="c_button_upload" id="i_button_upload" onclick="$('#i_input_file').click();">Click me to upload record
+    </div>
     <script>
         var record = null;
         var log = null;
@@ -109,17 +135,33 @@
 
         function process_text() {
             log = record.split("&");
+            var comment = [];
+            boards = [];
             log.forEach(element => {
                 if (element[0] == "p") {
-                    boards.push(element.slice(4));
+                    boards.push({
+                        "board": element.split(":\n")[1],
+                        "comment": comment
+                    });
+                    comment = [];
                     return;
-                } else {
+                }
+                if (element[0] == "d") {
+                    comment.push(element.split(":")[1]);
+                    return;
                 }
             });
         }
-        function render(index) {
-            var text = boards[index];
-            text.split("\n").forEach((value, index) => {
+        function render(seq) {
+            var board= boards[seq].board;
+            var comment = boards[seq].comment;
+            console.log(seq);
+            console.log(board);
+            $("#comment").empty();
+            comment.forEach(value => {
+                $("#comment").append("<p>" + value + "</p>");
+            });
+            board.split("\n").forEach((value, index) => {
                 if (index >= 4) { return; }
                 value.split(" ").forEach((val, ind) => {
                     if (ind >= 8) { return; }
@@ -130,6 +172,8 @@
                     var v = "<p></p>";
                     if (Number(val.slice(1)) != 0) {
                         v = "<p>" + String(Math.pow(2, Number(val.slice(1)))) + "</p>";
+                    } else {
+                        style += " free";
                     }
                     var x = ind;
                     var y = index;
