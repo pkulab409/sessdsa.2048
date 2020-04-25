@@ -1,8 +1,9 @@
 ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
 ROUNDS = 1000   # 总回合数
-MAXTIME = 200   # 总时间限制
+MAXTIME = 2     # 总时间限制
 MAXLEVEL = 14   # 总级别数
+REPEAT = 10     # 交替轮数
 
 ARRAY = list(range(ROUNDS))  # 随机(?)列表
 
@@ -55,6 +56,7 @@ class Chessboard:
         '''
         -> 在指定位置下棋
         '''
+        belong = position[1] < COLUMNS // 2  # 棋子的归属
         self.belongs[belong].append(position)
         self.board[position] = Chessman(belong, position, value)
 
