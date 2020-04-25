@@ -190,7 +190,7 @@ class Platform:
         # 保存对局信息, 可以用analyser.py解析
         self.name = repr(hash(time.perf_counter()))  # 对局名称
         file = open('%s/%s.txt' % (self.states['match'], self.name),'w')
-        myDict = {True:'player 0', False:'player 1', None:'None'}  # 协助转换为字符串
+        myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
         title = 'player0: %s from module %s\n' % (self.states[True]['index'], self.states[True]['module']) + \
                 'player1: %s from module %s\n' % (self.states[False]['index'], self.states[False]['module']) + \
                 'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
@@ -221,21 +221,51 @@ def main(playerDict):
     import os
     match = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())
     os.mkdir('%s' % match)
+
+    # 超时异常
+    class Timeout(Exception):
+        pass
+
+    # 返回值
+    class Result:
+        def __init__(self, func):
+            self.func = func
+            self.result = Timeout()
+        def call(self, *args, **kwargs):
+            self.result = self.func(*args, **kwargs)
+            
+    # 超时退出的装饰器
+    from functools import wraps
+    import threading
+    def timeoutManager(maxtime, isFirst = None):
+        def decorator(func):
+            @wraps(func)
+            def wrappedFunc(*args, **kwargs):
+                result = Result(func)
+                thread = threading.Thread(target = result.call, args = (*args, ), kwargs = {**kwargs})
+                thread.setDaemon(True)
+                thread.start()
+                thread.join(maxtime - states[isFirst]['time'] if isFirst != None else maxtime)
+                if isinstance(result.result, Timeout) and isFirst != None:
+                    states[isFirst]['time'] = maxtime
+                return result.result
+            return wrappedFunc
+        return decorator
     
     # 监测运行状态的装饰器
-    from functools import wraps
-    def stateManager(index):
+    def stateManager(isFirst):
         def decorator(func):
+            @timeoutManager(c.MAXTIME * 1.1, isFirst)
             @wraps(func)
             def wrappedFunc(*args, **kwargs):
                 try:
                     begin = time.perf_counter()
                     result = func(*args, **kwargs)
                     end = time.perf_counter()
-                    states[index]['time'] += end - begin
+                    states[isFirst]['time'] += end - begin
                 except:
                     result = None
-                    states[index]['error'] = True
+                    states[isFirst]['error'] = True
                 return result
             return wrappedFunc
         return decorator
@@ -243,45 +273,55 @@ def main(playerDict):
     # 导入全部ai模块
     Players = {name: __import__(name).Player for name in playerDict}
     
-    # 生成player对象并构建运行状态字典
-    states = {}
+    # 进行成绩记录的准备    
+    matchResults = []
+    playerResults = {}
     count = 0
     for name in playerDict:
         for _ in range(playerDict[name]):
-            for isFirst in [True, False]:
-                try:
-                    begin = time.perf_counter()
-                    player = Players[name](isFirst, c.ARRAY)
-                    end = time.perf_counter()
-                    states[(count, isFirst)] = {'player': player, 'module': name, 'time': end - begin, 'error': False, 'index': (count, isFirst)}
-                except:
-                    states[(count, isFirst)] = {'player': None, 'module': name, 'time': 0, 'error': True, 'index': (count, isFirst)}
+            playerResults[count] = {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
+                                    False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, 'module': name}
             count += 1
-        
-    # 重载对象方法
-    for index in states:
-        if states[index]['player'] != None:
-            states[index]['player'].output = stateManager(index)(states[index]['player'].output)
-
-    # 进行成绩记录的准备
-    matchResults = []
-    playerResults = {index[0]: {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
-                             False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
-                             'module': states[index]['module']} \
-                     for index in states if index[1]}
+            
     def update(matchResults, playerResults, result):
         matchResults.append('name: %s -> player%d to player%d -> %d rounds' % (result['name'], result[True]['index'][0], result[False]['index'][0], result['rounds']))
         for isFirst in [True, False]:
             for _ in result[isFirst]:
                 if _ != 'index' and result[isFirst][_]:
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
-                
+
+
+    # 生成对象并重载其方法, 返回状态
+    def create(count, isFirst):
+        @timeoutManager(c.MAXTIME * 1.1)
+        def new():
+            try:
+                begin = time.perf_counter()
+                player = Players[playerResults[count]['module']](isFirst, c.ARRAY)
+                end = time.perf_counter()
+                state = {'player': player, 'module': playerResults[count]['module'], 'time': end - begin, 'error': False, 'index': (count, isFirst)}
+            except:
+                state = {'player': None, 'module': playerResults[count]['module'], 'time': 0, 'error': True, 'index': (count, isFirst)}
+            return state
+        
+        state = new()
+        if isinstance(state, Timeout):
+            print(2)
+            state = {'player': None, 'module': playerResults[count]['module'], 'time': c.MAXTIME * 1.1, 'error': True, 'index': (count, isFirst)}
+        elif state['player'] != None:
+            state['player'].output = stateManager(isFirst)(state['player'].output)
+            
+        return state
+            
     # 开始游戏, 单循环先后手多次比赛
     for count1 in range(count):
         for count2 in range(count1 + 1, count):
             for _ in range(c.REPEAT):
-                update(matchResults, playerResults, Platform({'match': match, True: states[(count1, True)], False:states[(count2, False)]}).play())
-                update(matchResults, playerResults, Platform({'match': match, True: states[(count2, True)], False:states[(count1, False)]}).play())
+                states = {True: create(count1, True), False: create(count2, False)}
+                update(matchResults, playerResults, Platform({'match': match, True: states[True], False:states[False]}).play())
+                states = {True: create(count2, True), False: create(count1, False)}
+                update(matchResults, playerResults, Platform({'match': match, True: states[True], False:states[False]}).play())
+                
     
     # 统计全部比赛并归档到一个总文件中
     f = open('%s/_.txt' % match, 'w')
