@@ -24,8 +24,31 @@ class Platform:
         self.log = []                       # 日志, &d 决策 decision, &p 棋盘 platform, &e 事件 event
         self.board = c.Chessboard(c.ARRAY)  # 棋盘
         self.states = states                # 参赛AI运行状态
-        
+
     def play(self):
+        '''
+        一局比赛, 返回player表现报告
+        '''
+        check = [self.checkState(True), self.checkState(False)]
+        if sum(check) == 0:  # 双方合法加载
+            self.doublePlay()
+        elif sum(check) == 1:  # 一方合法加载
+            self.currentRound = -1
+            self.winner = not check[0]
+            self.singlePlay()
+        else:  # 双方非法加载
+            if self.timeout == None:
+                self.error = 'both'
+            if self.error == None:
+                self.timeout = 'both'
+            self.save()
+        return {True: {'index': self.states[True]['index'], 'win': self.winner == True, 'lose': self.winner == False, 'violate': self.violator == True, \
+                       'timeout': self.timeout in [True, 'both'], 'error': self.error in [True, 'both'], 'time': self.states[True]['time']}, \
+                False: {'index': self.states[False]['index'], 'win': self.winner == False, 'lose': self.winner == True, 'violate': self.violator == False, \
+                       'timeout': self.timeout in [False, 'both'], 'error': self.error in [False, 'both'], 'time': self.states[False]['time']}, \
+                'name': self.name, 'rounds': self.currentRound + 1}
+              
+    def doublePlay(self):
         for _ in range(self.rounds):
             self.currentRound = _                                      # 记录当前轮数, 从0开始
             
@@ -69,6 +92,9 @@ class Platform:
                 self.winner = False if _ else True
                 self.log.append('&e:player %d win' % (0 if self.winner else 1))
 
+        self.singlePlay() # 胜者继续
+        
+    def singlePlay(self):
         # 胜方继续游戏
         self.log.append('&e:winner going on...')
         for _ in range(self.currentRound + 1, self.rounds):
@@ -89,20 +115,18 @@ class Platform:
             if self.checkViolate(self.winner, 'direction', direction): break  # 判断是否违规
             self.log.append('&p%d:\n' % _ + self.board.__repr__())
         self.log.append('&e:winner ending...')
+        self.save()  # 保存
         
-        self.save()          # 保存
-
     def checkState(self, isFirst):
-        if self.states[isFirst]['time'] >= self.maxtime:
+        if self.states[isFirst]['time'] >= self.maxtime:  # 超时
             self.log.append('&e:player %d time out' % (0 if isFirst else 1))
             if self.winner == None: self.timeout = isFirst
             return True
-        elif self.states[isFirst]['error']:
+        if self.states[isFirst]['error']:  # 抛出异常
             self.log.append('&e:player %d run time error' % (0 if isFirst else 1))
             if self.winner == None: self.error = isFirst
             return True
-        else:
-            return False
+        return False
 
     def checkViolate(self, isFirst, mode, value):
         '''
@@ -162,13 +186,13 @@ class Platform:
             else:
                 if self.winner == None:
                     self.log.append('&e:tied')
-                    raise Exception('Tied')  # 平局
 
         # 保存对局信息, 可以用analyser.py解析
-        file = open('%s.txt' % hash(time.perf_counter()),'w')
+        self.name = repr(hash(time.perf_counter()))  # 对局名称
+        file = open('%s/%s.txt' % (self.states['match'], self.name),'w')
         myDict = {True:'player 0', False:'player 1', None:'None'}  # 协助转换为字符串
-        title = 'player0: %s\n' % self.states[True] + \
-                'player1: %s\n' % self.states[False] + \
+        title = 'player0: %s from module %s\n' % (self.states[True]['index'], self.states[True]['module']) + \
+                'player1: %s from module %s\n' % (self.states[False]['index'], self.states[False]['module']) + \
                 'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
                 '{:*^45s}\n'.format('basic record')
         file.write(title)
@@ -193,6 +217,11 @@ def main(playerDict):
     -> 参数: playerDict 参赛队伍的模块名称字典, 示例 {'player': 3, ...} 表示3个使用'player'模块的队伍...
     '''
 
+    # 存放log文件的文件夹
+    import os
+    match = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())
+    os.mkdir('%s' % match)
+    
     # 监测运行状态的装饰器
     from functools import wraps
     def stateManager(index):
@@ -212,37 +241,69 @@ def main(playerDict):
         return decorator
     
     # 导入全部ai模块
-    Players = {name: __import__(name).Player for name in playerDict}  
+    Players = {name: __import__(name).Player for name in playerDict}
     
     # 生成player对象并构建运行状态字典
     states = {}
     count = 0
-    fail = []
     for name in playerDict:
-        try:
-            temp_states = {}
-            temp_count = count
-            for _ in range(playerDict[name]):
-                for isFirst in [True, False]:
-                    temp_states[(temp_count, isFirst)] = {'player': Players[name](isFirst, c.ARRAY), 'name': name, 'time': 0, 'error': False}
-                temp_count += 1
-            states.update(temp_states)
-            count = temp_count
-        except:
-            fail.append(name)
-
+        for _ in range(playerDict[name]):
+            for isFirst in [True, False]:
+                try:
+                    begin = time.perf_counter()
+                    player = Players[name](isFirst, c.ARRAY)
+                    end = time.perf_counter()
+                    states[(count, isFirst)] = {'player': player, 'module': name, 'time': end - begin, 'error': False, 'index': (count, isFirst)}
+                except:
+                    states[(count, isFirst)] = {'player': None, 'module': name, 'time': 0, 'error': True, 'index': (count, isFirst)}
+            count += 1
+        
     # 重载对象方法
     for index in states:
-        states[index]['player'].output = stateManager(index)(states[index]['player'].output)
-    
+        if states[index]['player'] != None:
+            states[index]['player'].output = stateManager(index)(states[index]['player'].output)
+
+    # 进行成绩记录的准备
+    matchResults = []
+    playerResults = {index[0]: {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
+                             False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
+                             'module': states[index]['module']} \
+                     for index in states if index[1]}
+    def update(matchResults, playerResults, result):
+        matchResults.append('name: %s -> player%d to player%d -> %d rounds' % (result['name'], result[True]['index'][0], result[False]['index'][0], result['rounds']))
+        for isFirst in [True, False]:
+            for _ in result[isFirst]:
+                if _ != 'index' and result[isFirst][_]:
+                    playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
+                
     # 开始游戏, 单循环先后手多次比赛
     for count1 in range(count):
         for count2 in range(count1 + 1, count):
             for _ in range(c.REPEAT):
-                Platform({True: states[(count1, True)], False:states[(count2, False)]}).play()
-                Platform({True: states[(count2, True)], False:states[(count1, False)]}).play()
-
-    # 加载失败
-    f = open('failed.txt','w')
-    f.write('\n'.join(fail))
+                update(matchResults, playerResults, Platform({'match': match, True: states[(count1, True)], False:states[(count2, False)]}).play())
+                update(matchResults, playerResults, Platform({'match': match, True: states[(count2, True)], False:states[(count1, False)]}).play())
+    
+    # 统计全部比赛并归档到一个总文件中
+    f = open('%s/_.txt' % match, 'w')
+    f.write('=' * 50 + '\n')
+    f.write('total matches: %d\n' % len(matchResults))
+    f.write('\n'.join(matchResults))
+    f.write('\n' + '=' * 50 + '\n')
+    f.flush()
+    for count in playerResults:
+        f.write('player%s from module %s\n\n' % (count, playerResults[count]['module']))
+        player = playerResults[count][True]
+        f.write('offensive cases: \n\n\taverage time: %.3f\n\twin rate: %.2f%%\n\twin: %d at \n\t\t%s\n\tlose: %d at \n\t\t%s\n\tviolate: %d at \n\t\t%s\n\ttimeout: %d at \n\t\t%s\n\terror: %d at \n\t\t%s\n' % \
+                (sum(player['time']) / len(player['time']) if player['time'] != [] else 0, 100 * len(player['win']) / c.REPEAT / (len(playerResults) - 1), \
+                 len(player['win']), '\n\t\t'.join(player['win']), \
+                 len(player['lose']), '\n\t\t'.join(player['lose']), len(player['violate']), '\n\t\t'.join(player['violate']), \
+                 len(player['timeout']), '\n\t\t'.join(player['timeout']), len(player['error']), '\n\t\t'.join(player['error'])))
+        player = playerResults[count][False]
+        f.write('defensive cases: \n\n\taverage time: %.3f\n\twin rate: %.2f%%\n\twin: %d at \n\t\t%s\n\tlose: %d at \n\t\t%s\n\tviolate: %d at \n\t\t%s\n\ttimeout: %d at \n\t\t%s\n\terror: %d at \n\t\t%s\n' % \
+                (sum(player['time']) / len(player['time']) if player['time'] != [] else 0, 100 * len(player['win']) / c.REPEAT / (len(playerResults) - 1), \
+                 len(player['win']), '\n\t\t'.join(player['win']), \
+                 len(player['lose']), '\n\t\t'.join(player['lose']), len(player['violate']), '\n\t\t'.join(player['violate']), \
+                 len(player['timeout']), '\n\t\t'.join(player['timeout']), len(player['error']), '\n\t\t'.join(player['error'])))
+        f.write('=' * 50 + '\n')
+        f.flush()
     f.close()
