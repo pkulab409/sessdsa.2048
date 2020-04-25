@@ -127,9 +127,9 @@
             var reader = new FileReader();
             reader.readAsText(file, "UTF-8");
             reader.onload = function (e) {
-                record = e.target.result;
+                record = e.target.result.replace(/\r/g, '');
                 process_text();
-                render(0);
+                render(current = 0);
             };
         }
 
