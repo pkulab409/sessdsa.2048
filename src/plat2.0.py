@@ -1,8 +1,9 @@
-# 用于对接前端的对战平台接口
+# 用于程序的对战平台接口
 # 有bug可以找@SophieARG讨论
 
 import constants as c  # 导入游戏常数
 import time
+
 
 # 平台
 
@@ -198,13 +199,13 @@ def main(playerDict):
         def decorator(func):
             @wraps(func)
             def wrappedFunc(*args, **kwargs):
-                begin = time.perf_counter()
-                result = func(*args, **kwargs)
-                end = time.perf_counter()
-                states[index]['time'] += end - begin
                 try:
-                    pass
+                    begin = time.perf_counter()
+                    result = func(*args, **kwargs)
+                    end = time.perf_counter()
+                    states[index]['time'] += end - begin
                 except:
+                    result = None
                     states[index]['error'] = True
                 return result
             return wrappedFunc
@@ -216,15 +217,22 @@ def main(playerDict):
     # 生成player对象并构建运行状态字典
     states = {}
     count = 0
+    fail = []
     for name in playerDict:
-        for _ in range(playerDict[name]):
-            for isFirst in [True, False]:
-                states[(count, isFirst)] = {'player': Players[name](isFirst, c.ARRAY), 'name': name, 'time': 0, 'error': False}
-            count += 1
+        try:
+            temp_states = {}
+            temp_count = count
+            for _ in range(playerDict[name]):
+                for isFirst in [True, False]:
+                    temp_states[(temp_count, isFirst)] = {'player': Players[name](isFirst, c.ARRAY), 'name': name, 'time': 0, 'error': False}
+                temp_count += 1
+            states.update(temp_states)
+            count = temp_count
+        except:
+            fail.append(name)
 
     # 重载对象方法
     for index in states:
-        states[index]['player'].__init__ = stateManager(index)(states[index]['player'].__init__)
         states[index]['player'].output = stateManager(index)(states[index]['player'].output)
     
     # 开始游戏, 单循环先后手多次比赛
@@ -233,3 +241,8 @@ def main(playerDict):
             for _ in range(c.REPEAT):
                 Platform({True: states[(count1, True)], False:states[(count2, False)]}).play()
                 Platform({True: states[(count2, True)], False:states[(count1, False)]}).play()
+
+    # 加载失败
+    f = open('failed.txt','w')
+    f.write('\n'.join(fail))
+    f.close()
