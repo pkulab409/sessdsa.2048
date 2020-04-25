@@ -211,10 +211,10 @@ class Platform:
         file.close()
 
         
-def main(playerDict):
+def main(playerList):
     '''
     -> 主函数
-    -> 参数: playerDict 参赛队伍的模块名称字典, 示例 {'player': 3, ...} 表示3个使用'player'模块的队伍...
+    -> 参数: playerList 参赛队伍的模块名称列表
     '''
 
     # 存放log文件的文件夹
@@ -271,17 +271,14 @@ def main(playerDict):
         return decorator
     
     # 导入全部ai模块
-    Players = {name: __import__(name).Player for name in playerDict}
+    Players = {name: __import__(name).Player for name in playerList}
     
     # 进行成绩记录的准备    
     matchResults = []
     playerResults = {}
-    count = 0
-    for name in playerDict:
-        for _ in range(playerDict[name]):
-            playerResults[count] = {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
-                                    False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, 'module': name}
-            count += 1
+    for count in range(len(playerList)):
+        playerResults[count] = {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
+                                False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, 'module': playerList[count]}
             
     def update(matchResults, playerResults, result):
         matchResults.append('name: %s -> player%d to player%d -> %d rounds' % (result['name'], result[True]['index'][0], result[False]['index'][0], result['rounds']))
@@ -314,8 +311,8 @@ def main(playerDict):
         return state
             
     # 开始游戏, 单循环先后手多次比赛
-    for count1 in range(count):
-        for count2 in range(count1 + 1, count):
+    for count1 in range(len(playerList)):
+        for count2 in range(count1 + 1, len(playerList)):
             for _ in range(c.REPEAT):
                 states = {True: create(count1, True), False: create(count2, False)}
                 update(matchResults, playerResults, Platform({'match': match, True: states[True], False:states[False]}).play())
