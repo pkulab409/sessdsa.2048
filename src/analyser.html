@@ -137,7 +137,8 @@
             log = record.split("&");
             var comment = [];
             boards = [];
-            log.forEach(element => {
+            log.forEach(function (element, index) {
+                if (index == 0) { return; }
                 if (element[0] == "p") {
                     boards.push({
                         "board": element.split(":\n")[1],
@@ -153,12 +154,12 @@
             });
         }
         function render(seq) {
-            var board= boards[seq].board;
+            var board = boards[seq].board;
             var comment = boards[seq].comment;
             console.log(seq);
             console.log(board);
             $("#comment").empty();
-            comment.forEach(value => {
+            comment.forEach(function (value) {
                 $("#comment").append("<p>" + value + "</p>");
             });
             board.split("\n").forEach((value, index) => {
