@@ -303,7 +303,6 @@ def main(playerList):
         
         state = new()
         if isinstance(state, Timeout):
-            print(2)
             state = {'player': None, 'module': playerResults[count]['module'], 'time': c.MAXTIME * 1.1, 'error': True, 'index': (count, isFirst)}
         elif state['player'] != None:
             state['player'].output = stateManager(isFirst)(state['player'].output)
