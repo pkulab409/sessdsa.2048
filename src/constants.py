@@ -59,8 +59,8 @@ class Chessboard:
         """
         执行当前操作
         Params:
-            to_add: list(Chessman), 待添加的棋子
-            to_delete: list(Chessman), 待删除的棋子
+            to_add: iterable(Chessman), 待添加的棋子
+            to_delete: iterable(Chessman), 待删除的棋子
         """
         # 统一删除
         delete_pos = set(x.position for x in to_delete)
@@ -92,7 +92,7 @@ class Chessboard:
         -> 向指定方向合并, 返回是否变化
         -> 若apply为false则只返回操作集
         '''
-        to_add, to_delete = [], []
+        to_add, to_delete = {}, {}
 
         def inBoard(position):  # 判断是否在棋盘内
             return position[0] in range(ROWS) and position[1] in range(COLUMNS)
@@ -107,22 +107,36 @@ class Chessboard:
             if direction == 1: return sorted(chessmanList, key = lambda x:x[0], reverse = True )
             if direction == 2: return sorted(chessmanList, key = lambda x:x[1], reverse = False)
             if direction == 3: return sorted(chessmanList, key = lambda x:x[1], reverse = True )
+        def occupied(position):  # 返回指定位置的当前棋子
+            return to_add.get(position, None if position in to_delete else
+                              self.board.get(position))
+        def removeChess(position): # 移除指定位置棋子
+            if position in to_add:
+                del to_add[position]
+            else:
+                to_delete[position]=self.board[position]
         def move_one(chessman, eaten):  # 移动一个棋子并返回是否移动, eaten是已经被吃过的棋子位置
             nowPosition = chessman.position
             nextPosition = theNext(nowPosition)
-            while inBoard(nextPosition) and isMine(nextPosition) and nextPosition not in self.board:  # 跳过己方空格
+            nextChess = occupied(nextPosition)
+            while inBoard(nextPosition) and isMine(nextPosition) and not nextChess:  # 跳过己方空格
                 nowPosition = nextPosition
                 nextPosition = theNext(nextPosition)
-            if inBoard(nextPosition) and nextPosition in self.board and nextPosition not in eaten \
-                    and chessman.value == self.board[nextPosition].value:  # 满足吃棋条件
-                to_add.append(
-                    Chessman(belong, nextPosition, chessman.value + 1))
-                to_delete.append(chessman)
+                nextChess = occupied(nextPosition)
+            if inBoard(nextPosition) and nextChess and nextPosition not in eaten \
+                    and chessman.value == nextChess.value:  # 满足吃棋条件
+                removeChess(chessman.position)
+                removeChess(nextPosition)
+                to_add[nextPosition]=Chessman(belong, nextPosition, chessman.value + 1)
+                if chessman.position in to_add:
+                    del to_add[chessman.position]
+                else:
+                    to_delete[chessman.position]=chessman
                 eaten.append(nextPosition)
                 return True
             elif nowPosition != chessman.position:  # 不吃棋但移动了
-                to_add.append(Chessman(belong, nowPosition, chessman.value))
-                to_delete.append(chessman)
+                to_add[nowPosition]=(Chessman(belong, nowPosition, chessman.value))
+                to_delete[chessman.position]=chessman
                 return True
             else:  # 未发生移动
                 return False
@@ -131,9 +145,9 @@ class Chessboard:
         for _ in conditionalSorted(self.belongs[belong]):
             if move_one(self.board[_], eaten): change = True
         if apply:
-            self.apply(to_add, to_delete)
+            self.apply(to_add.values(), to_delete.values())
             return change
-        return to_add, to_delete
+        return to_add.values(), to_delete.values()
 
     def getBelong(self, position):
         '''
