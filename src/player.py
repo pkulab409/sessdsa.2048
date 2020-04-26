@@ -34,7 +34,7 @@ class Player:
             another = board.getNext(self.isFirst, currentRound)  # 己方的允许落子点
             if another != None: return another
 
-            available = board.getNext(not self.isFirst)  # 对方的允许落子点
+            available = board.getNone(not self.isFirst)  # 对方的允许落子点
             if not available:   # 整个棋盘已满
                 return None
             else:
