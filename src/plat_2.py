@@ -187,34 +187,38 @@ class Platform:
                 if self.winner == None:
                     self.log.append('&e:tied')
 
+        import json
+        log_object = {}
+
         # 保存对局信息, 可以用analyser.py解析
         self.name = repr(hash(time.perf_counter()))  # 对局名称
-        file = open('%s/%s.txt' % (self.states['match'], self.name),'w')
+        file = open('%s/%s.json' % (self.states['match'], self.name),'w')
         myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
-        title = 'player0: %s from module %s\n' % (self.states[True]['index'], self.states[True]['module']) + \
-                'player1: %s from module %s\n' % (self.states[False]['index'], self.states[False]['module']) + \
-                'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
-                '{:*^45s}\n'.format('basic record')
-        file.write(title)
-        file.write('=' * 45 + '\n|{:^10s}|{:^10s}|{:^10s}|{:^10s}|\n'.format('timeout', 'violator', 'error', 'winner') + \
-                   '-' * 45 + '\n|{:^10s}|{:^10s}|{:^10s}|{:^10s}|\n'.format(myDict[self.timeout], myDict[self.violator], myDict[self.error], myDict[self.winner]) + \
-                   '=' * 45 + '\n')
-        file.write('=' * 60 + '\n|%6s|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % ('player', *range(1, c.MAXLEVEL)) + \
-                   '-' * 60 + '\n|%6d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % (0, *[scores[True][_] for _ in range(1, c.MAXLEVEL)]) + \
-                   '-' * 60 + '\n|%6d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % (1, *[scores[False][_] for _ in range(1, c.MAXLEVEL)]) + \
-                   '=' * 60 + '\n')
-        file.flush()
-        file.write('{:*^45s}\n'.format('complete record'))
-        for log in self.log:
-            file.write(log + '\n')  # '&'表示一条log的开始
-            file.flush()
+        log_object["title"] = {
+            "player0": self.states[True]['index'],
+            "player1": self.states[False]['index'],
+            "player0.module":self.states[True]['module'],
+            "player1.module":self.states[False]['module'],
+            "time":time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        }
+        log_object["basic_record"]={
+            "timeout":myDict[self.timeout],
+            "violator":myDict[self.violator],
+            "error":myDict[self.error],
+            "winner":myDict[self.winner],
+            "scores":[{"0":scores[True][_], "1":scores[False][_]} for _ in range(1, c.MAXLEVEL)]
+        }
+        log_object["complete_record"]=[
+            log for log in self.log
+        ]
+        file.write(json.dumps(log_object))
         file.close()
 
         
-def main(playerList):
+def main(playerDict):
     '''
     -> 主函数
-    -> 参数: playerList 参赛队伍的模块名称列表
+    -> 参数: playerDict 参赛队伍的模块名称字典, 示例 {'player': 3, ...} 表示3个使用'player'模块的队伍...
     '''
 
     # 存放log文件的文件夹
@@ -271,14 +275,17 @@ def main(playerList):
         return decorator
     
     # 导入全部ai模块
-    Players = {name: __import__(name).Player for name in playerList}
+    Players = {name: __import__(name).Player for name in playerDict}
     
     # 进行成绩记录的准备    
     matchResults = []
     playerResults = {}
-    for count in range(len(playerList)):
-        playerResults[count] = {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
-                                False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, 'module': playerList[count]}
+    count = 0
+    for name in playerDict:
+        for _ in range(playerDict[name]):
+            playerResults[count] = {True: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, \
+                                    False: {'win': [], 'lose': [], 'violate': [], 'timeout': [], 'error': [], 'time': []}, 'module': name}
+            count += 1
             
     def update(matchResults, playerResults, result):
         matchResults.append('name: %s -> player%d to player%d -> %d rounds' % (result['name'], result[True]['index'][0], result[False]['index'][0], result['rounds']))
@@ -303,6 +310,7 @@ def main(playerList):
         
         state = new()
         if isinstance(state, Timeout):
+            print(2)
             state = {'player': None, 'module': playerResults[count]['module'], 'time': c.MAXTIME * 1.1, 'error': True, 'index': (count, isFirst)}
         elif state['player'] != None:
             state['player'].output = stateManager(isFirst)(state['player'].output)
@@ -310,8 +318,8 @@ def main(playerList):
         return state
             
     # 开始游戏, 单循环先后手多次比赛
-    for count1 in range(len(playerList)):
-        for count2 in range(count1 + 1, len(playerList)):
+    for count1 in range(count):
+        for count2 in range(count1 + 1, count):
             for _ in range(c.REPEAT):
                 states = {True: create(count1, True), False: create(count2, False)}
                 update(matchResults, playerResults, Platform({'match': match, True: states[True], False:states[False]}).play())
