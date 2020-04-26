@@ -254,6 +254,7 @@ def main(playerList):
     
     # 监测运行状态的装饰器
     def stateManager(isFirst):
+        import traceback
         def decorator(func):
             @timeoutManager(c.MAXTIME * 1.1, isFirst)
             @wraps(func)
@@ -264,6 +265,7 @@ def main(playerList):
                     end = time.perf_counter()
                     states[isFirst]['time'] += end - begin
                 except:
+                    traceback.print_exc()
                     result = None
                     states[isFirst]['error'] = True
                 return result

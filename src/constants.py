@@ -1,3 +1,6 @@
+from collections import namedtuple
+import copy
+
 ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
 ROUNDS = 1000   # 总回合数
@@ -27,19 +30,19 @@ COLOR_WORD = {'+': '#776e65', '-': '#f9f6f2'}  # 双方的文字色
 KEY_BACKWARD = "\'[\'"  # 回退
 KEY_FORWARD = "\']\'"   # 前进
 
-# 棋子
+# 只读机参数
+_LIST_SLOTS = ('__len__', '__getitem__', '__iter__')
+_DICT_SLOTS = _LIST_SLOTS + ('keys', 'values', 'items')
 
-class Chessman:
-    def __init__(self, belong, position, value = 1):
-        '''
-        -> 初始化棋子
-        -> 参数: belong   归属, 为bool, True代表先手
-        -> 参数: position 位置, 为tuple
-        -> 参数: value    数值, 为int
-        '''
-        self.belong = belong
-        self.position = position
-        self.value = value
+
+# 棋子
+'''
+-> 初始化棋子
+-> 参数: belong   归属, 为bool, True代表先手
+-> 参数: position 位置, 为tuple
+-> 参数: value    数值, 为int
+'''
+Chessman = namedtuple('Chessman', 'belong,position,value', defaults=(1, ))
 
 # 棋盘
 
@@ -140,8 +143,55 @@ class Chessboard:
 
     def copy(self):
         '''
-        -> 返回一个对象拷贝
+        -> 返回一个只读棋盘
+        -> 可通过再次调用copy函数转换为真实棋盘拷贝
         '''
+        myself=self
+        fake_globals={'slots':{}}
+
+        # 闭包只读机
+
+        class _helper:
+            """
+            基础只读机
+            可设定指定参数穿透至原对象，或对原对象进行深拷贝
+            原对象: fake_globals[id(self)]
+            可穿透参数: fake_globals['slots'][id(self)]
+            """
+            def __init__(self, obj, fake_globals, slots):
+                fake_globals[id(self)]=obj
+                fake_globals['slots'][id(self)]=slots
+            def __getattr__(self, i):
+                if not i in fake_globals['slots'][id(self)]:
+                    raise AttributeError(i)
+                return getattr(fake_globals[id(self)], i)
+            def copy(self):
+                return copy.deepcopy(fake_globals[id(self)])
+
+        class _list(_helper):
+            def __init__(self, obj, fake_globals):
+                super().__init__(obj, fake_globals, _LIST_SLOTS)
+        class _dict(_helper):
+            def __init__(self, obj, fake_globals):
+                super().__init__(obj, fake_globals, _DICT_SLOTS)
+
+        class _chessboard(_helper):
+            """
+            只读棋盘
+            穿透功能：get[Action]
+            """
+            def __init__(self, obj, fake_globals):
+                super().__init__(obj, fake_globals, ('getBelong','getValue','getScore','getNone','getNext'))
+                # 设置内部只读参数
+                self.array=_list(obj.array, fake_globals)
+                self.board=_dict(obj.board, fake_globals)
+                self.belongs={key: _list(obj.belongs[key], fake_globals) for key in range(2)}
+
+        rBoard=_chessboard(myself, fake_globals)
+        return rBoard
+
+
+
         new = Chessboard(self.array)
         new.board = self.board.copy()
         new.belongs[True] = self.belongs[True].copy()
@@ -151,7 +201,7 @@ class Chessboard:
     def __repr__(self):
         '''
         -> 打印棋盘, + 代表先手, - 代表后手
-        '''       
+        '''
         return '\n'.join([' '.join([('+' if self.getBelong((row, column)) else '-') + str(self.getValue((row, column))).zfill(2) \
                                    for column in range(COLUMNS)]) \
                          for row in range(ROWS)])
