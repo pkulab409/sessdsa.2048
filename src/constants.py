@@ -31,7 +31,7 @@ KEY_BACKWARD = "\'[\'"  # 回退
 KEY_FORWARD = "\']\'"   # 前进
 
 # 只读机参数
-_LIST_SLOTS = ('__len__', '__getitem__', '__iter__')
+_LIST_SLOTS = ('__len__', '__getitem__', '__iter__', '__contains__')
 _DICT_SLOTS = _LIST_SLOTS + ('keys', 'values', 'items')
 
 
@@ -55,18 +55,45 @@ class Chessboard:
         self.board = {}  # 棋盘所有棋子
         self.belongs = {True:[], False:[]}  # 双方的棋子位置
 
-    def add(self, belong, position, value = 1):
+    def apply(self, to_add, to_delete=()):
+        """
+        执行当前操作
+        Params:
+            to_add: list(Chessman), 待添加的棋子
+            to_delete: list(Chessman), 待删除的棋子
+        """
+        # 统一删除
+        delete_pos = set(x.position for x in to_delete)
+        self.belongs = {
+            k: [x for x in v if x not in delete_pos]
+            for k, v in self.belongs.items()
+        }
+        for pos in delete_pos:
+            del self.board[pos]
+        # 统一添加
+        for chessman in to_add:
+            self.belongs[chessman.belong].append(chessman.position)
+            self.board[chessman.position] = chessman
+
+    def add(self, belong, position, value=1, apply=True):
         '''
         -> 在指定位置下棋
+        -> 若apply为false则只返回棋子本身
         '''
         belong = position[1] < COLUMNS // 2  # 棋子的归属
-        self.belongs[belong].append(position)
-        self.board[position] = Chessman(belong, position, value)
+        chessman = Chessman(belong, position, value)
+        if apply:
+            self.apply([chessman])
+        else:
+            return chessman
 
-    def move(self, belong, direction):
+    def move(self, belong, direction, apply=True):
         '''
         -> 向指定方向合并, 返回是否变化
+        -> 若apply为false则只返回操作集
         '''
+        to_add, to_delete = [], []
+
         def inBoard(position):  # 判断是否在棋盘内
             return position[0] in range(ROWS) and position[1] in range(COLUMNS)
         def isMine(position):   # 判断是否在领域中
@@ -88,18 +115,14 @@ class Chessboard:
                 nextPosition = theNext(nextPosition)
             if inBoard(nextPosition) and nextPosition in self.board and nextPosition not in eaten \
                     and chessman.value == self.board[nextPosition].value:  # 满足吃棋条件
-                self.belongs[belong].remove(chessman.position)
-                self.belongs[belong if nextPosition in self.belongs[belong] else not belong].remove(nextPosition)
-                self.belongs[belong].append(nextPosition)
-                self.board[nextPosition] = Chessman(belong, nextPosition, chessman.value + 1)
-                del self.board[chessman.position]
+                to_add.append(
+                    Chessman(belong, nextPosition, chessman.value + 1))
+                to_delete.append(chessman)
                 eaten.append(nextPosition)
                 return True
             elif nowPosition != chessman.position:  # 不吃棋但移动了
-                self.belongs[belong].remove(chessman.position)
-                self.belongs[belong].append(nowPosition)
-                self.board[nowPosition] = Chessman(belong, nowPosition, chessman.value)
-                del self.board[chessman.position]
+                to_add.append(Chessman(belong, nowPosition, chessman.value))
+                to_delete.append(chessman)
                 return True
             else:  # 未发生移动
                 return False
@@ -107,7 +130,10 @@ class Chessboard:
         change = False
         for _ in conditionalSorted(self.belongs[belong]):
             if move_one(self.board[_], eaten): change = True
-        return change
+        if apply:
+            self.apply(to_add, to_delete)
+            return change
+        return to_add, to_delete
 
     def getBelong(self, position):
         '''
@@ -133,7 +159,7 @@ class Chessboard:
         '''
         return [(row, column) for row in range(ROWS) for column in range(COLUMNS) \
                 if ((column < COLUMNS // 2) == belong) and (row, column) not in self.board]
-    
+
     def getNext(self, belong, currentRound):
         '''
         -> 根据随机序列得到在本方领域允许下棋的位置
@@ -146,8 +172,8 @@ class Chessboard:
         -> 返回一个只读棋盘
         -> 可通过再次调用copy函数转换为真实棋盘拷贝
         '''
-        myself=self
-        fake_globals={'slots':{}}
+        myself = self
+        fake_globals = {'slots': {}}
 
         # 闭包只读机
 
@@ -158,19 +184,23 @@ class Chessboard:
             原对象: fake_globals[id(self)]
             可穿透参数: fake_globals['slots'][id(self)]
             """
+
             def __init__(self, obj, fake_globals, slots):
-                fake_globals[id(self)]=obj
-                fake_globals['slots'][id(self)]=slots
+                fake_globals[id(self)] = obj
+                fake_globals['slots'][id(self)] = slots
+
             def __getattr__(self, i):
                 if not i in fake_globals['slots'][id(self)]:
                     raise AttributeError(i)
                 return getattr(fake_globals[id(self)], i)
+
             def copy(self):
                 return copy.deepcopy(fake_globals[id(self)])
 
         class _list(_helper):
             def __init__(self, obj, fake_globals):
                 super().__init__(obj, fake_globals, _LIST_SLOTS)
+
         class _dict(_helper):
             def __init__(self, obj, fake_globals):
                 super().__init__(obj, fake_globals, _DICT_SLOTS)
@@ -180,23 +210,29 @@ class Chessboard:
             只读棋盘
             穿透功能：get[Action]
             """
+
             def __init__(self, obj, fake_globals):
-                super().__init__(obj, fake_globals, ('getBelong','getValue','getScore','getNone','getNext'))
+                super().__init__(obj, fake_globals,
+                                 ('getBelong', 'getValue', 'getScore',
+                                  'getNone', 'getNext', '__str__', '__repr__'))
                 # 设置内部只读参数
-                self.array=_list(obj.array, fake_globals)
-                self.board=_dict(obj.board, fake_globals)
-                self.belongs={key: _list(obj.belongs[key], fake_globals) for key in range(2)}
+                self.array = _list(obj.array, fake_globals)
+                self.board = _dict(obj.board, fake_globals)
+                self.belongs = {
+                    key: _list(obj.belongs[key], fake_globals)
+                    for key in range(2)
+                }
 
-        rBoard=_chessboard(myself, fake_globals)
+            def move(self, belong, direction):
+                """ 判断是否可移动 """
+                return any(self.movedItems(belong, direction))
+
+            def movedItems(self, belong, direction):
+                """ 返回一次移动操作集 """
+                return fake_globals[id(self)].move(belong, direction, False)
+
+        rBoard = _chessboard(myself, fake_globals)
         return rBoard
-
-
-
-        new = Chessboard(self.array)
-        new.board = self.board.copy()
-        new.belongs[True] = self.belongs[True].copy()
-        new.belongs[False] = self.belongs[False].copy()
-        return new
 
     def __repr__(self):
         '''
