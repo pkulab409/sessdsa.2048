@@ -33,7 +33,7 @@ struct Chessboard {
     };
 
     struct Chessman {
-        Position position;
+        // Position position;
         bool belong;
         unsigned value;
     };
@@ -56,11 +56,16 @@ struct Chessboard {
 
         for (auto y = 0; y < 4; y++) {
             for (auto x = 0; x < 8; x++) {
-                board[y][x] = Chessman{y, x, x < 4 ? left_player : right_player, 0};
+                board[y][x] = Chessman{/*y, x,*/ x < 4 ? left_player : right_player, 0};
             }
         }
     }
-
+    void add_dbg(bool _, tuple position, int value) {
+        Position pos{extract<int>(position[0]), extract<int>(position[1])};
+        auto [y, x]              = pos;
+        this->board[y][x].belong = _;
+        this->board[y][x].value  = value;
+    }
     // overload of add
     void add1(bool belong, tuple position) { this->add(belong, position, 1); }
 
@@ -86,11 +91,40 @@ struct Chessboard {
 
         bool change = false;
 
-        if (maybe_none.ptr() == Py_None) { return false; }
+        if (maybe_none.is_none()) { return false; }
         int direction = extract<int>(maybe_none);
 
+        auto value   = [&](int y, int x) -> unsigned & { return board[y][x].value; };
         auto is_mine = [&](int y, int x) {
             return board[y][x].belong == belong;
+        };
+        auto move_one = [&](int y_src, int x_src, int y_dst, int x_dst) {
+            assert((y_src == y_dst) or (x_src == x_dst));
+            assert(board[y_dst][x_dst].value == 0);
+            assert(is_mine(y_dst, x_dst));
+
+            if (y_src == y_dst and x_src == x_dst) {
+                return true;
+            }
+
+            board[y_dst][x_dst].value  = board[y_src][x_src].value;
+            board[y_src][x_src].value  = 0;
+            board[y_src][x_src].belong = x_src < 4 ? left_player : right_player;
+
+            return is_mine(y_src, x_src);
+        };
+        auto eat_one = [&](int y_src, int x_src, int y_dst, int x_dst) {
+            assert((y_src == y_dst) or (x_src == x_dst));
+            assert(value(y_dst, x_dst) != 0);
+            assert(value(y_dst, x_dst) == value(y_src, x_src));
+            assert(std::abs(y_dst - y_src) + std::abs(x_dst - x_src) != 0);
+
+            board[y_dst][x_dst].value += 1;
+            board[y_dst][x_dst].belong = belong;
+            board[y_src][x_src].value  = 0;
+            board[y_src][x_src].belong = x_src < 4 ? left_player : right_player;
+
+            return is_mine(y_src, x_src);
         };
         auto move_updown = [&](int scan_step, int scan_start, int scan_end) {
             auto test_scan = [&](int y) {
@@ -107,35 +141,37 @@ struct Chessboard {
             for (auto x = my_field_begin; x < my_field_end; x++) {
                 int should_check_for_eat = scan_start - scan_step;
                 for (auto y = scan_start; test_scan(y); y += scan_step) {
-                    auto position = Position{y, x};
-                    if (!is_mine(y, x)) {
-                        assert(board[y][x].value != 0);
+
+                    if (not is_mine(y, x)) {
+                        assert(value(y, x) != 0);
                         should_check_for_eat = y;
                         continue;
                     }
-                    if (board[y][x].value == 0) { continue; }
-                    if (board[should_check_for_eat][x].value == 0 and is_mine(should_check_for_eat, x)) {
-                        change                         = true;
-                        board[should_check_for_eat][x] = board[y][x];
-                        board[y][x].value              = 0;
-                        board[y][x].belong             = x < 4 ? left_player : right_player;
+                    if (value(y, x) == 0) { continue; }
+
+                    // is_mine and != 0
+
+                    if (value(y, x) == value(should_check_for_eat, x)) {
+                        eat_one(y, x, should_check_for_eat, x);
+                        change = true;
+                        // can't be eaten again
+                        should_check_for_eat += scan_step;
                         continue;
                     }
-                    if (board[y][x].value == board[should_check_for_eat][x].value) {
-                        change                         = true;
-                        board[should_check_for_eat][x] = board[y][x];
-                        board[should_check_for_eat][x].value += 1;
-                        board[y][x].value  = 0;
-                        board[y][x].belong = x < 4 ? left_player : right_player;
-                        should_check_for_eat += scan_step;
+
+                    // not equ
+
+                    if (is_mine(should_check_for_eat, x) and value(should_check_for_eat, x) == 0) {
+                        // my space, move to
+                        // can be eaten
+                        change = true;
+                        move_one(y, x, should_check_for_eat, x);
                         continue;
                     }
                     should_check_for_eat += scan_step;
                     if (should_check_for_eat == y) { continue; }
-                    change                         = true;
-                    board[should_check_for_eat][x] = board[y][x];
-                    board[y][x].value              = 0;
-                    board[y][x].belong             = x < 4 ? left_player : right_player;
+                    move_one(y, x, should_check_for_eat, x);
+                    change = true;
                 }
             }
             for (auto x = en_field_begin; x < en_field_end; x++) {
@@ -144,11 +180,8 @@ struct Chessboard {
                         continue;
                     }
                     if (board[y - scan_step][x].value == board[y][x].value) {
-                        board[y - scan_step][x].belong = belong;
-                        board[y - scan_step][x].value += 1;
-                        board[y][x].belong = x < 4 ? left_player : right_player;
-                        board[y][x].value  = 0;
-                        change             = true;
+                        eat_one(y, x, y - scan_step, x);
+                        change = true;
                         // my previous place must be 0 and can not be eat, so we can skip.
                         y += scan_step;
                     }
@@ -171,28 +204,30 @@ struct Chessboard {
                         continue;
                     }
                     if (board[y][x].value == 0) { continue; }
-                    if (board[y][should_check_for_eat].value == 0 and is_mine(y, should_check_for_eat)) {
-                        change                         = true;
-                        board[y][should_check_for_eat] = board[y][x];
-                        board[y][x].value              = 0;
-                        board[y][x].belong             = x < 4 ? left_player : right_player;
+                    if (value(y, should_check_for_eat) == 0 and is_mine(y, should_check_for_eat)) {
+                        // move to should_check_for_eat
+                        change = true;
+                        if (not move_one(y, x, y, should_check_for_eat)) {
+                            should_check_for_eat = x;
+                        }
                         continue;
                     }
                     if (board[y][x].value == board[y][should_check_for_eat].value) {
-                        change                                = true;
-                        board[y][should_check_for_eat].belong = belong;
-                        board[y][should_check_for_eat].value += 1;
-                        board[y][x].value  = 0;
-                        board[y][x].belong = x < 4 ? left_player : right_player;
-                        should_check_for_eat += scan_step;
+                        // eat
+                        change = true;
+                        if (not eat_one(y, x, y, should_check_for_eat)) {
+                            should_check_for_eat = x;
+                        } else {
+                            should_check_for_eat += scan_step;
+                        }
                         continue;
                     }
                     should_check_for_eat += scan_step;
                     if (should_check_for_eat == x) { continue; }
-                    change                         = true;
-                    board[y][should_check_for_eat] = board[y][x];
-                    board[y][x].value              = 0;
-                    board[y][x].belong             = x < 4 ? left_player : right_player;
+                    if (not move_one(y, x, y, should_check_for_eat)) {
+                        should_check_for_eat = x;
+                    }
+                    change = true;
                 }
             }
         };
@@ -225,7 +260,7 @@ struct Chessboard {
 
         return board[y][x].belong;
     }
-    bool getValue(tuple position) {
+    int getValue(tuple position) {
         int y = extract<int>(position[0]);
         int x = extract<int>(position[1]);
 
@@ -235,15 +270,19 @@ struct Chessboard {
         list result;
         for (auto y = 0; y < 4; y++) {
             for (auto x = 0; x < 8; x++) {
-                result.append(board[y][x].value);
+                if (board[y][x].belong == belong and board[y][x].value != 0) {
+                    result.append(board[y][x].value);
+                }
             }
         }
         return result;
     }
     list getNone(bool belong) {
         list result;
+        auto x_range_start = (belong == left_player) ? 0 : 4;
+        auto x_range_end   = x_range_start + 4;
         for (auto y = 0; y < 4; y++) {
-            for (auto x = 0; x < 8; x++) {
+            for (auto x = x_range_start; x < x_range_end; x++) {
                 if (board[y][x].belong == belong and board[y][x].value == 0) {
                     result.append(make_tuple(y, x));
                 }
@@ -251,9 +290,37 @@ struct Chessboard {
         }
         return result;
     }
-    list getNext(bool belong, int currentRound) {
-        // auto available = getNone(belong);
-        throw std::runtime_error("Not Implemented.");
+    object getNext(bool belong, int currentRound) {
+
+        auto x_range_start   = (belong == left_player) ? 0 : 4;
+        auto x_range_end     = x_range_start + 4;
+        auto available_found = 0;
+        for (auto y = 0; y < 4; y++) {
+            for (auto x = x_range_start; x < x_range_end; x++) {
+                if (board[y][x].belong == belong and board[y][x].value == 0) {
+                    available_found += 1;
+                    if (currentRound == 0) {
+                        return make_tuple(y, x);
+                    }
+                    currentRound -= 1;
+                }
+            }
+        }
+        if (available_found == 0) {
+            return boost::python::object();
+        }
+        currentRound = currentRound % available_found;
+        for (auto y = 0; y < 4; y++) {
+            for (auto x = x_range_start; x < x_range_end; x++) {
+                if (board[y][x].belong == belong and board[y][x].value == 0) {
+                    if (currentRound == 0) {
+                        return make_tuple(y, x);
+                    }
+                    currentRound -= 1;
+                }
+            }
+        }
+        throw std::runtime_error("unknown error.");
     }
     int _getArray(int index) {
         return this->array.at(index);
@@ -293,5 +360,6 @@ BOOST_PYTHON_MODULE(libchessboard) {
         .def("getNone", &Chessboard::getNone)
         .def("getNext", &Chessboard::getNext)
         .def("_getArray", &Chessboard::_getArray)
+        .def("_add_dbg", &Chessboard::add_dbg)
         .def("__repr__", &Chessboard::__repr__);
 }
