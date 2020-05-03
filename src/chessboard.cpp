@@ -1,5 +1,6 @@
 #include <array>
 #include <boost/python.hpp>
+#include <chrono>
 #include <fmt/format.h>
 #include <functional>
 #include <iostream>
@@ -8,6 +9,30 @@
 #include <vector>
 
 using namespace boost::python;
+
+#ifndef __clang__
+uint64_t count = 0;
+int32_t now    = -1;
+uint64_t stack[64];
+uint64_t __attribute__((no_instrument_function)) rdtscp() {
+    uint32_t lo, hi;
+    __asm__ __volatile__(
+        "rdtscp"
+        : "=a"(lo), "=d"(hi));
+    return (uint64_t)hi << 32 | lo;
+}
+extern "C" {
+void __attribute__((no_instrument_function)) __cyg_profile_func_enter(void *this_fn, void *call_site) {
+    now += 1;
+    assert(now < 64);
+    stack[now] = rdtscp();
+}
+void __attribute__((no_instrument_function)) __cyg_profile_func_exit(void *this_fn, void *call_site) {
+    count += rdtscp() - stack[now];
+    now -= 1;
+}
+};
+#endif
 
 struct Chessboard {
   private:
@@ -19,21 +44,7 @@ struct Chessboard {
     static constexpr int left_direction  = 2;
     static constexpr int right_direction = 3;
 
-    struct Position {
-        int y;
-        int x;
-        Position operator+(Position delta) {
-            return Position{this->y + delta.y,
-                            this->x + delta.x};
-        }
-        Position operator-(Position delta) {
-            return Position{this->y - delta.y,
-                            this->x - delta.x};
-        }
-    };
-
     struct Chessman {
-        // Position position;
         bool belong;
         unsigned value;
     };
@@ -51,18 +62,16 @@ struct Chessboard {
         stl_input_iterator<int> begin(array), end;
         this->array.assign(begin, end);
 
-        // belongs[0].reserve(32);
-        // belongs[1].reserve(32);
-
         for (auto y = 0; y < 4; y++) {
             for (auto x = 0; x < 8; x++) {
-                board[y][x] = Chessman{/*y, x,*/ x < 4 ? left_player : right_player, 0};
+                board[y][x] = Chessman{x < 4 ? left_player : right_player, 0};
             }
         }
     }
+
     void add_dbg(bool _, tuple position, int value) {
-        Position pos{extract<int>(position[0]), extract<int>(position[1])};
-        auto [y, x]              = pos;
+        int y                    = extract<int>(position[0]);
+        int x                    = extract<int>(position[1]);
         this->board[y][x].belong = _;
         this->board[y][x].value  = value;
     }
@@ -74,19 +83,13 @@ struct Chessboard {
         // in fact, first arg is useless,
         // but to keep the same interface with python version we keep it.
         bool belong = extract<int>(position[1]) < 4 ? left_player : right_player;
-        Position pos{extract<int>(position[0]), extract<int>(position[1])};
+        int y       = extract<int>(position[0]);
+        int x       = extract<int>(position[1]);
 
-        auto [y, x] = pos;
-
-        // this->belongs[int(belong)].push_back(&this->board[y][x]);
         this->board[y][x].belong = belong;
         this->board[y][x].value  = value;
     }
 
-    // bool move_none(bool belong, object none) {
-    //     assert(none.ptr() == Py_None);
-    //     return false;
-    // }
     bool move(bool belong, object maybe_none) {
 
         bool change = false;
@@ -290,15 +293,15 @@ struct Chessboard {
         }
         return result;
     }
-    object getNext(bool belong, int currentRound) {
+    tuple getNext(bool belong, int currentRound) {
+        std::vector<std::tuple<int, int>> available;
 
-        auto x_range_start   = (belong == left_player) ? 0 : 4;
-        auto x_range_end     = x_range_start + 4;
-        auto available_found = 0;
+        auto x_range_start = (belong == left_player) ? 0 : 4;
+        auto x_range_end   = x_range_start + 4;
         for (auto y = 0; y < 4; y++) {
             for (auto x = x_range_start; x < x_range_end; x++) {
                 if (board[y][x].belong == belong and board[y][x].value == 0) {
-                    available_found += 1;
+                    available.push_back(std::make_tuple(y, x));
                     if (currentRound == 0) {
                         return make_tuple(y, x);
                     }
@@ -306,21 +309,12 @@ struct Chessboard {
                 }
             }
         }
-        if (available_found == 0) {
-            return boost::python::object();
+        if (available.size() == 0) {
+            return make_tuple();
         }
-        currentRound = currentRound % available_found;
-        for (auto y = 0; y < 4; y++) {
-            for (auto x = x_range_start; x < x_range_end; x++) {
-                if (board[y][x].belong == belong and board[y][x].value == 0) {
-                    if (currentRound == 0) {
-                        return make_tuple(y, x);
-                    }
-                    currentRound -= 1;
-                }
-            }
-        }
-        throw std::runtime_error("unknown error.");
+        currentRound = currentRound % available.size();
+        auto result  = available.at(currentRound);
+        return make_tuple(std::get<0>(result), std::get<1>(result));
     }
     int _getArray(int index) {
         return this->array.at(index);
@@ -348,7 +342,16 @@ struct Chessboard {
     }
 };
 
+#ifndef __clang__
+int64_t __attribute__((no_instrument_function)) get_total_cpu_cycles() {
+    return count;
+}
+#endif
+
 BOOST_PYTHON_MODULE(libchessboard) {
+#ifndef __clang__
+    def("get_total_cpu_cycles", &get_total_cpu_cycles);
+#endif
     class_<Chessboard>("Chessboard", init<boost::python::list>())
         .def("add", &Chessboard::add)
         .def("add", &Chessboard::add1)
