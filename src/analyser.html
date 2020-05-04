@@ -2,8 +2,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Analyser</title>
     <script>
@@ -13,7 +12,6 @@
             }
         })();
     </script>
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 </head>
 
 <body>
@@ -113,9 +111,8 @@
         <div class="belongs-to-1" id="tile73" style="grid-column: 8;grid-row: 4;"></div>
     </div>
     <div id="comment"> </div>
-    <input type="file" name="record" id="i_input_file" autocomplete='off'
-        style="visibility: hidden;width: 0;height: 0;display: block;">
-    <div class="c_button_upload" id="i_button_upload" onclick="$('#i_input_file').click();">Click me to upload record
+    <input type="file" name="record" id="i_input_file" autocomplete='off' style="visibility: hidden;width: 0;height: 0;display: block;">
+    <div class="c_button_upload" id="i_button_upload" onclick="document.getElementById('i_input_file').click();">Click me to upload record
     </div>
     <script>
         var record = null;
@@ -124,43 +121,71 @@
         var current = 0;
         function on_upload(event) {
             var file = event.target.files[0];
+            console.log(file.name);
+            console.log(file.type);
             var reader = new FileReader();
             reader.readAsText(file, "UTF-8");
             reader.onload = function (e) {
                 record = e.target.result.replace(/\r/g, '');
-                process_text();
+                process_text(file.type.split("/")[1]);
                 render(current = 0);
             };
         }
 
-        function process_text() {
-            log = record.split("&");
-            var comment = [];
-            boards = [];
-            log.forEach(function (element, index) {
-                if (index == 0) { return; }
-                if (element[0] == "p") {
-                    boards.push({
-                        "board": element.split(":\n")[1],
-                        "comment": comment
-                    });
-                    comment = [];
-                    return;
-                }
-                if (element[0] == "d") {
-                    comment.push(element.split(":")[1]);
-                    return;
-                }
-            });
+        function process_text(filetype) {
+            if (filetype == "txt") {
+                log = record.split("&");
+                var comment = [];
+                boards = [];
+                log.forEach(function (element, index) {
+                    if (index == 0) { return; }
+                    if (element[0] == "p") {
+                        boards.push({
+                            "board": element.split(":\n")[1],
+                            "comment": comment
+                        });
+                        comment = [];
+                        return;
+                    }
+                    if (element[0] == "d") {
+                        comment.push(element.split(":")[1]);
+                        return;
+                    }
+                });
+                return;
+            }
+            if (filetype == "json") {
+                log = JSON.parse(record).complete_record;
+                var comment = [];
+                boards = [];
+                log.forEach(function (element, index) {
+                    if (element[1] == "p") {
+                        boards.push({
+                            "board": element.split(":\n")[1],
+                            "comment": comment
+                        });
+                        comment = [];
+                        return;
+                    }
+                    if (element[1] == "d") {
+                        comment.push(element.split(":")[1]);
+                        return;
+                    }
+                });
+                return;
+            }
+            alert("记录应当是txt或json文件.");
         }
         function render(seq) {
             var board = boards[seq].board;
             var comment = boards[seq].comment;
             console.log(seq);
             console.log(board);
-            $("#comment").empty();
+            document.getElementById("comment").innerHTML = "";
             comment.forEach(function (value) {
-                $("#comment").append("<p>" + value + "</p>");
+                var comment_p = document.createElement("p");
+                comment_p.innerText = value;
+                document.getElementById("comment").appendChild(comment_p);
             });
             board.split("\n").forEach((value, index) => {
                 if (index >= 4) { return; }
@@ -212,7 +237,7 @@
                 return;
             }
         }
-        $("#i_input_file").change(on_upload);
+        document.getElementById("i_input_file").addEventListener("change", on_upload);
         document.querySelector("body").onkeydown = key_listener;
     </script>
 </body>
