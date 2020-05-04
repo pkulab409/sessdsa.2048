@@ -1,9 +1,10 @@
+MAXTIME = 5     # 最大时间限制
+ROUNDS = 500    # 总回合数
+REPEAT = 10     # 单循环轮数
+
 ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
-ROUNDS = 1000   # 总回合数
-MAXTIME = 2     # 总时间限制
 MAXLEVEL = 14   # 总级别数
-REPEAT = 10     # 交替轮数
 
 ARRAY = list(range(ROUNDS))  # 随机(?)列表
 
@@ -11,8 +12,9 @@ NAMES = {_: str(2 ** _).zfill(4) for _ in range(MAXLEVEL)}  # 将内在级别转
 NAMES[0] = '0000'
 
 DIRECTIONS = {0: 'up', 1: 'down', 2: 'left', 3: 'right', None: 'None'}    # 换算方向的字典
+PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
 
-PLAYERS = ['nanami', 'ayase']   # 游戏图片名称
+PICTURES = ['nanami', 'ayase']  # 游戏图片名称
 LENGTH = 100                    # 格子的边长
 PADX = PADY = 10                # 边界填充的距离
 WORD_SIZE = (5, 2)              # 标签大小
