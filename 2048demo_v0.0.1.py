@@ -167,3 +167,4 @@ class Board():#对于棋盘的处理
                     self.button[i][j]["bg"]="#FF9F9F"
 
 init()
+
