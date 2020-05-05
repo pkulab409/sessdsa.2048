@@ -8,6 +8,7 @@ def main(playerList,
          toSave = True,
          toReport = True,
          toGet = False,
+         debug = False,
          REPEAT = c.REPEAT,
          MAXTIME = c.MAXTIME,
          ROUNDS = c.ROUNDS):
@@ -19,6 +20,7 @@ def main(playerList,
     -> 参数: toSave 是否保存对局记录
     -> 参数: toReport 是否生成统计报告
     -> 参数: toGet 是否返回平台对象
+    -> 参数: debug 是否打印报错信息
     -> 参数: REPEAT 单循环轮数
     -> 参数: MAXTIME 总时间限制
     -> 参数: ROUNDS 总回合数
@@ -50,138 +52,66 @@ def main(playerList,
             continue
 
     '''
-    第二部分, 生成用于比赛的对象
+    第二部分, 导入模块并准备成绩记录
     '''
-
-    # 超时异常
-    class Timeout(Exception):
-        pass
-
-    # 返回值
-    class Result:
-        def __init__(self, func):
-            self.func = func
-            self.result = Timeout()
-        def call(self, *args, **kwargs):
-            self.result = self.func(*args, **kwargs)
-            
-    # 超时退出的装饰器
-    from functools import wraps
-    import threading
-    def timeoutManager(maxtime, isFirst = None):
-        def decorator(func):
-            @wraps(func)
-            def wrappedFunc(*args, **kwargs):
-                result = Result(func)
-                thread = threading.Thread(target = result.call, args = (*args, ), kwargs = {**kwargs})
-                thread.setDaemon(True)
-                thread.start()
-                thread.join(maxtime - states[isFirst]['time'] if isFirst != None else maxtime)
-                if isinstance(result.result, Timeout) and isFirst != None: states[isFirst]['time'] = maxtime
-                return result.result
-            return wrappedFunc
-        return decorator
-    
-    # 监测运行状态的装饰器
-    def stateManager(isFirst):
-        def decorator(func):
-            @timeoutManager(MAXTIME * 1.1, isFirst)
-            @wraps(func)
-            def wrappedFunc(*args, **kwargs):
-                try:
-                    begin = time.perf_counter()
-                    result = func(*args, **kwargs)
-                    end = time.perf_counter()
-                    states[isFirst]['time'] += end - begin
-                except:
-                    result = None
-                    states[isFirst]['error'] = True
-                return result
-            return wrappedFunc
-        return decorator
     
     # 导入全部ai模块
     import sys
     memory = sys.path.copy()
     Players = []
+    time0 = [0 for count in range(len(playerList))]
     for count in range(len(playerList)):
-        if isinstance(playerList[count], str):
+        if isinstance(playerList[count], tuple):  # 指定初始时间
+            time0[count] = playerList[count][1]
+            playerList[count] = playerList[count][0]
+            
+        if isinstance(playerList[count], str):  # 路径
             path = playerList[count]
             sys.path = [os.path.dirname(os.path.abspath(path))]
             Players.append(__import__(os.path.splitext(os.path.basename(path))[0]).Player)
-        else:
+        else:  # 已读取的类
             Players.append(playerList[count])
     sys.path = memory
     
     # 进行成绩记录的准备    
-    matchResults = []
-    playerResults = {}
-    for count in range(len(playerList)):
-        playerResults[count] = {True: {'win': [],
-                                       'lose': [],
-                                       'violate': [],
-                                       'timeout': [],
-                                       'error': [],
-                                       'time': []},
-                                False: {'win': [],
-                                        'lose': [],
-                                        'violate': [],
-                                        'timeout': [],
-                                        'error': [],
-                                        'time': []},
-                                'path': playerList[count]}
+    matchResults = {'basic': [], 'exception': []}
+    playerResults = [{True: {'win': [],
+                             'lose': [],
+                             'violate': [],
+                             'timeout': [],
+                             'error': [],
+                             'time': []},
+                      False: {'win': [],
+                              'lose': [],
+                              'violate': [],
+                              'timeout': [],
+                              'error': [],
+                              'time': []},
+                      'path': playerList[count]} for count in range(len(playerList))]
             
     def update(matchResults, playerResults, result):  # 更新成绩记录
-        matchResults.append('name: %s -> player%d to player%d -> %d rounds'
-                            % (result['name'],
-                               result[True]['index'][0],
-                               result[False]['index'][0],
-                               result['rounds']))
+        matchResults['basic'].append('name: %s -> player%d to player%d -> %d rounds'
+                                    % (result['name'],
+                                       result[True]['index'][0],
+                                       result[False]['index'][0],
+                                       result['rounds']))
+        matchResults['exception'].append((result['name'], result[True]['exception'], result[False]['exception']))
         for isFirst in [True, False]:
             for _ in result[isFirst]:
-                if _ != 'index' and result[isFirst][_]:
+                if _ not in  ['index', 'exception'] and result[isFirst][_]:
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
-
-
-    # 生成对象并重载其方法, 返回状态
-    def create(count, isFirst):
-        @timeoutManager(MAXTIME * 1.1)
-        def new():
-            try:
-                begin = time.perf_counter()
-                player = Players[count](isFirst, c.ARRAY)
-                end = time.perf_counter()
-                state = {'player': player,
-                         'path': playerResults[count]['path'],
-                         'time': end - begin,
-                         'error': False,
-                         'index': (count, isFirst)}
-            except:
-                state = {'player': None,
-                         'path': playerResults[count]['path'],
-                         'time': 0,
-                         'error': True,
-                         'index': (count, isFirst)}
-            return state
         
-        state = new()
-        if isinstance(state, Timeout):
-            state = {'player': None,
-                     'path': playerResults[count]['path'],
-                     'time': MAXTIME * 1.1,
-                     'error': False,
-                     'index': (count, isFirst)}
-        elif state['player'] != None:
-            state['player'].output = stateManager(isFirst)(state['player'].output)
-            
-        return state
+
+
+
 
     '''
     第三部分, 比赛
     '''
     
     # 开始游戏, 单循环先后手多次比赛
-    kwargs = {'livequeue': livequeue,
+    kwargs = {'match': match,
+              'livequeue': livequeue,
               'toSave': toSave,
               'MAXTIME': MAXTIME,
               'ROUNDS': ROUNDS}
@@ -191,17 +121,24 @@ def main(playerList,
             platforms[(count1, count2)] = []
             platforms[(count2, count1)] = []
             for _ in range(REPEAT):
-                states = {True: create(count1, True), False: create(count2, False)}
-                platforms[(count1, count2)].append(Platform({'match': match,
-                                                            True: states[True],
-                                                            False:states[False]}, **kwargs))
-                update(matchResults, playerResults, platforms[(count1, count2)][-1].play())
-                
-                states = {True: create(count2, True), False: create(count1, False)}
-                platforms[(count2, count1)].append(Platform({'match': match,
-                                                            True: states[True],
-                                                            False:states[False]}, **kwargs))
-                update(matchResults, playerResults, platforms[(count2, count1)][-1].play())
+                for isFirst in [True, False]:
+                    counts = (count1, count2) if isFirst else (count2, count1)
+                    trueCount, falseCount = counts
+                    platforms[counts].append(Platform({True: {'player': object.__new__(Players[trueCount]),
+                                                              'path': playerList[trueCount],
+                                                              'time': 0,
+                                                              'time0': time0[trueCount],
+                                                              'error': False,
+                                                              'exception': None,
+                                                              'index': (trueCount, True)},
+                                                       False: {'player': object.__new__(Players[falseCount]),
+                                                               'path': playerList[falseCount],
+                                                               'time': 0,
+                                                               'time0': time0[falseCount],
+                                                               'error': False,
+                                                               'exception': None,
+                                                               'index': (falseCount, False)}}, **kwargs))
+                    update(matchResults, playerResults, platforms[counts][-1].play())
                 
     '''
     第四部分, 统计比赛结果
@@ -211,11 +148,11 @@ def main(playerList,
     if toReport:
         f = open('%s/_.txt' % match, 'w')
         f.write('=' * 50 + '\n')
-        f.write('total matches: %d\n' % len(matchResults))
-        f.write('\n'.join(matchResults))
+        f.write('total matches: %d\n' % len(matchResults['basic']))
+        f.write('\n'.join(matchResults['basic']))
         f.write('\n' + '=' * 50 + '\n')
         f.flush()
-        for count in playerResults:
+        for count in range(len(playerList)):
             f.write('player%s from path %s\n\n' % (count, playerResults[count]['path']))
             player = playerResults[count][True]
             f.write('''offensive cases:
@@ -273,4 +210,16 @@ def main(playerList,
             f.flush()
         f.close()
 
+    if debug:
+        f = open('%s/_Exceptions.txt' % match, 'w')
+        for metamatch in matchResults['exception']:
+            f.write('-> %s\n\n' % metamatch[0])
+            f.write('offensive:\n')
+            f.write(metamatch[1] if metamatch[1] else 'pass\n')
+            f.write('defensive:\n')
+            f.write(metamatch[2] if metamatch[2] else 'pass\n')
+            f.write('=' * 50 + '\n')
+            f.flush()
+        f.close()
+        
     if toGet: return platforms
