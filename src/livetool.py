@@ -1,4 +1,4 @@
-# 直播工具, 直接实例化即可
+# 直播工具
 
 # 顶端为事件栏, 显示当前轮数和超时, 违规, 终局, 胜利, 比分等信息
 # 底端为决策栏, 显示当前玩家的决策信息
@@ -11,8 +11,11 @@ import time
 
 
 class Live(Frame):
-    def __init__(self, mode = 0):
+    def __init__(self, mode = 0, func = __import__('round_match').main, playerList = ['player.py' for _ in range(2)]):
         self.mode = mode
+        self.func = func
+        self.playerList = playerList
+        
         
         Frame.__init__(self)
         self.grid()
@@ -82,7 +85,7 @@ class Live(Frame):
         import round_match
                 
         import threading
-        thread = threading.Thread(target = round_match.main, args = ([('player.py', 0),('player.py', 0)],), kwargs = {'livequeue':self.queue})
+        thread = threading.Thread(target = self.func, args = (self.playerList,), kwargs = {'livequeue':self.queue, 'REPEAT': 1})
         thread.setDaemon(True)
         thread.start()
         
