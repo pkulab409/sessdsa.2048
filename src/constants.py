@@ -6,6 +6,8 @@ ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
 MAXLEVEL = 14   # 总级别数
 
+SLEEP = 1       # 直播等待时间
+
 ARRAY = list(range(ROUNDS))  # 随机(?)列表
 
 NAMES = {_: str(2 ** _).zfill(4) for _ in range(MAXLEVEL)}  # 将内在级别转换为显示对象的字典
@@ -28,6 +30,7 @@ COLOR_WORD = {'+': '#776e65', '-': '#f9f6f2'}  # 双方的文字色
 
 KEY_BACKWARD = "\'[\'"  # 回退
 KEY_FORWARD = "\']\'"   # 前进
+
 
 # 棋子
 
