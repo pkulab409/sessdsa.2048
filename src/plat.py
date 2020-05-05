@@ -42,6 +42,7 @@ class Platform:
             return decorator
         
         # 监测运行状态的装饰器
+        import traceback
         def stateManager(isFirst):
             def decorator(func):
                 @timeoutManager(MAXTIME * 1.1, isFirst)
@@ -54,6 +55,7 @@ class Platform:
                     except:
                         result = None
                         self.states[isFirst]['error'] = True
+                        self.states[isFirst]['exception'] = traceback.format_exc()
                     return result
                 return wrappedFunc
             return decorator
@@ -100,11 +102,11 @@ class Platform:
             self.states[isFirst]['player'].__init__(isFirst, c.ARRAY)
             
         # 检查双方是否合法加载
-        fail = sum([self.checkState(True), self.checkState(False)])
-        if fail == 0:  # 双方合法加载
+        fail = [self.checkState(True), self.checkState(False)]
+        if sum(fail) == 0:  # 双方合法加载
             self.start()
-        elif fail == 1:  # 一方合法加载
-            self.winner = not check[0]
+        elif sum(fail) == 1:  # 一方合法加载
+            self.winner = not fail[0]
             self.save()
         else:  # 双方非法加载
             if self.timeout == None:
