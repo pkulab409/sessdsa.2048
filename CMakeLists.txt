@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchain.cmake")
 project (libchessboard)
 
+message(STATUS "If you can't find python3, include python3 include path manually")
 set(Python3_USE_STATIC_LIBS FALSE)
 find_package(Python3 COMPONENTS Development REQUIRED)
 if(Python3_FOUND)
@@ -28,6 +29,12 @@ add_compile_options(-Wfatal-errors)
 
 add_library(
     chessboard
+    SHARED
+    ${CMAKE_SOURCE_DIR}/chessboard.cpp
+)
+add_definitions(-D FOR_PYTHON37_AND_PYTHON36)
+add_library(
+    chessboard7
     SHARED
     ${CMAKE_SOURCE_DIR}/chessboard.cpp
 )

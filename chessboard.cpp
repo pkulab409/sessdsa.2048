@@ -303,19 +303,23 @@ struct Chessboard {
             s(3, 0), s(3, 1), s(3, 2), s(3, 3), s(3, 4), s(3, 5), s(3, 6), s(3, 7));
     }
 
-    Chessboard copy() {
-        return Chessboard(*this);
+    Chessboard* copy() {
+        return new Chessboard(*this);
     }
 };
 
+#ifndef FOR_PYTHON37_AND_PYTHON36
 PYBIND11_MODULE(libchessboard, m) {
+#else
+PYBIND11_MODULE(libchessboard7, m) {
+#endif
     class_<Chessboard>(m, "Chessboard")
         .def(init<std::vector<int>>())
         .def("add", &Chessboard::add)
         .def("add", &Chessboard::add1)
         .def("add_dbg", &Chessboard::add_dbg)
         .def("move", &Chessboard::move)
-        .def("copy", &Chessboard::copy)
+        .def("copy", &Chessboard::copy, return_value_policy::take_ownership)
         .def("getBelong", &Chessboard::getBelong)
         .def("getValue", &Chessboard::getValue)
         .def("getScore", &Chessboard::getScore)
@@ -323,5 +327,9 @@ PYBIND11_MODULE(libchessboard, m) {
         .def("getNext", &Chessboard::getNext)
         .def("_getArray", &Chessboard::_getArray)
         .def("_add_dbg", &Chessboard::add_dbg)
+        #ifndef FOR_PYTHON37_AND_PYTHON36
         .def("__repr__", &Chessboard::__repr__);
+        #else
+        .def("repr", &Chessboard::__repr__);
+        #endif
 }
