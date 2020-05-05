@@ -76,7 +76,7 @@ class Platform:
             def _add(self, log):
                 self.append(log)
                 self.parent.livequeue.put(self.parent)
-                time.sleep(1)
+                time.sleep(c.SLEEP)
                 
         self.states = states                # 参赛AI运行状态
         self.match = match                  # 比赛名称
