@@ -1,4 +1,4 @@
-# 直播工具
+# 直播工具, 直接实例化即可
 
 # 顶端为事件栏, 显示当前轮数和超时, 违规, 终局, 胜利, 比分等信息
 # 底端为决策栏, 显示当前玩家的决策信息
@@ -79,10 +79,10 @@ class Live(Frame):
     def start(self):
         import queue
         self.queue = queue.Queue()
-        import debug_match
+        import round_match
                 
         import threading
-        thread = threading.Thread(target = debug_match.main, args = ([('player.py', 0),('player.py', 0)],), kwargs = {'livequeue':self.queue})
+        thread = threading.Thread(target = round_match.main, args = ([('player.py', 0),('player.py', 0)],), kwargs = {'livequeue':self.queue})
         thread.setDaemon(True)
         thread.start()
         
