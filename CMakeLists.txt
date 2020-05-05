@@ -19,7 +19,7 @@ endif()
 
 find_package(fmt REQUIRED)
 include_directories(Fmt_INCLUDE_DIRS)
-link_libraries(fmt)
+# link_libraries(fmt)
 
 add_compile_options(-O3)
 add_compile_options(-funroll-loops)
@@ -32,9 +32,9 @@ add_library(
     SHARED
     ${CMAKE_SOURCE_DIR}/chessboard.cpp
 )
-add_definitions(-D FOR_PYTHON37_AND_PYTHON36)
-add_library(
-    chessboard7
-    SHARED
-    ${CMAKE_SOURCE_DIR}/chessboard.cpp
-)
+# add_definitions(-D FOR_PYTHON37_AND_PYTHON36)
+# add_library(
+#     chessboard7
+#     SHARED
+#     ${CMAKE_SOURCE_DIR}/chessboard.cpp
+# )
