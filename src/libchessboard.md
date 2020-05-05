@@ -21,3 +21,7 @@
 | real  |        19.952s        |      8.589s       |     2.323      |
 | user  |        18.101s        |      7.194s       |                |
 |  sys  |        3.644s         |      2.851s       |                |
+
+此外, 用pybind11重构的[yachessboard](https://github.com/HamiltonHuaji/yachessboard)(Yet Another Chessboard)可能更易于编译.
+
+经测试发现, python 3.8(已知只对于ubuntu)以下的版本, 不能正确处理`__repr__`等魔术方法的导出, 所以需要3.8或以上版本, 或者用python再进行一些修补.
