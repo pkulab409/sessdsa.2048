@@ -13,6 +13,8 @@ class Platform:
         -> 参数: toSave 是否保存为记录文件, 缺省值为真
         -> 参数: toReport 是否返回比赛报告, 缺省值为真, 否则返回平台对象
         '''
+        # 生成覆盖随机序列
+        c.ARRAY = tuple(random.randrange(720720) for i in range(ROUNDS))
         
         # 超时异常
         class Timeout(Exception):
