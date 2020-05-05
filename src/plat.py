@@ -4,14 +4,65 @@ import time
 # 平台
 
 class Platform:
-    def __init__(self, states, livequeue, toSave, MAXTIME, ROUNDS):
+    def __init__(self, states, match, livequeue, toSave, MAXTIME, ROUNDS):
         '''
         初始化
-        -> 参数: states 保存先后手方状态的字典
+        -> 参数: states 保存先后手方模块元信息的字典
+        -> 参数: match 比赛名称
         -> 参数: livequeue 直播工具, 缺省值为None
         -> 参数: toSave 是否保存为记录文件, 缺省值为真
         -> 参数: toReport 是否返回比赛报告, 缺省值为真, 否则返回平台对象
         '''
+        
+        # 超时异常
+        class Timeout(Exception):
+            pass
+
+        # 返回值
+        class Result:
+            def __init__(self, func):
+                self.func = func
+                self.result = Timeout()
+            def call(self, *args, **kwargs):
+                self.result = self.func(*args, **kwargs)
+                
+        # 超时退出的装饰器
+        import threading
+        def timeoutManager(maxtime, isFirst):
+            def decorator(func):
+                def wrappedFunc(*args, **kwargs):
+                    result = Result(func)
+                    thread = threading.Thread(target = result.call, args = (*args, ), kwargs = {**kwargs})
+                    thread.setDaemon(True)
+                    thread.start()
+                    thread.join(maxtime - self.states[isFirst]['time'])
+                    if isinstance(result.result, Timeout): self.states[isFirst]['time'] = maxtime
+                    return result.result
+                return wrappedFunc
+            return decorator
+        
+        # 监测运行状态的装饰器
+        def stateManager(isFirst):
+            def decorator(func):
+                @timeoutManager(MAXTIME * 1.1, isFirst)
+                def wrappedFunc(*args, **kwargs):
+                    try:
+                        begin = time.perf_counter()
+                        result = func(*args, **kwargs)
+                        end = time.perf_counter()
+                        self.states[isFirst]['time'] += end - begin
+                    except:
+                        result = None
+                        self.states[isFirst]['error'] = True
+                    return result
+                return wrappedFunc
+            return decorator
+
+        # 重载对象方法
+        for isFirst in [True, False]:
+            states[isFirst]['player'].__init__ = stateManager(isFirst)(states[isFirst]['player'].__init__)
+            states[isFirst]['player'].output = stateManager(isFirst)(states[isFirst]['player'].output)
+
 
         # 构建一个日志类, 可以实现直播功能
         class Log(list):
@@ -26,6 +77,7 @@ class Platform:
                 time.sleep(1)
                 
         self.states = states                # 参赛AI运行状态
+        self.match = match                  # 比赛名称
         self.livequeue = livequeue          # 直播工具
         self.toSave = toSave                # 保存记录文件
         self.maxtime = MAXTIME              # 最大时间限制
@@ -44,7 +96,9 @@ class Platform:
         '''
         一局比赛, 返回player表现报告
         '''
-
+        for isFirst in [True, False]:
+            self.states[isFirst]['player'].__init__(isFirst, c.ARRAY)
+            
         # 检查双方是否合法加载
         fail = sum([self.checkState(True), self.checkState(False)])
         if fail == 0:  # 双方合法加载
@@ -65,14 +119,16 @@ class Platform:
                         'violate': self.violator == True,
                         'timeout': self.timeout in [True, 'both'],
                         'error': self.error in [True, 'both'],
-                        'time': self.states[True]['time']},
+                        'time': self.states[True]['time'] - self.states[True]['time0'],
+                        'exception': self.states[True]['exception']},
                 False: {'index': self.states[False]['index'],
                         'win': self.winner == False,
                         'lose': self.winner == True,
                         'violate': self.violator == False,
                         'timeout': self.timeout in [False, 'both'],
                         'error': self.error in [False, 'both'],
-                        'time': self.states[False]['time']},
+                        'time': self.states[False]['time'] - self.states[False]['time0'],
+                        'exception': self.states[False]['exception']},
                 'name': self.name,
                 'rounds': self.currentRound}
               
@@ -192,7 +248,7 @@ class Platform:
         # 保存对局信息, 可以用analyser.py解析
         self.name = repr(hash(time.perf_counter()))  # 对局名称
         if self.toSave:
-            file = open('%s/%s.txt' % (self.states['match'], self.name),'w')
+            file = open('%s/%s.txt' % (self.match, self.name),'w')
             myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
             title = 'player0: %d from path %s\n' % (self.states[True]['index'][0], self.states[True]['path']) + \
                     'player1: %d from path %s\n' % (self.states[False]['index'][0], self.states[False]['path']) + \
