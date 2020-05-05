@@ -216,7 +216,7 @@ def main(playerList,
             f.write('-> %s\n\n' % metamatch[0])
             f.write('offensive:\n')
             f.write(metamatch[1] if metamatch[1] else 'pass\n')
-            f.write('defensive:\n')
+            f.write('\ndefensive:\n')
             f.write(metamatch[2] if metamatch[2] else 'pass\n')
             f.write('=' * 50 + '\n')
             f.flush()
