@@ -1,225 +1,275 @@
-# 单循环赛工具
+import constants as c  # 导入游戏常数
+import time
 
-import constants as c
+# 平台
 
-def main(playerList,
-         savepath = None,
-         livequeue = None,
-         toSave = True,
-         toReport = True,
-         toGet = False,
-         debug = False,
-         REPEAT = c.REPEAT,
-         MAXTIME = c.MAXTIME,
-         ROUNDS = c.ROUNDS):
-    '''
-    主函数
-    -> 参数: playerList 参赛队伍的模块列表, 支持绝对路径, 相对路径, 和已读取的类. 例如 playerList = ['player.py', 'player.py']
-    -> 参数: savepath 比赛文件夹的保存路径, 支持相对路径, 支持函数返回值, 默认为在当前目录创建
-    -> 参数: livequeue 直播进程通讯用的队列
-    -> 参数: toSave 是否保存对局记录
-    -> 参数: toReport 是否生成统计报告
-    -> 参数: toGet 是否返回平台对象
-    -> 参数: debug 是否打印报错信息
-    -> 参数: REPEAT 单循环轮数
-    -> 参数: MAXTIME 总时间限制
-    -> 参数: ROUNDS 总回合数
-    '''
-    
-    import time
-    from plat import Platform
-    
-    '''
-    第一部分, 构建存放log文件的文件夹
-    '''
-    
-    import os
-    if callable(savepath):
-        match = savepath()
-    elif isinstance(savepath, str):
-        match = savepath
-    else:
-        match = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())
-    count = 0
-    while True:  # 文件夹存在则创立副本
-        count += 1
-        try:
-            _match = '_%d' % count if count != 1 else ''
-            os.mkdir(match + _match)
-            match += _match
-            break
-        except FileExistsError:
-            continue
-
-    '''
-    第二部分, 导入模块并准备成绩记录
-    '''
-    
-    # 导入全部ai模块
-    import sys
-    memory = sys.path.copy()
-    Players = []
-    time0 = [0 for count in range(len(playerList))]
-    for count in range(len(playerList)):
-        if isinstance(playerList[count], tuple):  # 指定初始时间
-            time0[count] = playerList[count][1]
-            playerList[count] = playerList[count][0]
-            
-        if isinstance(playerList[count], str):  # 路径
-            path = playerList[count]
-            sys.path = [os.path.dirname(os.path.abspath(path))]
-            Players.append(__import__(os.path.splitext(os.path.basename(path))[0]).Player)
-        else:  # 已读取的类
-            Players.append(playerList[count])
-    sys.path = memory
-    
-    # 进行成绩记录的准备    
-    matchResults = {'basic': [], 'exception': []}
-    playerResults = [{True: {'win': [],
-                             'lose': [],
-                             'violate': [],
-                             'timeout': [],
-                             'error': [],
-                             'time': []},
-                      False: {'win': [],
-                              'lose': [],
-                              'violate': [],
-                              'timeout': [],
-                              'error': [],
-                              'time': []},
-                      'path': playerList[count]} for count in range(len(playerList))]
-            
-    def update(matchResults, playerResults, result):  # 更新成绩记录
-        matchResults['basic'].append('name: %s -> player%d to player%d -> %d rounds'
-                                    % (result['name'],
-                                       result[True]['index'][0],
-                                       result[False]['index'][0],
-                                       result['rounds']))
-        matchResults['exception'].append((result['name'], result[True]['exception'], result[False]['exception']))
-        for isFirst in [True, False]:
-            for _ in result[isFirst]:
-                if _ not in  ['index', 'exception'] and result[isFirst][_]:
-                    playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
+class Platform:
+    def __init__(self, states, match, livequeue, toSave, MAXTIME, ROUNDS):
+        '''
+        初始化
+        -> 参数: states 保存先后手方模块元信息的字典
+        -> 参数: match 比赛名称
+        -> 参数: livequeue 直播工具, 缺省值为None
+        -> 参数: toSave 是否保存为记录文件, 缺省值为真
+        -> 参数: toReport 是否返回比赛报告, 缺省值为真, 否则返回平台对象
+        '''
+        # 生成覆盖随机序列
+        from random import randrange
+        c.ARRAY = tuple(randrange(720720) for _ in range(ROUNDS))
         
+        # 超时异常
+        class Timeout(Exception):
+            pass
 
-
-
-
-    '''
-    第三部分, 比赛
-    '''
-    
-    # 开始游戏, 单循环先后手多次比赛
-    kwargs = {'match': match,
-              'livequeue': livequeue,
-              'toSave': toSave,
-              'MAXTIME': MAXTIME,
-              'ROUNDS': ROUNDS}
-    platforms = {}
-    for count1 in range(len(playerList)):
-        for count2 in range(count1 + 1, len(playerList)):
-            platforms[(count1, count2)] = []
-            platforms[(count2, count1)] = []
-            for _ in range(REPEAT):
-                for isFirst in [True, False]:
-                    counts = (count1, count2) if isFirst else (count2, count1)
-                    trueCount, falseCount = counts
-                    platforms[counts].append(Platform({True: {'player': object.__new__(Players[trueCount]),
-                                                              'path': playerList[trueCount],
-                                                              'time': 0,
-                                                              'time0': time0[trueCount],
-                                                              'error': False,
-                                                              'exception': None,
-                                                              'index': (trueCount, True)},
-                                                       False: {'player': object.__new__(Players[falseCount]),
-                                                               'path': playerList[falseCount],
-                                                               'time': 0,
-                                                               'time0': time0[falseCount],
-                                                               'error': False,
-                                                               'exception': None,
-                                                               'index': (falseCount, False)}}, **kwargs))
-                    update(matchResults, playerResults, platforms[counts][-1].play())
+        # 返回值
+        class Result:
+            def __init__(self, func):
+                self.func = func
+                self.result = Timeout()
+            def call(self, *args, **kwargs):
+                self.result = self.func(*args, **kwargs)
                 
-    '''
-    第四部分, 统计比赛结果
-    '''
-    
-    # 统计全部比赛并归档到一个总文件中
-    if toReport:
-        f = open('%s/_.txt' % match, 'w')
-        f.write('=' * 50 + '\n')
-        f.write('total matches: %d\n' % len(matchResults['basic']))
-        f.write('\n'.join(matchResults['basic']))
-        f.write('\n' + '=' * 50 + '\n')
-        f.flush()
-        for count in range(len(playerList)):
-            f.write('player%s from path %s\n\n' % (count, playerResults[count]['path']))
-            player = playerResults[count][True]
-            f.write('''offensive cases:
-    average time: %.3f
-        win rate: %.2f%%
-        win: %d at
-            %s
-        lose: %d at
-            %s
-        violate: %d at
-            %s
-        timeout: %d at
-            %s
-        error: %d at
-            %s
-'''            %(sum(player['time']) / len(player['time']) if player['time'] != [] else 0,
-                 100 * len(player['win']) / REPEAT / (len(playerResults) - 1),
-                 len(player['win']),
-                 '\n            '.join(player['win']),
-                 len(player['lose']),
-                 '\n            '.join(player['lose']),
-                 len(player['violate']),
-                 '\n            '.join(player['violate']),
-                 len(player['timeout']),
-                 '\n            '.join(player['timeout']),
-                 len(player['error']),
-                 '\n            '.join(player['error'])))
-            player = playerResults[count][False]
-            f.write('''defensive cases:
-    average time: %.3f
-        win rate: %.2f%%
-        win: %d at
-            %s
-        lose: %d at
-            %s
-        violate: %d at
-            %s
-        timeout: %d at
-            %s
-        error: %d at
-            %s
-'''            %(sum(player['time']) / len(player['time']) if player['time'] != [] else 0,
-                 100 * len(player['win']) / REPEAT / (len(playerResults) - 1),
-                 len(player['win']),
-                 '\n            '.join(player['win']),
-                 len(player['lose']),
-                 '\n            '.join(player['lose']),
-                 len(player['violate']),
-                 '\n            '.join(player['violate']),
-                 len(player['timeout']),
-                 '\n            '.join(player['timeout']),
-                 len(player['error']),
-                 '\n            '.join(player['error'])))
-            f.write('=' * 50 + '\n')
-            f.flush()
-        f.close()
-
-    if debug:
-        f = open('%s/_Exceptions.txt' % match, 'w')
-        for metamatch in matchResults['exception']:
-            f.write('-> %s\n\n' % metamatch[0])
-            f.write('offensive:\n')
-            f.write(metamatch[1] if metamatch[1] else 'pass\n')
-            f.write('\ndefensive:\n')
-            f.write(metamatch[2] if metamatch[2] else 'pass\n')
-            f.write('=' * 50 + '\n')
-            f.flush()
-        f.close()
+        # 超时退出的装饰器
+        import threading
+        def timeoutManager(maxtime, isFirst):
+            def decorator(func):
+                def wrappedFunc(*args, **kwargs):
+                    result = Result(func)
+                    thread = threading.Thread(target = result.call, args = (*args, ), kwargs = {**kwargs})
+                    thread.setDaemon(True)
+                    thread.start()
+                    thread.join(maxtime - self.states[isFirst]['time'])
+                    if isinstance(result.result, Timeout): self.states[isFirst]['time'] = maxtime
+                    return result.result
+                return wrappedFunc
+            return decorator
         
-    if toGet: return platforms
+        # 监测运行状态的装饰器
+        import traceback
+        def stateManager(isFirst):
+            def decorator(func):
+                @timeoutManager(MAXTIME * 1.1, isFirst)
+                def wrappedFunc(*args, **kwargs):
+                    try:
+                        begin = time.perf_counter()
+                        result = func(*args, **kwargs)
+                        end = time.perf_counter()
+                        self.states[isFirst]['time'] += end - begin
+                    except:
+                        result = None
+                        self.states[isFirst]['error'] = True
+                        self.states[isFirst]['exception'] = traceback.format_exc()
+                    return result
+                return wrappedFunc
+            return decorator
+
+        # 重载对象方法
+        for isFirst in [True, False]:
+            states[isFirst]['player'].__init__ = stateManager(isFirst)(states[isFirst]['player'].__init__)
+            states[isFirst]['player'].output = stateManager(isFirst)(states[isFirst]['player'].output)
+
+
+        # 构建一个日志类, 可以实现直播功能
+        class Log(list):
+            def __init__(self, parent):
+                list.__init__(self, [])
+                self.parent = parent
+                Log.add = Log._add if parent.livequeue != None else list.append
+
+            def _add(self, log):
+                self.append(log)
+                self.parent.livequeue.put(self.parent)
+                time.sleep(c.SLEEP)
+                
+        self.states = states                # 参赛AI运行状态
+        self.match = match                  # 比赛名称
+        self.livequeue = livequeue          # 直播工具
+        self.toSave = toSave                # 保存记录文件
+        self.maxtime = MAXTIME              # 最大时间限制
+        self.rounds = ROUNDS                # 总回合数
+        self.winner = None                  # 胜利者
+        self.violator = None                # 违规者
+        self.timeout = None                 # 超时者
+        self.error = None                   # 报错者
+        self.currentRound = 0               # 当前轮数
+        self.change = False                 # 监控棋盘是否改变
+        self.next = (None, None)            # 按照随机序列得到的下一个位置
+        self.board = c.Chessboard(c.ARRAY)  # 棋盘
+        self.log = Log(self)                # 日志, &d 决策 decision, &p 棋盘 platform, &e 事件 event
+
+    def play(self):
+        '''
+        一局比赛, 返回player表现报告
+        '''
+        for isFirst in [True, False]:
+            self.states[isFirst]['player'].__init__(isFirst, c.ARRAY)
+            
+        # 检查双方是否合法加载
+        fail = [self.checkState(True), self.checkState(False)]
+        if sum(fail) == 0:  # 双方合法加载
+            self.start()
+        elif sum(fail) == 1:  # 一方合法加载
+            self.winner = not fail[0]
+            self.save()
+        else:  # 双方非法加载
+            if self.timeout == None:
+                self.error = 'both'
+            if self.error == None:
+                self.timeout = 'both'
+            self.save()
+            
+        return {True:  {'index': self.states[True]['index'],
+                        'win': self.winner == True,
+                        'lose': self.winner == False,
+                        'violate': self.violator == True,
+                        'timeout': self.timeout in [True, 'both'],
+                        'error': self.error in [True, 'both'],
+                        'time': self.states[True]['time'] - self.states[True]['time0'],
+                        'exception': self.states[True]['exception']},
+                False: {'index': self.states[False]['index'],
+                        'win': self.winner == False,
+                        'lose': self.winner == True,
+                        'violate': self.violator == False,
+                        'timeout': self.timeout in [False, 'both'],
+                        'error': self.error in [False, 'both'],
+                        'time': self.states[False]['time'] - self.states[False]['time0'],
+                        'exception': self.states[False]['exception']},
+                'name': self.name,
+                'rounds': self.currentRound}
+              
+    def start(self):
+        '''
+        进行比赛
+        '''
+        
+        def get_position(isFirst, currentRound):
+            self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
+            position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
+            if self.checkState(isFirst): return True  # 判断运行状态
+            self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
+            if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
+            self.board.add(isFirst, position)  # 更新棋盘
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
+            return False
+
+        def get_direction(isFirst, currentRound):
+            direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
+            if self.checkState(isFirst): return True  # 判断运行状态
+            self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
+            self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
+            return False
+
+        # 进行比赛
+        for _ in range(self.rounds):
+            if get_position(True, _): break
+            if get_position(False, _): break
+            if get_direction(True, _): break
+            if get_direction(False, _): break
+
+        # 记录总轮数
+        self.currentRound = _ + 1
+        
+        # 得到winner
+        for _ in (self.timeout, self.violator, self.error):
+            if _ != None:
+                self.winner = not _
+                self.log.add('&e:%s win' % (c.PLAYERS[self.winner]))
+
+        self.save()
+        
+    def checkState(self, isFirst):
+        '''
+        检查是否超时和报错
+        '''
+        if self.states[isFirst]['time'] >= self.maxtime:  # 超时
+            self.log.add('&e:%s time out' % (c.PLAYERS[isFirst]))
+            self.timeout = isFirst
+            return True
+        if self.states[isFirst]['error']:  # 抛出异常
+            self.log.add('&e:%s run time error' % (c.PLAYERS[isFirst]))
+            self.error = isFirst
+            return True
+        return False
+
+    def checkViolate(self, isFirst, mode, value):
+        '''
+        检查是否非法输出
+        -> 违规有三种情形:
+        -> 输出格式错误
+        -> 选择的方格在可选范围之外
+        -> 选择的方向使得合并前后棋盘没有变化
+        '''
+        if mode == 'position':
+            if not (isinstance(value, tuple) and len(value) == 2 and value[0] in range(c.ROWS) and value[1] in range(c.COLUMNS)):
+                self.log.add('&e:%s violate by illegal output of position' % (c.PLAYERS[isFirst]))
+                self.violator = isFirst
+                return True
+            if self.board.getValue(value) == 0 and (self.board.getBelong(value) != isFirst or value == self.next):
+                return False
+            else:
+                self.log.add('&e:%s violate by not achievable position' % (c.PLAYERS[isFirst]))
+                self.violator = isFirst
+                return True
+        else:
+            if value not in range(4):
+                self.log.add('&e:%s violate by illegal output of direction' % (c.PLAYERS[isFirst]))
+                self.violator = isFirst
+                return True
+            elif self.change:
+                return False
+            else:
+                self.log.add('&e:%s violate by not achievable direction' % (c.PLAYERS[isFirst]))
+                self.violator = isFirst
+                return True
+            self.change = False
+
+    def save(self):
+        '''
+        计分并保存比赛记录
+        '''
+        
+        # 获取所有棋子并计数
+        results = {True: self.board.getScore(True), False: self.board.getScore(False)}
+        scores = {True: {}, False: {}}
+        for level in range(1, c.MAXLEVEL):
+            scores[True][level] = results[True].count(level)
+            scores[False][level] = results[False].count(level)
+
+        # 比较比分
+        if self.winner == None:
+            for _ in reversed(range(1, c.MAXLEVEL)):
+                self.log.add('&e:check level %d' % _)
+                if scores[True][_] == scores[False][_]:
+                    self.log.add('&e:level %d tied by %d' % (_, scores[True][_]))
+                else:
+                    self.winner = scores[True][_] > scores[False][_]
+                    self.log.add('&e:%s win by level %d (%d to %d)' % (c.PLAYERS[self.winner], _, scores[True][_], scores[False][_]))
+                    break
+            else:
+                self.log.add('&e:tied')
+
+        # 保存对局信息, 可以用analyser.py解析
+        self.name = repr(hash(time.perf_counter()))  # 对局名称
+        if self.toSave:
+            file = open('%s/%s.txt' % (self.match, self.name),'w')
+            myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
+            title = 'player0: %d from path %s\n' % (self.states[True]['index'][0], self.states[True]['path']) + \
+                    'player1: %d from path %s\n' % (self.states[False]['index'][0], self.states[False]['path']) + \
+                    'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
+                    '{:*^45s}\n'.format('basic record')
+            file.write(title)
+            file.write('=' * 45 + '\n|{:^10s}|{:^10s}|{:^10s}|{:^10s}|\n'.format('timeout', 'violator', 'error', 'winner') + \
+                       '-' * 45 + '\n|{:^10s}|{:^10s}|{:^10s}|{:^10s}|\n'.format(myDict[self.timeout], myDict[self.violator], myDict[self.error], myDict[self.winner]) + \
+                       '=' * 45 + '\n')
+            file.write('=' * 60 + '\n|%6s|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % ('player', *range(1, c.MAXLEVEL)) + \
+                       '-' * 60 + '\n|%6d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % (0, *[scores[True][_] for _ in range(1, c.MAXLEVEL)]) + \
+                       '-' * 60 + '\n|%6d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % (1, *[scores[False][_] for _ in range(1, c.MAXLEVEL)]) + \
+                       '=' * 60 + '\n')
+            file.flush()
+            file.write('{:*^45s}\n'.format('complete record'))
+            for log in self.log:
+                file.write(log + '\n')  # '&'表示一条log的开始
+                file.flush()
+            file.close()
