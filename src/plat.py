@@ -9,10 +9,12 @@ class Platform:
         初始化
         -> 参数: states 保存先后手方模块元信息的字典
         -> 参数: match 比赛名称
-        -> 参数: livequeue 直播工具, 缺省值为None
-        -> 参数: toSave 是否保存为记录文件, 缺省值为真
-        -> 参数: toReport 是否返回比赛报告, 缺省值为真, 否则返回平台对象
+        -> 参数: livequeue 直播通信队列
+        -> 参数: toSave 是否保存为记录文件
+        -> 参数: MAXTIME 最大时间限制
+        -> 参数: ROUNDS 总回合数
         '''
+        
         # 生成覆盖随机序列
         from random import randrange
         c.ARRAY = tuple(randrange(720720) for _ in range(ROUNDS))
@@ -101,6 +103,7 @@ class Platform:
         '''
         一局比赛, 返回player表现报告
         '''
+        
         for isFirst in [True, False]:
             self.states[isFirst]['player'].__init__(isFirst, c.ARRAY)
             
@@ -110,13 +113,13 @@ class Platform:
             self.start()
         elif sum(fail) == 1:  # 一方合法加载
             self.winner = not fail[0]
-            self.save()
         else:  # 双方非法加载
             if self.timeout == None:
                 self.error = 'both'
             if self.error == None:
                 self.timeout = 'both'
-            self.save()
+
+        self.save()  # 计分并保存
             
         return {True:  {'index': self.states[True]['index'],
                         'win': self.winner == True,
@@ -176,13 +179,12 @@ class Platform:
             if _ != None:
                 self.winner = not _
                 self.log.add('&e:%s win' % (c.PLAYERS[self.winner]))
-
-        self.save()
         
     def checkState(self, isFirst):
         '''
         检查是否超时和报错
         '''
+        
         if self.states[isFirst]['time'] >= self.maxtime:  # 超时
             self.log.add('&e:%s time out' % (c.PLAYERS[isFirst]))
             self.timeout = isFirst
@@ -201,6 +203,7 @@ class Platform:
         -> 选择的方格在可选范围之外
         -> 选择的方向使得合并前后棋盘没有变化
         '''
+        
         if mode == 'position':
             if not (isinstance(value, tuple) and len(value) == 2 and value[0] in range(c.ROWS) and value[1] in range(c.COLUMNS)):
                 self.log.add('&e:%s violate by illegal output of position' % (c.PLAYERS[isFirst]))
