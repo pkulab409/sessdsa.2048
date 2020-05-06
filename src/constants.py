@@ -133,7 +133,9 @@ class Chessboard:
         -> 返回某方的全部空位列表
         '''
         return [(row, column) for row in range(ROWS) for column in range(COLUMNS) \
-                if ((column < COLUMNS // 2) == belong) and (row, column) not in self.board]
+                if column < COLUMNS // 2 and (row, column) not in self.board] if belong \
+          else [(row, column) for row in reversed(range(ROWS)) for column in reversed(range(COLUMNS)) \
+                if column >= COLUMNS // 2 and (row, column) not in self.board]
     
     def getNext(self, belong, currentRound):
         '''
