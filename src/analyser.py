@@ -1,6 +1,7 @@
 # 可视化复盘程序
 #
 # 按键盘的']', '['键分别对应前进, 回退操作
+# 按键盘的n, p对应观看下一局, 上一局操作(next, previous)
 #
 # 考虑到可扩展性, 内部逻辑采用棋子的级别
 #
@@ -9,30 +10,42 @@
 # 中间为实时棋盘
 
 from tkinter import Frame, Label, CENTER, PhotoImage  # UI
-
 import constants as c
 
 
 class GameScreen(Frame):
-    def __init__(self):
-        while True:  # 加载对局记录
-            filename = input('filename: ')
-            try:
-                self.log = open('%s.txt' % filename, 'r').read().split('&')  # 读取全部记录并分成单条
-                self.size = len(self.log)
-                break
-            except FileNotFoundError:
-                print('%s is not found.' % filename)
+    def __init__(self, matchList = None, index = 1):
+        # matchList = [mode, {'path': path, 'topText': topText, 'bottomText': bottomText}, ...]
+        self.matchList = matchList
+        self.index = index
+        
+        if matchList == None:
+            while True:  # 加载对局记录
+                filename = input('filename: ')
+                try:
+                    self.log = open('%s.txt' % filename, 'r').read().split('&')  # 读取全部记录并分成单条
+                    self.size = len(self.log)
+                    break
+                except FileNotFoundError:
+                    print('%s is not found.' % filename)
+
+            print('=' * 50)
+            while True:  # 选择模式
+                self.mode = int(input('enter 0 for original mode.\nenter 1 for YuzuSoft mode.\nmode: '))
+                if self.mode in range(2):
+                    break
+                else:
+                    print('wrong input.')
+        else:
+            self.match = self.matchList[index]
+            self.log = open(self.match['path'], 'r').read().split('&')  # 读取全部记录并分成单条
+            self.size = len(self.log)
+            self.mode = self.matchList[0]
+            
+        topText = self.match['topText'] if matchList and 'topText' in self.match else 'press any key to start'
+        bottomText = self.match['bottomText'] if matchList and 'bottomText' in self.match else 'by @SophieARG'
 
         print('=' * 50)
-        while True:  # 选择模式
-            self.mode = int(input('enter 0 for original mode.\nenter 1 for YuzuSoft mode.\nmode: '))
-            if self.mode in range(2):
-                break
-            else:
-                print('wrong input.')
-        print('=' * 50)
-
         declarations = self.log[0].split('\n')
         for declaration in declarations:
             if declaration != '' and declaration[0] != '*':
@@ -51,14 +64,14 @@ class GameScreen(Frame):
 
         bar = Frame(background, bg=c.COLOR_NONE, width=c.LENGTH * c.COLUMNS, height=c.LENGTH)  # 顶端状态栏
         bar.grid(row=0, column=0, columnspan=c.COLUMNS, padx=c.PADX, pady=c.PADY)
-        info = Label(bar, text='press any key to start', bg=c.COLOR_NONE, justify=CENTER, font=c.FONT,
+        info = Label(bar, text=topText, bg=c.COLOR_NONE, justify=CENTER, font=c.FONT,
                      width=c.WORD_SIZE[0] * c.COLUMNS, height=c.WORD_SIZE[1])
         info.grid()
         self.topInfo = info
 
         bar = Frame(background, bg=c.COLOR_NONE, width=c.LENGTH * c.COLUMNS, height=c.LENGTH)  # 底端状态栏
         bar.grid(row=c.ROWS + 1, column=0, columnspan=c.COLUMNS, padx=c.PADX, pady=c.PADY)
-        info = Label(bar, text='by @SophieARG', bg=c.COLOR_NONE, font=c.FONT, width=c.WORD_SIZE[0] * c.COLUMNS,
+        info = Label(bar, text=bottomText, bg=c.COLOR_NONE, font=c.FONT, width=c.WORD_SIZE[0] * c.COLUMNS,
                      height=c.WORD_SIZE[1])
         info.grid()
         self.bottomInfo = info
@@ -160,6 +173,12 @@ class GameScreen(Frame):
                 self.analyse(self.log[self.cur])
                 if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
                     break
+        elif key == "'n'" and self.index != len(self.matchList) - 1:
+            self.destroy()
+            self.__init__(self.matchList, self.index + 1)
+        elif key == "'p'" and self.index != 1:
+            self.destroy()
+            self.__init__(self.matchList, self.index - 1)
 
 
 if __name__ == '__main__':
