@@ -34,12 +34,10 @@ def main(playerList,
     '''
     
     import os
-    if callable(savepath):
-        match = savepath()
-    elif isinstance(savepath, str):
-        match = savepath
-    else:
-        match = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())
+    if callable(savepath): match = savepath()
+    elif isinstance(savepath, str): match = savepath
+    else: match = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())
+    
     count = 0
     while True:  # 文件夹存在则创立副本
         count += 1
@@ -57,21 +55,19 @@ def main(playerList,
     
     # 导入全部ai模块
     import sys
-    memory = sys.path.copy()
     Players = []
     time0 = [0 for count in range(len(playerList))]
     for count in range(len(playerList)):
         if isinstance(playerList[count], tuple):  # 指定初始时间
             time0[count] = playerList[count][1]
             playerList[count] = playerList[count][0]
-            
         if isinstance(playerList[count], str):  # 路径
             path = playerList[count]
-            sys.path = [os.path.dirname(os.path.abspath(path))]
+            sys.path.insert(0, os.path.dirname(os.path.abspath(path)))
             Players.append(__import__(os.path.splitext(os.path.basename(path))[0]).Player)
+            sys.path.pop(0)
         else:  # 已读取的类
             Players.append(playerList[count])
-    sys.path = memory
     
     # 进行成绩记录的准备    
     matchResults = {'basic': [], 'exception': []}
@@ -100,11 +96,7 @@ def main(playerList,
             for _ in result[isFirst]:
                 if _ not in  ['index', 'exception'] and result[isFirst][_]:
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
-        
-
-
-
-
+                    
     '''
     第三部分, 比赛
     '''
@@ -126,14 +118,14 @@ def main(playerList,
                     trueCount, falseCount = counts
                     platforms[counts].append(Platform({True: {'player': object.__new__(Players[trueCount]),
                                                               'path': playerList[trueCount],
-                                                              'time': 0,
+                                                              'time': time0[trueCount],
                                                               'time0': time0[trueCount],
                                                               'error': False,
                                                               'exception': None,
                                                               'index': (trueCount, True)},
                                                        False: {'player': object.__new__(Players[falseCount]),
                                                                'path': playerList[falseCount],
-                                                               'time': 0,
+                                                               'time': time0[falseCount],
                                                                'time0': time0[falseCount],
                                                                'error': False,
                                                                'exception': None,
@@ -210,6 +202,7 @@ def main(playerList,
             f.flush()
         f.close()
 
+    # 打印报错信息
     if debug:
         f = open('%s/_Exceptions.txt' % match, 'w')
         for metamatch in matchResults['exception']:
@@ -221,5 +214,6 @@ def main(playerList,
             f.write('=' * 50 + '\n')
             f.flush()
         f.close()
-        
+
+    # 返回全部平台
     if toGet: return platforms
