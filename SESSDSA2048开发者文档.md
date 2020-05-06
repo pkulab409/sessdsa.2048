@@ -520,8 +520,128 @@ main(
 
             考虑到跨平台时UI可能出现异常，因此产生了网页版复盘程序。
 
-            浏览器打开`src/analyser.html`，并按提示上传比赛记录即可。操作方式与前者一致。
+            浏览器打开`src/analyser.html`，并按提示上传单场比赛记录即可。操作方式与前者一致。
 
+            此外，`src/analyser_dir.html`是处理一整局循环赛的工具。由于浏览器的跨域限制，使用方法稍微麻烦一些。
+
+            设某个文件夹`dir`既包含`src/analyser_dir.html`和`src/analyser_dir.js`，也包含你的比赛记录文件夹，那么在目录`dir`下执行`python -m http.server`，并用浏览器打开[http://localhost:8000](http://localhost:8000)，你应当可以看到网页(记为标签页a)上显示了`dir`文件夹的内容。
+
+            ```text
+            D:\sessdsa.2048\dir> python -m http.server
+            ```
+
+            <div style="border: 1px solid #000;padding:10px;">
+            <h1>Directory listing for /dir/</h1>
+            <hr>
+            <ul>
+            <li><a href="_.txt">_.txt</a></li>
+            <li><a href="analyser_dir.js">analyser_dir.js</a></li>
+            <li><a href="analyser_dir.html">analyser_dir.html</a></li>
+            <li><a href="1000063389935916226.txt">1000063389935916226.txt</a></li>
+            <li><a href="1032681026570212547.txt">1032681026570212547.txt</a></li>
+            <li><a href="1054460915149231300.txt">1054460915149231300.txt</a></li>
+            <li><a href="1338903453006615746.txt">1338903453006615746.txt</a></li>
+            <li><a href="1465564995919074499.txt">1465564995919074499.txt</a></li>
+            <li><a href="1720180474481005762.txt">1720180474481005762.txt</a></li>
+            <li><a href="1808368152870966467.txt">1808368152870966467.txt</a></li>
+            <li><a href="1876546666413216963.txt">1876546666413216963.txt</a></li>
+            </ul>
+            </div>
+
+            随后在其中选中`src/analyser_dir.html`并新标签(记为标签页b)打开。再在网页a上进入你的比赛记录文件夹，也就是包含`_.txt`的那个文件夹，在地址栏复制其链接，按提示填入标签页b的输入框中。
+
+            此时网页如下所示，在下方点击一条记录即可查看，可以按`[]`或左右方向调整比赛进程。
+            <div style="border: 1px solid #000;padding:10px;">
+            <style>
+                #main {
+                    display: grid;
+                    grid-template-columns: repeat(8, 50px);
+                    grid-template-rows: repeat(4, 50px);
+                    background-color: #ddd;
+                    width: 400px;
+                    height: 200px;
+                    margin: auto;
+                }
+                .free {
+                    opacity: 60%;
+                }
+                .belongs-to-0 {
+                    background-color: cadetblue !important;
+                    border: 10px solid #ddd;
+                    font-size: 10px;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                }
+                .belongs-to-1 {
+                    background-color: blueviolet !important;
+                    border: 10px solid #ddd;
+                    font-size: 10px;
+                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                }
+                div.belongs-to-1 p {
+                    margin: auto;
+                    text-align: center;
+                }
+                div.belongs-to-0 p {
+                    margin: auto;
+                    text-align: center;
+                }
+                #comment p {
+                    margin: auto;
+                    text-align: center;
+                }
+                .c_button_upload {
+                    margin: auto;
+                    margin-top: 30px;
+                    text-align: center;
+                }
+                li {
+                    text-align: center;
+                }
+            </style>
+            <div id="main">
+            <div class="belongs-to-0 free" id="tile00" style="grid-column: 1;grid-row: 1;"><p></p></div><div class="belongs-to-0 free" id="tile01" style="grid-column: 1;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile02" style="grid-column: 1;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile03" style="grid-column: 1;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile10" style="grid-column: 2;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile11" style="grid-column: 2;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile12" style="grid-column: 2;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile13" style="grid-column: 2;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile20" style="grid-column: 3;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile21" style="grid-column: 3;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile22" style="grid-column: 3;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile23" style="grid-column: 3;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile30" style="grid-column: 4;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-0 free" id="tile31" style="grid-column: 4;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-0" id="tile32" style="grid-column: 4;grid-row: 3;"><p>2</p></div>
+            <div class="belongs-to-0 free" id="tile33" style="grid-column: 4;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile40" style="grid-column: 5;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile41" style="grid-column: 5;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile42" style="grid-column: 5;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile43" style="grid-column: 5;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile50" style="grid-column: 6;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile51" style="grid-column: 6;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile52" style="grid-column: 6;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile53" style="grid-column: 6;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile60" style="grid-column: 7;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile61" style="grid-column: 7;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile62" style="grid-column: 7;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile63" style="grid-column: 7;grid-row: 4;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile70" style="grid-column: 8;grid-row: 1;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile71" style="grid-column: 8;grid-row: 2;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile72" style="grid-column: 8;grid-row: 3;"><p></p></div>
+            <div class="belongs-to-1 free" id="tile73" style="grid-column: 8;grid-row: 4;"><p></p></div>
+            </div>
+            <div id="comment"><p>player 0 set position (2, 3)</p></div>
+            <div style="width: 100%;display: grid;grid-template-rows: repeat(1, 1fr); grid-template-columns: repeat(4,1fr);">
+            <input type="text" name="url" id="urldir" style="grid-column: 2;grid-row: 1;">
+            <input type="button" id="submit" value="Click me to specify record dir url" style="grid-column: 3;grid-row: 1;">
+            </div>
+            <ul id="file-list" style="margin: auto;"><li onclick="display_selected(&quot;2145870642531062977&quot;);" id="li2145870642531062977">name: 2145870642531062977 -&gt; player0 to player1 -&gt; 145 rounds</li><li onclick="display_selected(&quot;262153655203976386&quot;);" id="li262153655203976386">name: 262153655203976386 -&gt; player1 to player0 -&gt; 230 rounds</li><li onclick="display_selected(&quot;572633103638516930&quot;);" id="li572633103638516930">name: 572633103638516930 -&gt; player0 to player1 -&gt; 97 rounds</li><li onclick="display_selected(&quot;719110816959354050&quot;);" id="li719110816959354050">name: 719110816959354050 -&gt; player1 to player0 -&gt; 54 rounds</li><li onclick="display_selected(&quot;1000063389935916226&quot;);" id="li1000063389935916226">name: 1000063389935916226 -&gt; player0 to player1 -&gt; 162 rounds</li><li onclick="display_selected(&quot;1338903453006615746&quot;);" id="li1338903453006615746">name: 1338903453006615746 -&gt; player1 to player0 -&gt; 211 rounds</li></ul>
+            </div>
    5. 网页版人机对战工具
 
         在单循环赛中将一方设为`src/human.py`，即可自动打开浏览器页面。位置模式下鼠标点击方块可选取下棋的方块，方向模式下按键盘的方向键选取方向。目前错误处理尚不完善，例如没有断线重连功能。
