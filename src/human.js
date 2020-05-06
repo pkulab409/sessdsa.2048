@@ -6,7 +6,7 @@ function clicklistener(x, y) {
     var result = null;
     console.log(x < 4);
     console.log(is_first);
-    if ((x < 4) ^ (!is_first)) {
+    if ((x < 4) ^ (is_first)) {
         result = [y, x];
     } else {
         result = board_obj.available;
@@ -102,9 +102,9 @@ function render(board_obj) {
         var id = "tile" + String(highlight_x) + String(highlight_y);
         document.getElementById(id).classList.add("highlight");
     } else {
-        var id = "tile" + String(highlight_x) + String(highlight_y);
-        document.getElementById(id).classList.remove("highlight");
-        highlight_x = -1;
-        highlight_y = -1;
+        // var id = "tile" + String(highlight_x) + String(highlight_y);
+        // document.getElementById(id).classList.remove("highlight");
+        // highlight_x = -1;
+        // highlight_y = -1;
     }
 }

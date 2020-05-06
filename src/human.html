@@ -108,13 +108,12 @@
 
             ws.onmessage = function (e) {
                 output("onmessage: " + e.data);
-                is_first = JSON.parse(e.data).is_first;
-
-                ws.onmessage = function (ev) {
-                    output("onmessage: " + ev.data);
-                    board_obj = JSON.parse(ev.data);
-                    setTimeout("render(board_obj)", 500);
+                if (JSON.parse(e.data).is_first != undefined) {
+                    is_first = JSON.parse(e.data).is_first;
                 }
+                output("onmessage: " + e.data);
+                board_obj = JSON.parse(e.data);
+                setTimeout("render(board_obj)", 500);
             };
 
             ws.onclose = function () {
