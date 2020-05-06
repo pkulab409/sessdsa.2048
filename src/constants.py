@@ -34,14 +34,16 @@ KEY_FORWARD = "\']\'"   # 前进
 
 # 棋子
 
-from collections import namedtuple
+from collections import namedtuple
+
 '''
 -> 初始化棋子
 -> 参数: belong   归属, 为bool, True代表先手
 -> 参数: position 位置, 为tuple
 -> 参数: value    数值, 为int
 '''
-Chessman=namedtuple('Chessman', 'belong position value', defaults=(1,))
+
+Chessman = namedtuple('Chessman', 'belong position value', defaults=(1,))
 
 # 棋盘
 
