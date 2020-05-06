@@ -113,7 +113,7 @@
                 ws.onmessage = function (ev) {
                     output("onmessage: " + ev.data);
                     board_obj = JSON.parse(ev.data);
-                    render(board_obj);
+                    setTimeout("render(board_obj)", 500);
                 }
             };
 

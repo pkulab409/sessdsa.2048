@@ -4,11 +4,18 @@ highlight_x = -1;
 
 function clicklistener(x, y) {
     var result = null;
-    if (x < 4 && is_first) {
+    if (x < 4 && (!is_first)) {
         result = [y, x];
     } else {
-        result = board_obj.available
+        result = board_obj.available;
+        y = result[0];
+        x = result[1];
     }
+    var id = "tile" + String(x) + String(y);
+    var e = document.getElementById(id);
+    console.log(e);
+    e.classList.remove("free");
+    setTimeout('document.getElementById("'+id+'").classList.add("free")', 300);
     ws.send(JSON.stringify({ "action": result }));
     disable_click();
 }

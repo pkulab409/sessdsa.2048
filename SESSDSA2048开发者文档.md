@@ -540,6 +540,15 @@ main(
 
         在单循环赛中将一方设为`src/human.py`，即可自动打开浏览器页面。位置模式下鼠标点击方块可选取下棋的方块，方向模式下按键盘的方向键选取方向。目前错误处理尚不完善，例如没有断线重连功能。
 
+        其中，`round_match.py`的70行，即对`sys.path`动手动脚的那一段，应当改成`sys.path += os.path.dirname(os.path.abspath(path))`。随后在`src`下执行
+
+        ```Python
+        >>>import round_match
+        >>>round_match.main(["player",("human", -30)], MAXTIME=114514)
+        ```
+
+        此时浏览器应该会打开一个页面。在方向模式下用方向键给出方向，在位置模式下点击想放置棋子的方块给出位置。
+
 ## 编辑历史
 
 2020.5.5 @SophieARG 创立文档
