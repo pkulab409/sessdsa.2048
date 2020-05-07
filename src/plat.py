@@ -147,6 +147,7 @@ class Platform:
         
         def get_position(isFirst, currentRound):
             self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
+            self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
             position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
@@ -156,6 +157,7 @@ class Platform:
             return False
 
         def get_direction(isFirst, currentRound):
+            self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
             direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
