@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <sstream>
+#include <string>
 
 using namespace pybind11;
 
