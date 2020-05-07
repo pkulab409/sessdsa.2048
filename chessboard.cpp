@@ -1,13 +1,14 @@
 // #define FMT_HEADER_ONLY
 // #include <fmt/format.h>
+#include <bitset>
 #include <iomanip>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
-#include <sstream>
-#include <string>
 
 using namespace pybind11;
 
@@ -31,6 +32,11 @@ struct Chessboard {
     // random position sequence
     std::vector<int> array;
 
+    std::bitset<8> occupied[4];
+
+    tuple decisions[2];
+    float times[2];
+
   public:
     // copies given seq to this->array
     Chessboard(std::vector<int> array) {
@@ -49,24 +55,43 @@ struct Chessboard {
         int x                    = cast<int>(position[1]);
         this->board[y][x].belong = _;
         this->board[y][x].value  = value;
+        if (value != 0) {
+            occupied[y][x] = true;
+        } else {
+            occupied[y][x] = false;
+        }
     }
     void add1(bool belong, tuple position) { this->add(belong, position, 1); }
     void add(bool _, tuple position, int value) {
-        // in fact, first arg is useless,
-        // but to keep the same interface with python version we keep it.
+
+        // _ means who did this decision
+        // belong means who has the new chessman
+
         int y       = cast<int>(position[0]);
         int x       = cast<int>(position[1]);
         bool belong = x < 4 ? left_player : right_player;
 
         this->board[y][x].belong = belong;
         this->board[y][x].value  = value;
+
+        decisions[_] = position;
+
+        if (value != 0) {
+            occupied[y][x] = true;
+        } else {
+            occupied[y][x] = false;
+        }
     }
     bool move(bool belong, object maybe_none) {
 
         bool change = false;
 
-        if (maybe_none.is_none()) { return false; }
-        int direction = cast<int>(maybe_none);
+        if (maybe_none.is_none()) {
+            decisions[belong] = make_tuple();
+            return false;
+        }
+        int direction     = cast<int>(maybe_none);
+        decisions[belong] = make_tuple(direction);
 
         auto value   = [&](int y, int x) -> unsigned & { return board[y][x].value; };
         auto is_mine = [&](int y, int x) {
@@ -80,7 +105,8 @@ struct Chessboard {
             if (y_src == y_dst and x_src == x_dst) {
                 return true;
             }
-
+            occupied[y_src][x_src]     = false;
+            occupied[y_dst][x_dst]     = true;
             board[y_dst][x_dst].value  = board[y_src][x_src].value;
             board[y_src][x_src].value  = 0;
             board[y_src][x_src].belong = x_src < 4 ? left_player : right_player;
@@ -93,6 +119,8 @@ struct Chessboard {
             assert(value(y_dst, x_dst) == value(y_src, x_src));
             assert(std::abs(y_dst - y_src) + std::abs(x_dst - x_src) != 0);
 
+            occupied[y_src][x_src] = false;
+            occupied[y_dst][x_dst] = true;
             board[y_dst][x_dst].value += 1;
             board[y_dst][x_dst].belong = belong;
             board[y_src][x_src].value  = 0;
@@ -227,19 +255,19 @@ struct Chessboard {
         }
         return change;
     }
-    bool getBelong(tuple position) {
+    bool getBelong(tuple position) const {
         int y = cast<int>(position[0]);
         int x = cast<int>(position[1]);
 
         return board[y][x].belong;
     }
-    int getValue(tuple position) {
+    int getValue(tuple position) const {
         int y = cast<int>(position[0]);
         int x = cast<int>(position[1]);
 
         return board[y][x].value;
     }
-    list getScore(bool belong) {
+    list getScore(bool belong) const {
         list result;
         for (auto y = 0; y < 4; y++) {
             for (auto x = 0; x < 8; x++) {
@@ -250,7 +278,7 @@ struct Chessboard {
         }
         return result;
     }
-    list getNone(bool belong) {
+    list getNone(bool belong) const {
         list result;
         auto x_range_start = (belong == left_player) ? 0 : 4;
         auto x_range_end   = x_range_start + 4;
@@ -263,32 +291,123 @@ struct Chessboard {
         }
         return result;
     }
-    tuple getNext(bool belong, int currentRound) {
+    tuple getNext(bool belong, int currentRound) const {
         std::vector<std::tuple<int, int>> available;
-
-        auto x_range_start = (belong == left_player) ? 0 : 4;
-        auto x_range_end   = x_range_start + 4;
-        for (auto y = 0; y < 4; y++) {
-            for (auto x = x_range_start; x < x_range_end; x++) {
-                if (board[y][x].belong == belong and board[y][x].value == 0) {
-                    available.push_back(std::make_tuple(y, x));
-                    if (currentRound == 0) {
-                        return make_tuple(y, x);
-                    }
-                    currentRound -= 1;
+        if (belong) {
+            std::bitset<8> mask(0b11110000);
+            char _spare[5]    = {0, 0, 0, 0, 0};
+            char *const spare = _spare + 1;
+            for (auto y = 0; y < 4; y++) {
+                spare[y] = ((~occupied[y]) & mask).count() + spare[y - 1];
+            }
+            // 没有空位
+            if (spare[3] == 0) {
+                return make_tuple();
+            }
+            int y{-1};
+            currentRound = currentRound % spare[3];
+            if (currentRound < spare[0]) {
+                y = 0;
+            } else if (currentRound < spare[1]) {
+                y = 1;
+            } else if (currentRound < spare[2]) {
+                y = 2;
+            } else {
+                y = 3;
+            }
+            for (auto x = 0; x < 4; x++) {
+                if (currentRound == 0) {
+                    return make_tuple(y, x);
                 }
+                currentRound -= 1;
+            }
+
+        } else {
+            std::bitset<8> mask(0b00001111);
+            char spare[5] = {0, 0, 0, 0, 0};
+            for (auto y = 3; y >= 0; y--) {
+                spare[y] = ((~occupied[y]) & mask).count() + spare[y + 1];
+            }
+            // 没有空位
+            if (spare[0] == 0) {
+                return make_tuple();
+            }
+            int y{-1};
+            currentRound = currentRound % spare[0];
+            if (currentRound < spare[3]) {
+                y = 3;
+            } else if (currentRound < spare[2]) {
+                y = 2;
+            } else if (currentRound < spare[1]) {
+                y = 1;
+            } else {
+                y = 0;
+            }
+            for (auto x = 7; x >= 4; x--) {
+                if (currentRound == 0) {
+                    return make_tuple(y, x);
+                }
+                currentRound -= 1;
             }
         }
-        if (available.size() == 0) {
-            return make_tuple();
-        }
-        currentRound = currentRound % available.size();
-        auto result  = available.at(currentRound);
-        return make_tuple(std::get<0>(result), std::get<1>(result));
+        throw std::runtime_error("unknown error");
     }
-    int _getArray(int index) {
+    int _getArray(int index) const {
         return this->array.at(index);
     }
+    tuple getDecision(bool belong) {
+        return decisions[belong];
+    }
+    void updateTime(bool belong, float time) {
+        this->times[belong] = time;
+    }
+    float getTime(bool belong) {
+        return this->times[belong];
+    }
+    // tuple getNext(bool belong, int currentRound) const {
+    //     std::vector<std::tuple<int, int>> available;
+    //     if (belong) {
+    //         auto x_range_start = (belong == left_player) ? 0 : 4;
+    //         auto x_range_end   = x_range_start + 4;
+    //         for (auto y = 0; y < 4; y++) {
+    //             for (auto x = x_range_start; x < x_range_end; x++) {
+    //                 if (board[y][x].belong == belong and board[y][x].value == 0) {
+    //                     available.push_back(std::make_tuple(y, x));
+    //                     if (currentRound == 0) {
+    //                         return make_tuple(y, x);
+    //                     }
+    //                     currentRound -= 1;
+    //                 }
+    //             }
+    //         }
+    //         if (available.size() == 0) {
+    //             return make_tuple();
+    //         }
+    //         currentRound = currentRound % available.size();
+    //         auto result  = available.at(currentRound);
+    //         return make_tuple(std::get<0>(result), std::get<1>(result));
+    //     } else {
+    //         auto x_range_end   = (belong == left_player) ? -1 : 3;
+    //         auto x_range_start = x_range_end + 4;
+    //         for (auto y = 3; y > -1; y--) {
+    //             for (auto x = x_range_start; x > x_range_end; x--) {
+    //                 if (board[y][x].belong == belong and board[y][x].value == 0) {
+    //                     available.push_back(std::make_tuple(y, x));
+    //                     if (currentRound == 0) {
+    //                         return make_tuple(y, x);
+    //                     }
+    //                     currentRound -= 1;
+    //                 }
+    //             }
+    //         }
+    //         if (available.size() == 0) {
+    //             return make_tuple();
+    //         }
+    //         currentRound = currentRound % available.size();
+    //         auto result  = available.at(currentRound);
+    //         return make_tuple(std::get<0>(result), std::get<1>(result));
+    //     }
+    // }
     // std::string __repr__() {
     //     auto s = [&](int y, int x) {
     //         return fmt::format(
@@ -350,6 +469,9 @@ PYBIND11_MODULE(libchessboard7, m) {
         .def("getScore", &Chessboard::getScore)
         .def("getNone", &Chessboard::getNone)
         .def("getNext", &Chessboard::getNext)
+        .def("getTime", &Chessboard::getTime)
+        .def("getDecision", &Chessboard::getDecision)
+        .def("updateTime", &Chessboard::updateTime)
         .def("_getArray", &Chessboard::_getArray)
         .def("_add_dbg", &Chessboard::add_dbg)
 #ifndef FOR_PYTHON37_AND_PYTHON36
