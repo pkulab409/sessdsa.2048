@@ -44,6 +44,9 @@ function on_get_url(event) {
     if (urldir.slice(0, 4) != "http") {
         urldir = "http://" + urldir;
     }
+    if (urldir.indexOf("/_.txt") != -1) {
+        alert("不用在url中加入_.txt(给出比赛记录文件夹的url即可)");
+    }
     console.log(urldir);
     $("#dir-holder").load(urldir, null, function (response, status, xhr) {
         try {

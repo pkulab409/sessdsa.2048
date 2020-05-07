@@ -12,7 +12,7 @@
             }
         })();
     </script>
-    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="./jquery.min.js"></script>
     <script src="./analyser_dir.js"></script>
     <style>
         #main {
@@ -143,6 +143,10 @@
         // }
 
         function process_text() {
+            if (record.indexOf("\r") != -1) {
+                alert("您的比赛记录是以\\r\\n换行的，也许您打开或修改过比赛记录(搜索CRLF)。平台直接输出的是\\n而不是\\r\\n，因此此页面本应只需处理LF换行的记录。但CRLF换行的记录不能被处理这一情况常常被认为是此页面的bug，而非提交的记录的bug。作者被坑了很多次，生气之下不想处理这样(可能被修改过的)文件");
+            }
+            record = record.replace(/\r/g, '');
             log = record.split("&");
             var comment = [];
             boards = [];
