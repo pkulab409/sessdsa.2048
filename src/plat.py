@@ -144,7 +144,16 @@ class Platform:
         '''
         进行比赛
         '''
-        
+
+        def if_position(isFirst):
+            return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
+
+        def if_direction(isFirst):
+            if self.board.getNone(isFirst) != []: return True  # 加快判定
+            for _ in range(4):
+                if self.board.copy().move(isFirst, _): return True
+            return False
+            
         def get_position(isFirst, currentRound):
             self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
@@ -168,10 +177,10 @@ class Platform:
 
         # 进行比赛
         for _ in range(self.rounds):
-            if get_position(True, _): break
-            if get_position(False, _): break
-            if get_direction(True, _): break
-            if get_direction(False, _): break
+            if if_position(True) and get_position(True, _): break
+            if if_position(False) and get_position(False, _): break
+            if if_direction(True) and get_direction(True, _): break
+            if if_direction(False) and get_direction(False, _): break
 
         # 记录总轮数
         self.currentRound = _ + 1
