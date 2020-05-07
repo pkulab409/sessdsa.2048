@@ -6,7 +6,7 @@ ROWS = 4        # 行总数
 COLUMNS = 8     # 列总数
 MAXLEVEL = 14   # 总级别数
 
-SLEEP = 1       # 直播等待时间
+SLEEP = 0.3       # 直播等待时间
 
 ARRAY = list(range(ROUNDS))  # 随机(?)列表
 
@@ -55,6 +55,7 @@ class Chessboard:
         self.array = array  # 随机序列
         self.board = {}  # 棋盘所有棋子
         self.belongs = {True:[], False:[]}  # 双方的棋子位置
+        self.anime = []  # 动画效果
 
     def add(self, belong, position, value = 1):
         '''
@@ -68,6 +69,7 @@ class Chessboard:
         '''
         -> 向指定方向合并, 返回是否变化
         '''
+        self.anime = []
         def inBoard(position):  # 判断是否在棋盘内
             return position[0] in range(ROWS) and position[1] in range(COLUMNS)
         def isMine(position):   # 判断是否在领域中
@@ -89,6 +91,7 @@ class Chessboard:
                 nextPosition = theNext(nextPosition)
             if inBoard(nextPosition) and nextPosition in self.board and nextPosition not in eaten \
                     and chessman.value == self.board[nextPosition].value:  # 满足吃棋条件
+                self.anime.append(chessman.position + nextPosition)
                 self.belongs[belong].remove(chessman.position)
                 self.belongs[belong if nextPosition in self.belongs[belong] else not belong].remove(nextPosition)
                 self.belongs[belong].append(nextPosition)
@@ -97,6 +100,7 @@ class Chessboard:
                 eaten.append(nextPosition)
                 return True
             elif nowPosition != chessman.position:  # 不吃棋但移动了
+                self.anime.append(chessman.position + nowPosition)
                 self.belongs[belong].remove(chessman.position)
                 self.belongs[belong].append(nowPosition)
                 self.board[nowPosition] = Chessman(belong, nowPosition, chessman.value)
@@ -144,6 +148,12 @@ class Chessboard:
         available = self.getNone(belong)
         return available[self.array[currentRound] % len(available)] if available != [] else None
 
+    def getAnime(self):
+        '''
+        -> 返回动画效果辅助信息
+        '''
+        return self.anime
+
     def copy(self):
         '''
         -> 返回一个对象拷贝
@@ -152,6 +162,7 @@ class Chessboard:
         new.board = self.board.copy()
         new.belongs[True] = self.belongs[True].copy()
         new.belongs[False] = self.belongs[False].copy()
+        new.anime = self.anime.copy()
         return new
 
     def __repr__(self):
