@@ -54,14 +54,18 @@ class Chessboard:
         '''
         self.array = array  # 随机序列
         self.board = {}  # 棋盘所有棋子
-        self.belongs = {True:[], False:[]}  # 双方的棋子位置
+        self.belongs = {True: [], False: []}  # 双方的棋子位置
+        self.decision = {True: (), False: ()}  # 双方上一步的决策
+        self.time = {True: 0, False: 0}  # 双方剩余的时长
         self.anime = []  # 动画效果
+        
 
     def add(self, belong, position, value = 1):
         '''
         -> 在指定位置下棋
         '''
-        belong = position[1] < COLUMNS // 2  # 棋子的归属
+        self.decision[belong] = position
+        belong = position[1] < COLUMNS // 2  # 重定义棋子的归属
         self.belongs[belong].append(position)
         self.board[position] = Chessman(belong, position, value)
 
@@ -70,6 +74,7 @@ class Chessboard:
         -> 向指定方向合并, 返回是否变化
         '''
         self.anime = []
+        self.decision[belong] = (direction,)
         def inBoard(position):  # 判断是否在棋盘内
             return position[0] in range(ROWS) and position[1] in range(COLUMNS)
         def isMine(position):   # 判断是否在领域中
@@ -145,7 +150,27 @@ class Chessboard:
         '''
         available = self.getNone(belong)
         if not belong: available.reverse()  # 后手序列翻转
-        return available[self.array[currentRound] % len(available)] if available != [] else None
+        return available[self.array[currentRound] % len(available)] if available != [] else ()
+
+    def getDecision(self, belong):
+        '''
+        -> 返回上一步的决策信息
+        -> 无决策为(), 位置决策为position, 方向决策为(direction,)
+        -> 采用同类型返回值是为了和优化库统一接口
+        '''
+        return self.decision[belong]
+
+    def updateTime(self, belong, time):
+        '''
+        -> 更新剩余时间
+        '''
+        self.time[belong] = time
+
+    def getTime(self, belong):
+        '''
+        -> 返回剩余时间
+        '''
+        return self.time[belong]
 
     def getAnime(self):
         '''
@@ -161,6 +186,8 @@ class Chessboard:
         new.board = self.board.copy()
         new.belongs[True] = self.belongs[True].copy()
         new.belongs[False] = self.belongs[False].copy()
+        new.decision = self.decision.copy()
+        new.time = self.time.copy()
         new.anime = self.anime.copy()
         return new
 
