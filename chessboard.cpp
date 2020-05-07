@@ -1,4 +1,6 @@
-#include <fmt/format.h>
+// #define FMT_HEADER_ONLY
+// #include <fmt/format.h>
+#include <iomanip>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <stdexcept>
@@ -285,25 +287,46 @@ struct Chessboard {
     int _getArray(int index) {
         return this->array.at(index);
     }
+    // std::string __repr__() {
+    //     auto s = [&](int y, int x) {
+    //         return fmt::format(
+    //             "{}{:02d}",
+    //             board[y][x].belong == left_player ? '+' : '-',
+    //             board[y][x].value);
+    //     };
+    //     return fmt::format(
+    //         "{} {} {} {} {} {} {} {}\n"
+    //         "{} {} {} {} {} {} {} {}\n"
+    //         "{} {} {} {} {} {} {} {}\n"
+    //         "{} {} {} {} {} {} {} {}",
+    //         s(0, 0), s(0, 1), s(0, 2), s(0, 3), s(0, 4), s(0, 5), s(0, 6), s(0, 7),
+    //         s(1, 0), s(1, 1), s(1, 2), s(1, 3), s(1, 4), s(1, 5), s(1, 6), s(1, 7),
+    //         s(2, 0), s(2, 1), s(2, 2), s(2, 3), s(2, 4), s(2, 5), s(2, 6), s(2, 7),
+    //         s(3, 0), s(3, 1), s(3, 2), s(3, 3), s(3, 4), s(3, 5), s(3, 6), s(3, 7));
+    // }
     std::string __repr__() {
+        std::ostringstream result;
         auto s = [&](int y, int x) {
-            return fmt::format(
-                "{}{:02d}",
-                board[y][x].belong == left_player ? '+' : '-',
-                board[y][x].value);
+            result << (board[y][x].belong == left_player ? '+' : '-');
+            result << std::setw(2);
+            result << board[y][x].value;
+            if (x == 7) {
+                if (y != 3) {
+                    result << '\n';
+                }
+            } else {
+                result << ' ';
+            }
         };
-        return fmt::format(
-            "{} {} {} {} {} {} {} {}\n"
-            "{} {} {} {} {} {} {} {}\n"
-            "{} {} {} {} {} {} {} {}\n"
-            "{} {} {} {} {} {} {} {}",
-            s(0, 0), s(0, 1), s(0, 2), s(0, 3), s(0, 4), s(0, 5), s(0, 6), s(0, 7),
-            s(1, 0), s(1, 1), s(1, 2), s(1, 3), s(1, 4), s(1, 5), s(1, 6), s(1, 7),
-            s(2, 0), s(2, 1), s(2, 2), s(2, 3), s(2, 4), s(2, 5), s(2, 6), s(2, 7),
-            s(3, 0), s(3, 1), s(3, 2), s(3, 3), s(3, 4), s(3, 5), s(3, 6), s(3, 7));
+        result.fill('0');
+        s(0, 0), s(0, 1), s(0, 2), s(0, 3), s(0, 4), s(0, 5), s(0, 6), s(0, 7);
+        s(1, 0), s(1, 1), s(1, 2), s(1, 3), s(1, 4), s(1, 5), s(1, 6), s(1, 7);
+        s(2, 0), s(2, 1), s(2, 2), s(2, 3), s(2, 4), s(2, 5), s(2, 6), s(2, 7);
+        s(3, 0), s(3, 1), s(3, 2), s(3, 3), s(3, 4), s(3, 5), s(3, 6), s(3, 7);
+        return result.str();
     }
 
-    Chessboard* copy() {
+    Chessboard *copy() {
         return new Chessboard(*this);
     }
 };
@@ -327,9 +350,9 @@ PYBIND11_MODULE(libchessboard7, m) {
         .def("getNext", &Chessboard::getNext)
         .def("_getArray", &Chessboard::_getArray)
         .def("_add_dbg", &Chessboard::add_dbg)
-        #ifndef FOR_PYTHON37_AND_PYTHON36
+#ifndef FOR_PYTHON37_AND_PYTHON36
         .def("__repr__", &Chessboard::__repr__);
-        #else
+#else
         .def("repr", &Chessboard::__repr__);
-        #endif
+#endif
 }
