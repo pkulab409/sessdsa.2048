@@ -149,7 +149,6 @@ class Platform:
             return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
 
         def if_direction(isFirst):
-            if self.board.getNone(isFirst) != []: return True  # 加快判定
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
             return False
