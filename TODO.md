@@ -1,23 +1,22 @@
 ## TODO list:
 
- - [ ] 内核
+ - [x] 内核
    - [x] 棋盘接口
    - [x] Player接口
-   - [ ] UI接口
-   - [ ] SQL数据库接口
+   - [x] UI接口
  - [x] 棋盘
  - [x] 样例Player AI算法
  - [x] 样例Player人工智障算法
  - [ ] 棋盘UI
-   - [ ] 直播平台
+   - [x] 直播平台
    - [ ] 方块移动Animation
  - [ ] 与用户Web提交平台的对接
    - [ ] 代码提交
    - [ ] 复盘展示
  
  - [ ] 文档
-   - [ ] 具体规则文档
-   - [ ] Player接口文档
+   - [x] 具体规则文档
+   - [x] Player接口文档
    - [ ] Web提交平台文档
 
 ## Architecture:
