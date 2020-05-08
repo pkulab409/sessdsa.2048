@@ -43,7 +43,7 @@ from collections import namedtuple
 -> 参数: value    数值, 为int
 '''
 
-Chessman = namedtuple('Chessman', 'belong position value', defaults=(1,))
+Chessman = namedtuple('Chessman', 'belong position value')
 
 # 棋盘
 
