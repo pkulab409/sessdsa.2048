@@ -57,10 +57,11 @@ class Platform:
                         result = func(*args, **kwargs)
                         end = time.perf_counter()
                         self.states[isFirst]['time'] += end - begin
-                    except:
+                    except Exception as exception:
                         result = None
                         self.states[isFirst]['error'] = True
                         self.states[isFirst]['exception'] = traceback.format_exc()
+                        self.exception[isFirst] = exception
                     return result
                 return wrappedFunc
             return decorator
@@ -98,6 +99,8 @@ class Platform:
         self.next = (None, None)            # 按照随机序列得到的下一个位置
         self.board = c.Chessboard(c.ARRAY)  # 棋盘
         self.log = Log(self)                # 日志, &d 决策 decision, &p 棋盘 platform, &e 事件 event
+        
+        self.exception = {True: None, False: None}  # exception
 
     def play(self):
         '''
