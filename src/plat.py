@@ -116,6 +116,7 @@ class Platform:
             self.start()
         elif sum(fail) == 1:  # 一方合法加载
             self.winner = not fail[0]
+            self.log.add('&e:%s win' % (c.PLAYERS[self.winner]))
         else:  # 双方非法加载
             if self.timeout == None:
                 self.error = 'both'
