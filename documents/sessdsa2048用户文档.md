@@ -169,25 +169,19 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
        +01 +01 +04 +00 -05 -01 -04 -00\0
        ```
 
-### 辅助信息
-
-本节规范平台提供的有利于用户AI开发和自省的信息的形式.
-
-由于API设计的失误和接口设计的稳定性考虑, 这些附加信息通过前述棋盘对象一并传递. 这些信息可以从平台给出的棋盘对象的以下方法获取.
-
-   1. `getTime(self: Chessboard) -> float`
+   11. `getTime(self: Chessboard) -> float`
 
        返回用户AI剩余思考时间, 单位为秒.
 
-   2. `updateTime(self: Chessboard, belong: bool, time: float) -> None`
+   12. `updateTime(self: Chessboard, belong: bool, time: float) -> None`
 
        更新用户AI的剩余思考时间. 用户调用为未定义行为.
 
-   3. `getDecision(self: Chessboard, belong: bool) -> Union[Tuple[], Tuple[int, int], Tuple[int]]`
+   13. `getDecision(self: Chessboard, belong: bool) -> Union[Tuple[], Tuple[int, int], Tuple[int]]`
 
        获取某方上一次决策时给出的结果. 若无决策, 返回`tuple()`. 若为决定合并方向, 为`tuple(direction)`. 若为决定下棋位置, 为`position: Tuple[int, int]`.
 
-   4. `getAnime(self: Chessboard) -> Any`
+   14. `getAnime(self: Chessboard) -> Any`
 
        给出上一次棋盘合并时棋子的移动信息. 用户调用不会导致异常, 但作为undocumented api, 具体数据形式不给出保证.
 
