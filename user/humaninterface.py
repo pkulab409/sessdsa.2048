@@ -18,7 +18,7 @@ import time
 # 平台
 
 
-pos, dirt, phase, plat_cur, statelabel = None, None, None, None, None
+pos, dirt, phase, plat_cur, statelabel, MainWindow = None, None, None, None, None, None
 
 
 class Platform:
@@ -120,7 +120,6 @@ class Platform:
         self.log = Log(self)                # 日志, &d 决策 decision, &p 棋盘 platform, &e 事件 event
 
     def play(self):
-        global match_object
         '''
         一局比赛, 返回player表现报告
         '''
@@ -133,142 +132,80 @@ class Platform:
         # 检查双方是否合法加载
         if mode == 1:
             fail = [self.checkState(True), self.checkState(False)]
-        else:
-            fail = [0]
-        if sum(fail) == 0:  # 双方合法加载
-            self.match_object = self.start()
-            try:
-                _1 = next(self.match_object)
-            except StopIteration:
-                pass
-        elif sum(fail) == 1:  # 一方合法加载
-            self.winner = not fail[0]
-        else:  # 双方非法加载
-            if self.timeout == None:
-                self.error = 'both'
-            if self.error == None:
-                self.timeout = 'both'
+            if sum(fail) == 0:  # 双方合法加载
+                self.start()
+            elif sum(fail) == 1:  # 一方合法加载
+                self.winner = not fail[0]
+            else:  # 双方非法加载
+                if self.timeout == None:
+                    self.error = 'both'
+                if self.error == None:
+                    self.timeout = 'both'
 
-        self.save()  # 计分并保存
-            
-        return {True:  {'index': self.states[True]['index'],
-                        'win': self.winner == True,
-                        'lose': self.winner == False,
-                        'violate': self.violator == True,
-                        'timeout': self.timeout in [True, 'both'],
-                        'error': self.error in [True, 'both'],
-                        'time': self.states[True]['time'] - self.states[True]['time0'],
-                        'exception': self.states[True]['exception']},
-                False: {'index': self.states[False]['index'],
-                        'win': self.winner == False,
-                        'lose': self.winner == True,
-                        'violate': self.violator == False,
-                        'timeout': self.timeout in [False, 'both'],
-                        'error': self.error in [False, 'both'],
-                        'time': self.states[False]['time'] - self.states[False]['time0'],
-                        'exception': self.states[False]['exception']},
-                'name': self.name,
-                'rounds': self.currentRound}
+            self.save()  # 计分并保存
+                
+            return {True:  {'index': self.states[True]['index'],
+                            'win': self.winner == True,
+                            'lose': self.winner == False,
+                            'violate': self.violator == True,
+                            'timeout': self.timeout in [True, 'both'],
+                            'error': self.error in [True, 'both'],
+                            'time': self.states[True]['time'] - self.states[True]['time0'],
+                            'exception': self.states[True]['exception']},
+                    False: {'index': self.states[False]['index'],
+                            'win': self.winner == False,
+                            'lose': self.winner == True,
+                            'violate': self.violator == False,
+                            'timeout': self.timeout in [False, 'both'],
+                            'error': self.error in [False, 'both'],
+                            'time': self.states[False]['time'] - self.states[False]['time0'],
+                            'exception': self.states[False]['exception']},
+                    'name': self.name,
+                    'rounds': self.currentRound}
+        else:
+            self.phase = 0
+            self.involved_play(0)
+        
               
     def start(self):
         '''
         进行比赛
         '''
-
         def if_position(isFirst):
             return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
 
         def if_direction(isFirst):
-            if self.board.getNone(isFirst) != []: return True  # 加快判定
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
             return False
             
         def get_position(isFirst, currentRound):
-            global pos
             self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
-            if pos == None:
-                self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
-                position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
-                statelabel.setText(("player1" if isFirst else "player2") + " choose position " + str(position))
-                if self.checkState(isFirst): return True  # 判断运行状态
-                self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
-                if self.checkViolate(isFirst, 'position', position):
-                    return True  # 判断是否违规
-                else:
-                    self.board.add(isFirst, position)  # 更新棋盘
-                    self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
-                    return False
-            else:
-                position = pos
-                pos = None
-                statelabel.setText(("player1" if isFirst else "player2") + " choose position " + str(position))
-                if self.checkViolate(isFirst, 'position', position):
-                    self.violator = None
-                    return False
-                else:
-                    self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
-                    return True
+            self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
+            position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
+            if self.checkState(isFirst): return True  # 判断运行状态
+            self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
+            if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
+            self.board.add(isFirst, position)  # 更新棋盘
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
+            return False
 
         def get_direction(isFirst, currentRound):
-            global dirt
-            if dirt == None:
-                self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
-                direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
-                statelabel.setText(("player1" if isFirst else "player2") + " choose direction " + str(direction))
-                if self.checkState(isFirst): return True  # 判断运行状态
-                self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
-                self.change = self.board.move(isFirst, direction)  # 更新棋盘
-                if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
-                self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
-                return False
-            else:
-                direction = dirt
-                dirt = None
-                statelabel.setText(("player1" if isFirst else "player2") + " choose direction " + str(direction))
-                if self.checkViolate(isFirst, 'direction', direction):
-                    self.violator = None
-                    return False
-                else:
-                    self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
-                    return True
+            self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
+            direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
+            if self.checkState(isFirst): return True  # 判断运行状态
+            self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
+            self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
+            return False
                 
         # 进行比赛
-        global phase
         for _ in range(self.rounds):
-            self.rnd = _
-            phase = 0
-            self.pf = True
-            if if_position(True):
-                if mode == 3 or mode == 4:
-                    yield None
-                else:
-                    if get_position(True, _):
-                        break
-            print("yes")
-            self.pf = False
-            if if_position(False):
-                if mode == 2 or mode == 4:
-                    print("yes")
-                    yield None
-                else:
-                    if get_position(False, _):
-                        break
-            phase = 1
-            self.pf = True
-            if if_direction(True):
-                if mode == 3 or mode == 4:
-                    yield None
-                else:
-                    if get_direction(True, _):
-                        break
-            self.pf = False
-            if if_direction(False):
-                if mode == 2 or mode == 4:
-                    yield None
-                else:
-                    if get_direction(False, _):
-                        break
+            if if_position(True) and get_position(True, _): break
+            if if_position(False) and get_position(False, _): break
+            if if_direction(True) and get_direction(True, _): break
+            if if_direction(False) and get_direction(False, _): break
 
         # 记录总轮数
         self.currentRound = _ + 1
@@ -278,7 +215,135 @@ class Platform:
             if _ != None:
                 self.winner = not _
                 self.log.add('&e:%s win' % (c.PLAYERS[self.winner]))
-        #raise StopIteration
+    def human_get_position(self, isFirst):
+        global pos
+        currentRound = self.currentRound
+        position = pos
+        pos = None
+        statelabel.setText(("player1" if isFirst else "player2") + " choose position " + str(position))
+        if self.checkViolate(isFirst, 'position', position):
+            self.violator = None
+            return False
+        else:
+            self.board.add(isFirst, position)
+            self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))
+            return True
+    def human_get_direction(self, isFirst):
+        global dirt
+        currentRound = self.currentRound
+        direction = dirt
+        dirt = None
+        statelabel.setText(("player1" if isFirst else "player2") + " choose direction " + str(direction))
+        if self.checkViolate(isFirst, 'direction', direction):
+            self.violator = None
+            return False
+        else:
+            self.change = self.board.move(isFirst, direction)
+            self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))
+            return True
+    def involved_play(self, currentRound):
+        def if_position(isFirst):
+            return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
+
+        def if_direction(isFirst):
+            if self.board.getNone(isFirst) != []: return True  # 加快判定
+            for _ in range(4):
+                if self.board.copy().move(isFirst, _): return True
+            return False
+            
+        def get_position(isFirst):
+            self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
+            self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
+            position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
+            if self.checkState(isFirst): return True  # 判断运行状态
+            self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
+            if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
+            self.board.add(isFirst, position)  # 更新棋盘
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
+            return False
+        
+        def get_direction(isFirst):
+            self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
+            direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
+            statelabel.setText(("player1" if isFirst else "player2") + " choose direction " + str(direction))
+            if self.checkState(isFirst): return True  # 判断运行状态
+            self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
+            self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
+            return False
+        
+        def endstage():
+            self.currentRound = currentRound + 1
+            
+            # 得到winner
+            for _ in (self.timeout, self.violator, self.error):
+                if _ != None:
+                    self.winner = not _
+                    self.log.add('&e:%s win' % (c.PLAYERS[self.winner]))
+                
+        # 进行比赛
+        if currentRound < self.rounds:
+            self.currentRound = currentRound
+            if self.phase == 0:
+                if not if_position(True):
+                    self.phase = 1
+                    return
+                if mode == 3 or mode == 4:
+                    self.next = self.board.getNext(True, currentRound)
+                    MainWindow.drawboard(currentRound, self.log[-2] if len(self.log) else "", self.board)
+                    return
+                else:
+                    if get_position(True):
+                        endstage()
+                        return
+                    self.phase = 1
+                    self.involved_play(currentRound)
+            if self.phase == 1:
+                if not if_position(False):
+                    self.phase = 2
+                    return
+                if mode == 2 or mode == 4:
+                    self.next = self.board.getNext(False, currentRound)
+                    MainWindow.drawboard(currentRound, self.log[-2], self.board)
+                    return
+                else:
+                    if if_position(False) and get_position(False):
+                        endstage()
+                        return
+                    self.phase = 2
+                    self.involved_play(currentRound)
+            if self.phase == 2:
+                if not if_direction(True):
+                    self.phase = 3
+                    return
+                if mode == 3 or mode == 4:
+                    MainWindow.drawboard(currentRound, self.log[-2], self.board)
+                    return
+                else:
+                    if get_direction(True):
+                        endstage()
+                        return
+                    self.phase = 3
+                    self.involved_play(currentRound)
+            if self.phase == 3:
+                if not if_direction(False):
+                    self.phase = 4
+                    return
+                if mode == 2 or mode == 4:
+                    MainWindow.drawboard(currentRound, self.log[-2], self.board)
+                    return
+                else:
+                    if get_direction(False):
+                        endstage()
+                        return
+                    self.phase = 4
+                    self.involved_play(currentRound)
+            if self.phase == 4:
+                self.phase = 0
+                self.involved_play(currentRound + 1)
+        else:
+            endstage()
         
     def checkState(self, isFirst):
         '''
@@ -376,6 +441,44 @@ class Platform:
                 file.write(log + '\n')  # '&'表示一条log的开始
                 file.flush()
             file.close()
+    
+    def human_save(self):
+        '''
+        计分并保存比赛记录
+        '''
+        
+        # 获取所有棋子并计数
+        results = {True: self.board.getScore(True), False: self.board.getScore(False)}
+        scores = {True: {}, False: {}}
+        for level in range(1, c.MAXLEVEL):
+            scores[True][level] = results[True].count(level)
+            scores[False][level] = results[False].count(level)
+
+        # 比较比分
+
+        # 保存对局信息, 可以用analyser.py解析
+        x = QWidget()
+        self.name = QFileDialog.getSaveFileName(x,"保存记录","" ,"Text files (*.txt);;all files(*.*)")
+        file = open(self.name[0],'w')
+        myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
+        title = 'player0: %d from path %s\n' % (self.states[True]['index'][0], self.states[True]['path']) + \
+                'player1: %d from path %s\n' % (self.states[False]['index'][0], self.states[False]['path']) + \
+                'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
+                '{:*^45s}\n'.format('basic record')
+        file.write(title)
+        file.write('=' * 45 + '\n|{:^10s}|{:^10s}|{:^10s}|{:^10s}|\n'.format('timeout', 'violator', 'error', 'winner') + \
+                   '-' * 45 + '\n|{:^10s}|{:^10s}|{:^10s}|{:^10s}|\n'.format(myDict[self.timeout], myDict[self.violator], myDict[self.error], myDict[self.winner]) + \
+                   '=' * 45 + '\n')
+        file.write('=' * 60 + '\n|%6s|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % ('player', *range(1, c.MAXLEVEL)) + \
+                   '-' * 60 + '\n|%6d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % (0, *[scores[True][_] for _ in range(1, c.MAXLEVEL)]) + \
+                   '-' * 60 + '\n|%6d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|%3d|\n' % (1, *[scores[False][_] for _ in range(1, c.MAXLEVEL)]) + \
+                   '=' * 60 + '\n')
+        file.flush()
+        file.write('{:*^45s}\n'.format('complete record'))
+        for log in self.log:
+            file.write(log + '\n')  # '&'表示一条log的开始
+            file.flush()
+        file.close()
 def main(playerList,
          savepath = None,
          livequeue = None,
@@ -485,29 +588,79 @@ def main(playerList,
               'MAXTIME': MAXTIME,
               'ROUNDS': ROUNDS}
     platforms = {}
-    for count1 in range(len(playerList)):
-        for count2 in range(count1 + 1, len(playerList)):
-            platforms[(count1, count2)] = []
-            platforms[(count2, count1)] = []
-            for _ in range(REPEAT):
-                for isFirst in [True, False]:
-                    counts = (count1, count2) if isFirst else (count2, count1)
-                    trueCount, falseCount = counts
-                    platforms[counts].append(Platform({True: {'player': 'human' if Players[trueCount] == 'human' else object.__new__(Players[trueCount]),
-                                                              'path': playerList[trueCount],
-                                                              'time': time0[trueCount],
-                                                              'time0': time0[trueCount],
-                                                              'error': False,
-                                                              'exception': None,
-                                                              'index': (trueCount, True)},
-                                                       False: {'player': 'human' if Players[falseCount] == 'human' else object.__new__(Players[falseCount]),
-                                                               'path': playerList[falseCount],
-                                                               'time': time0[falseCount],
-                                                               'time0': time0[falseCount],
-                                                               'error': False,
-                                                               'exception': None,
-                                                               'index': (falseCount, False)}}, **kwargs))
-                    update(matchResults, playerResults, platforms[counts][-1].play())
+    global plat_cur
+    if mode == 1:
+        for count1 in range(len(playerList)):
+            for count2 in range(count1 + 1, len(playerList)):
+                platforms[(count1, count2)] = []
+                platforms[(count2, count1)] = []
+                for _ in range(REPEAT):
+                    for isFirst in [True, False]:
+                        counts = (count1, count2) if isFirst else (count2, count1)
+                        trueCount, falseCount = counts
+                        platforms[counts].append(Platform({True: {'player': object.__new__(Players[trueCount]),
+                                                                  'path': playerList[trueCount],
+                                                                  'time': time0[trueCount],
+                                                                  'time0': time0[trueCount],
+                                                                  'error': False,
+                                                                  'exception': None,
+                                                                  'index': (trueCount, True)},
+                                                           False: {'player': object.__new__(Players[falseCount]),
+                                                                   'path': playerList[falseCount],
+                                                                   'time': time0[falseCount],
+                                                                   'time0': time0[falseCount],
+                                                                   'error': False,
+                                                                   'exception': None,
+                                                                   'index': (falseCount, False)}}, **kwargs))
+                        update(matchResults, playerResults, platforms[counts][-1].play())
+    elif mode == 2:
+        plat_cur = Platform({True: {'player': object.__new__(Players[0]),
+                                                  'path': playerList[0],
+                                                  'time': time0[0],
+                                                  'time0': time0[0],
+                                                  'error': False,
+                                                  'exception': None,
+                                                  'index': (0, True)},
+                                           False: {'player': 'human',
+                                                   'path': None,
+                                                   'time': None,
+                                                   'time0': None,
+                                                   'error': False,
+                                                   'exception': None,
+                                                   'index': (1, False)}}, **kwargs)
+        plat_cur.play()
+    elif mode == 3:
+        plat_cur = Platform({True: {'player': 'human',
+                                                   'path': None,
+                                                   'time': None,
+                                                   'time0': None,
+                                                   'error': False,
+                                                   'exception': None,
+                                                   'index': (1, False)},
+                                           False: {'player': object.__new__(Players[0]),
+                                                  'path': playerList[0],
+                                                  'time': time0[0],
+                                                  'time0': time0[0],
+                                                  'error': False,
+                                                  'exception': None,
+                                                  'index': (0, True)}}, **kwargs)
+        plat_cur.play()
+    elif mode == 4:
+        plat_cur = Platform({True: {'player': 'human',
+                                                   'path': None,
+                                                   'time': None,
+                                                   'time0': None,
+                                                   'error': False,
+                                                   'exception': None,
+                                                   'index': (0, False)},
+                                           False: {'player': 'human',
+                                                   'path': None,
+                                                   'time': None,
+                                                   'time0': None,
+                                                   'error': False,
+                                                   'exception': None,
+                                                   'index': (1, False)}}, **kwargs)
+        plat_cur.play()
                 
     '''
     第四部分, 统计比赛结果
@@ -623,13 +776,13 @@ class mywindow(QMainWindow):
                     print('%s is not found.' % filename)
 
             print('=' * 50)
-            '''while True:  # 选择模式
-                self.mode = int(input('enter 0 for original mode.\nenter 1 for YuzuSoft mode.\nmode: '))
+            x = QWidget()
+            while True:  # 选择模式
+                self.mode = QInputDialog.getInt(x,'选择模式','enter 0 for original mode.\nenter 1 for YuzuSoft mode.\nmode: ', 0, 0, 1)
                 if self.mode in range(2):
                     break
                 else:
-                    print('wrong input.')'''
-            self.mode = 0
+                    print('wrong input.')
         else:
             self.match = self.matchList[index]
             self.log = open(self.match['path'], 'r').read().split('&')  # 读取全部记录并分成单条
@@ -644,31 +797,10 @@ class mywindow(QMainWindow):
             if declaration != '' and declaration[0] != '*':
                 print(declaration)  # 打印说明信息
 
-        '''if self.mode == 0:  # 2048原版
-            for row in range(1, c.ROWS + 1):
-                gridRow = []  # 一行方格
-                for column in range(c.COLUMNS):
-                    cell = Frame(background, bg=c.COLOR_NONE, width=c.LENGTH, height=c.LENGTH)  # 一个方格
-                    cell.grid(row=row, column=column, padx=c.PADX, pady=c.PADY)
-                    number = Label(cell, text='', bg=c.COLOR_NONE, justify=CENTER, font=c.FONT, width=c.WORD_SIZE[0],
-                                   height=c.WORD_SIZE[1])
-                    number.grid()
-                    gridRow.append(number)
-                self.gridCells.append(gridRow)
 
-        if self.mode == 1:  # 柚子社版
+        '''if self.mode == 1:  # 柚子社版
             self.photos = {'+': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[0], _)) for _ in range(14)],
-                           '-': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[1], _)) for _ in range(14)]}
-            photo = PhotoImage(file='../pic/unknown.png')
-            for row in range(1, c.ROWS + 1):
-                gridRow = []  # 一行方格
-                for column in range(c.COLUMNS):
-                    cell = Frame(background)  # 一个方格
-                    cell.grid(row=row, column=column, padx=c.PADX, pady=c.PADY)
-                    number = Label(cell, image=photo)
-                    number.grid()
-                    gridRow.append(number)
-                self.gridCells.append(gridRow)'''
+                           '-': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[1], _)) for _ in range(14)]}'''
 
         self.cur = 0        # 读取单条记录的游标
         self.state = True   # 游标运动的状态, True代表向前
@@ -694,21 +826,15 @@ class mywindow(QMainWindow):
                     row = cur // c.COLUMNS
                     column = cur % c.COLUMNS
                     belong, number = platform[cur]
-                    if number == 0:
+                    if self.mode == 0:
                         self.button[row][column].setStyleSheet("background-color:" + c.COLOR_CELL[belong])
-                        self.button[row][column].setText("")
+                        if number == 0:
+                            self.button[row][column].setText("")
+                        else:
+                            self.button[row][column].setText(str(2 ** number))
                     else:
-                        self.button[row][column].setStyleSheet("background-color:" + c.COLOR_CELL[belong])
-                        self.button[row][column].setText(str(2 ** number))
+                        self.button[row][column].setStyleSheet("border-image: url(../src/analyser/pic/%s_%d.png)" % (self.photos[belong], number))
                     cur += 1
-
-            '''if self.mode == 1:  # 柚子社版
-                while cur < c.ROWS * c.COLUMNS:
-                    row = cur // c.COLUMNS
-                    column = cur % c.COLUMNS
-                    belong, number = platform[cur]
-                    self.gridCells[row][column].config(image=self.photos[belong][number])
-                    cur += 1'''
     
     def previous(self):
         self.keyPressEvent(None, Qt.Key_A)
@@ -757,23 +883,65 @@ class mywindow(QMainWindow):
             self.destroy()
             self.loadmode(self.matchList, self.index - 1)
 
+    def drawboard(self, currentRound, log, board):
+        ui.save_current.setEnabled(True)
+        try:
+            ui.save_current.triggered.disconnect()
+            ui.save_current.triggered.connect(plat_cur.human_save)
+        except:
+            pass
+        ui.up.setEnabled(True)
+        ui.down.setEnabled(True)
+        ui.left.setEnabled(True)
+        ui.right.setEnabled(True)
+        ui.confirm.setEnabled(True)
+        for i in range(c.ROWS):
+            for j in range(c.COLUMNS):
+                if board.getValue((i, j)) == 0:
+                    self.button[i][j].setStyleSheet("background-color:" + c.COLOR_CELL['+' if board.getBelong((i, j)) else '-'])
+                    self.button[i][j].setText("")
+                else:
+                    self.button[i][j].setStyleSheet("background-color:" + c.COLOR_CELL['+' if board.getBelong((i, j)) else '-'])
+                    self.button[i][j].setText(str(2 ** board.getValue((i, j))))
+        if plat_cur.phase == 0:
+            if board.getNext(True, currentRound) != ():
+                i, j = board.getNext(True, currentRound)
+                self.button[i][j].setStyleSheet("background-color:white")
+        if plat_cur.phase == 1:
+            if board.getNext(False, currentRound) != ():
+                i, j = board.getNext(False, currentRound)
+                self.button[i][j].setStyleSheet("background-color:white")
+        self.rounddisplay.setText(str(currentRound))
+        self.statelabel.setText(log)
+
 class click():
     def __init__(self, x, y):
         self.pos = (x, y)
     def proc(self):
+        if plat_cur.phase == 2 or plat_cur.phase == 3:
+            x = QWidget()
+            QMessageBox.information(x, "提示", "请选择方向！", QMessageBox.Yes)
         global pos
         pos = self.pos
-        print(pos)
-        pass
+        ui.selectlabel.setText("you selected " + str(pos))
 
 class click1():
     def __init__(self, d):
         self.d = d
     def proc(self):
+        if plat_cur.phase == 0 or plat_cur.phase == 1:
+            x = QWidget()
+            QMessageBox.information(x, "提示", "请选择位置！", QMessageBox.Yes)
         global dirt
         dirt = self.d
-        print(dirt)
-        pass
+        if dirt == 0:
+            ui.selectlabel.setText("you selected up")
+        if dirt == 1:
+            ui.selectlabel.setText("you selected down")
+        if dirt == 2:
+            ui.selectlabel.setText("you selected left")
+        if dirt == 3:
+            ui.selectlabel.setText("you selected right")
 
 class loadai_content(QItemDelegate):
     def __init__(self, parent = None):
@@ -928,6 +1096,8 @@ def settings():
         MAXTIME = ui_settings.textEdit.toPlainText()
     def roundchanged():
         ROUNDS = ui_settings.textEdit_2.toPlainText()
+    def repeatchanged():
+        REPEAT = ui_settings.textEdit_3.toPlainText()
     ui_settings.checkBox.setChecked(toSave)
     ui_settings.checkBox.stateChanged.connect(savechanged)
     ui_settings.checkBox_2.setChecked(toReport)
@@ -938,6 +1108,8 @@ def settings():
     ui_settings.pushButton.clicked.connect(timechanged)
     ui_settings.textEdit_2.setText(str(ROUNDS))
     ui_settings.pushButton_2.clicked.connect(roundchanged)
+    ui_settings.textEdit_3.setText(str(REPEAT))
+    ui_settings.pushButton_3.clicked.connect(repeatchanged)
     dialog1.show()
 
 class setmode():
@@ -956,17 +1128,35 @@ class setmode():
             statelabel.setText("当前模式为人类-人类")
 
 def work():
-    if phase == 0:
+    if plat_cur.phase == 0:
         if pos != None and plat_cur != None:
-            if plat_cur.get_position(plat_cur.pf, plat_cur.rnd):
-                next(matct_object)
+            if plat_cur.human_get_position(True):
+                plat_cur.phase = 1
+                plat_cur.involved_play(plat_cur.currentRound)
             else:
                 x = QWidget()
                 QMessageBox.information(x, "提示", "位置非法", QMessageBox.Yes)
-    else:
+    elif plat_cur.phase == 1:
+        if pos != None and plat_cur != None:
+            if plat_cur.human_get_position(False):
+                plat_cur.phase = 2
+                plat_cur.involved_play(plat_cur.currentRound)
+            else:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "位置非法", QMessageBox.Yes)
+    elif plat_cur.phase == 2:
         if dirt != None and plat_cur != None:
-            if plat_cur.get_direction(plat_cur.pf, plat_cur.rnd):
-                next(matct_object)
+            if plat_cur.human_get_direction(True):
+                plat_cur.phase = 3
+                plat_cur.involved_play(plat_cur.currentRound)
+            else:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
+    elif plat_cur.phase == 3:
+        if dirt != None and plat_cur != None:
+            if plat_cur.human_get_direction(False):
+                plat_cur.phase = 4
+                plat_cur.involved_play(plat_cur.currentRound)
             else:
                 x = QWidget()
                 QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
@@ -987,29 +1177,29 @@ def match_init():
             QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
         else:
             main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            x = QWidget()
+        QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
     elif mode == 2:
         if len(plst) != 1:
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
         else:
-            main(plst + ["human"], toSave = toSave, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(plst + ["human"], toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
     elif mode == 3:
         if len(plst) != 1:
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
         else:
-            main(plst + ["human"], toSave = toSave, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(["human"] + plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
     else:
-        main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
-    x = QWidget()
-    QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
-    
+        main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+
 
 player_list = []
 player_state = []
 mode = 0
 cnt = 0
-toSave, toReport, debug, MAXTIME, ROUNDS = True, True, False, c.MAXTIME, c.ROUNDS
+toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT = True, True, False, c.MAXTIME, c.ROUNDS, c.REPEAT
 
 if __name__ == '__main__':
     global ui
@@ -1022,9 +1212,9 @@ if __name__ == '__main__':
     for i in range(c.ROWS):
         for j in range(c.COLUMNS):
             ui.chessboard.addWidget(button[i][j], i, j)
-            button[i][j].setFixedSize(QtCore.QSize(60, 60))
+            button[i][j].setFixedSize(QtCore.QSize(80, 80))
             table[i][j] = click(i, j)
-            #button[i][j].clicked.connect(table[i][j].proc)
+            button[i][j].clicked.connect(table[i][j].proc)
             #button[i][j].setEnabled(False)
     MainWindow.button = button
     MainWindow.rounddisplay = ui.rounddisplay
