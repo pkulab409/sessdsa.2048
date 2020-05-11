@@ -4,9 +4,12 @@
 
 import constants as c
 import round_match
-import analyser
 import os
+import sys
 
+sys.path.append(os.path.abspath('../analyser'))
+
+import analyser
 
 def main(playerList,
          savepath,
