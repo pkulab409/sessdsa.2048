@@ -546,9 +546,7 @@ main(
 
             随后在其中选中`src/analyser_dir.html`并新标签(记为标签页b)打开。再在网页a上进入你的比赛记录文件夹，也就是包含`_.txt`的那个文件夹，在地址栏复制其链接，按提示填入标签页b的输入框中。
 
-            此时网页如下所示，在下方点击一条记录即可查看，可以按`[]`或左右方向调整比赛进程。
-
-            <iframe src="https://raw.githubusercontent.com/pkulab409/sessdsa.2048/master/src/analyser_dir_example.html" width="800px" height="400px"></iframe>
+            此时点击一条记录即可查看，可以按`[]`或左右方向键调整比赛进程。
 
    5. 网页版人机对战工具
 
