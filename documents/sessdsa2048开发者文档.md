@@ -513,6 +513,23 @@ main(
             +01 +01 +04 +00 -05 -01 -04 -00\n
             +01 +01 +04 +00 -05 -01 -04 -00\0
             ```
+        11. `getTime(self)` 返回用户AI剩余思考时间, 单位为秒.
+
+            返回:float类型变量
+
+        12. `updateTime(self, belong, time)` 更新用户AI的剩余思考时间. 用户无需调用.
+
+            参数:belong某方，time剩余时间
+
+        13. `getDecision(self, belong)`获取某方上一次决策时给出的结果
+            
+            参数:belong某方
+            
+            返回:若无决策, 返回`tuple()`. 若为决定合并方向, 为`tuple(direction)`. 若为决定下棋位置, 为`(int, int)`.
+
+        14. `getAnime(self)` 给出上一次棋盘合并时棋子的移动信息. 用户无需调用.
+        
+            **undocumented** 
 
    4. 复盘可视化analyser
 
@@ -568,3 +585,5 @@ main(
 2020.5.6 @HamiltonHuaji 加入网页版人机对战工具的介绍
 
 2020.5.6 @SophieARG 修改analyser.py接口，并关联自动调试工具neattool.py
+
+2020.5.11 @HamiltonHuaji 加入chessboard类四个新接口的介绍
