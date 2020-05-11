@@ -2,9 +2,15 @@
 
 理论上, 本文档和规则文档可以作为开发对战AI所需文档的最小集合. 但调试复盘工具链文档待给出/合并.
 
+用户(或用户AI)根据语境, 可能指开发比赛程序的人类或用于对战, 能根据盘面给出决策, 并最大化胜利可能的程序
+
+平台指驱动对战初始化、进行和结束, 给出盘面信息和运行环境, 并调用用户AI的决策方法, 判断胜负的程序.
+
+未定义行为指该行为中平台的行为不受规范, 可能是对战中的任何负面后果.
+
 ## 用户规范
 
-本章节对用户AI的实现进行规范.
+本章节对用户AI的行为进行规范.
 
 ### 引言
 
@@ -154,7 +160,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
    10. `__repr__(self: Chessboard) -> str`或`__str__(self: Chessboard) -> str` 棋盘的可打印字符串
 
-       打印结果如下所示。
+       打印结果例子如下.
 
        ```text
        +01 +01 +04 +00 -05 -01 -04 -00\n
@@ -165,6 +171,36 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
 ### 辅助信息
 
-本节规范平台提供的有利于开发和自省的信息的形式
+本节规范平台提供的有利于用户AI开发和自省的信息的形式.
 
-//TODO
+由于API设计的失误和接口设计的稳定性考虑, 这些附加信息通过前述棋盘对象一并传递. 这些信息可以从平台给出的棋盘对象的以下方法获取.
+
+   1. `getTime(self: Chessboard) -> float`
+
+       返回用户AI剩余思考时间, 单位为秒.
+
+   2. `updateTime(self: Chessboard, belong: bool, time: float) -> None`
+
+       更新用户AI的剩余思考时间. 用户调用为未定义行为.
+
+   3. `getDecision(self: Chessboard, belong: bool) -> Union[Tuple[], Tuple[int, int], Tuple[int]]`
+
+       获取某方上一次决策时给出的结果. 若无决策, 返回`tuple()`. 若为决定合并方向, 为`tuple(direction)`. 若为决定下棋位置, 为`position: Tuple[int, int]`.
+
+   4. `getAnime(self: Chessboard) -> Any`
+
+       给出上一次棋盘合并时棋子的移动信息. 用户调用不会导致异常, 但作为undocumented api, 具体数据形式不给出保证.
+
+### 杂项
+
+本节列出需要注意的杂项.
+
++ 比赛服务器的Python版本可能是3.6到3.8之间任一版本, 请注意不要使用版本限定的语法, 以节约调试时间
+
+## 有用信息
+
+[天梯网站](http://162.105.17.143:9580/match/dyEWuGIn8N)
+
+## 编辑历史
+
+2020.5.10 @HamiltonHuaji 创建此文档
