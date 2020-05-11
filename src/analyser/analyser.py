@@ -89,8 +89,8 @@ class GameScreen(Frame):
                 self.gridCells.append(gridRow)
 
         if self.mode == 1:  # 柚子社版
-            self.photos = {'+': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[0], _)) for _ in range(14)],
-                           '-': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[1], _)) for _ in range(14)]}
+            self.photos = {'+': [PhotoImage(file='pic/%s_%d.png' % (c.PICTURES[0], _)) for _ in range(14)],
+                           '-': [PhotoImage(file='pic/%s_%d.png' % (c.PICTURES[1], _)) for _ in range(14)]}
             photo = PhotoImage(file='../pic/unknown.png')
             for row in range(1, c.ROWS + 1):
                 gridRow = []  # 一行方格
