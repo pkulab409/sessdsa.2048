@@ -1052,6 +1052,7 @@ if __name__ == '__main__':
     ui.mode3.triggered.connect(modelst[2].proc)
     ui.mode4.triggered.connect(modelst[3].proc)
     ui.start.triggered.connect(match_init)
+    ui.menubar.setNativeMenuBar(False)
     def loadmode():
         MainWindow.loadmode()
     ui.loadfile.triggered.connect(loadmode)
