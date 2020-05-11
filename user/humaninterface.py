@@ -2,7 +2,211 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-import constants as c
+
+class c():
+    MAXTIME = 5     # 最大时间限制
+    ROUNDS = 500    # 总回合数
+    REPEAT = 10     # 单循环轮数
+
+    ROWS = 4        # 行总数
+    COLUMNS = 8     # 列总数
+    MAXLEVEL = 14   # 总级别数
+
+    SLEEP = 0.3       # 直播等待时间
+
+    ARRAY = list(range(ROUNDS))  # 随机(?)列表
+
+    NAMES = {_: str(2 ** _).zfill(4) for _ in range(MAXLEVEL)}  # 将内在级别转换为显示对象的字典
+    NAMES[0] = '0000'
+
+    DIRECTIONS = {0: 'up', 1: 'down', 2: 'left', 3: 'right', None: 'None'}    # 换算方向的字典
+    PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
+
+    PICTURES = ['nanami', 'ayase']  # 游戏图片名称
+    LENGTH = 100                    # 格子的边长
+    PADX = PADY = 10                # 边界填充的距离
+    WORD_SIZE = (5, 2)              # 标签大小
+    FONT = ('Verdana', 40, 'bold')  # 文字字体
+
+    COLOR_BACKGROUND = '#92877d'    # 全局背景色
+    COLOR_NONE = '#9e948a'          # 初始界面方格色
+
+    COLOR_CELL = {'+': '#eee4da', '-': '#f2b179'}  # 双方的方格色
+    COLOR_WORD = {'+': '#776e65', '-': '#f9f6f2'}  # 双方的文字色
+
+    KEY_BACKWARD = "\'[\'"  # 回退
+    KEY_FORWARD = "\']\'"   # 前进
+
+
+    # 棋子
+
+    from collections import namedtuple
+
+    '''
+    -> 初始化棋子
+    -> 参数: belong   归属, 为bool, True代表先手
+    -> 参数: position 位置, 为tuple
+    -> 参数: value    数值, 为int
+    '''
+
+    Chessman = namedtuple('Chessman', 'belong position value', defaults=(1,))
+
+    # 棋盘
+
+    class Chessboard:
+        def __init__(self, array):
+            '''
+            -> 初始化棋盘
+            '''
+            self.array = array  # 随机序列
+            self.board = {}  # 棋盘所有棋子
+            self.belongs = {True: [], False: []}  # 双方的棋子位置
+            self.decision = {True: (), False: ()}  # 双方上一步的决策
+            self.time = {True: 0, False: 0}  # 双方剩余的时长
+            self.anime = []  # 动画效果
+            
+
+        def add(self, belong, position, value = 1):
+            '''
+            -> 在指定位置下棋
+            '''
+            self.decision[belong] = position
+            belong = position[1] < COLUMNS // 2  # 重定义棋子的归属
+            self.belongs[belong].append(position)
+            self.board[position] = Chessman(belong, position, value)
+
+        def move(self, belong, direction):
+            '''
+            -> 向指定方向合并, 返回是否变化
+            '''
+            self.anime = []
+            self.decision[belong] = (direction,)
+            def inBoard(position):  # 判断是否在棋盘内
+                return position[0] in range(ROWS) and position[1] in range(COLUMNS)
+            def isMine(position):   # 判断是否在领域中
+                return belong if position[1] < COLUMNS // 2 else not belong
+            def theNext(position):  # 返回下一个位置
+                delta = [(-1,0), (1,0), (0,-1), (0,1)][direction]
+                return (position[0] + delta[0], position[1] + delta[1])
+            def conditionalSorted(chessmanList):  # 返回根据不同的条件排序结果
+                if direction == None: return []
+                if direction == 0: return sorted(chessmanList, key = lambda x:x[0], reverse = False)
+                if direction == 1: return sorted(chessmanList, key = lambda x:x[0], reverse = True )
+                if direction == 2: return sorted(chessmanList, key = lambda x:x[1], reverse = False)
+                if direction == 3: return sorted(chessmanList, key = lambda x:x[1], reverse = True )
+            def move_one(chessman, eaten):  # 移动一个棋子并返回是否移动, eaten是已经被吃过的棋子位置
+                nowPosition = chessman.position
+                nextPosition = theNext(nowPosition)
+                while inBoard(nextPosition) and isMine(nextPosition) and nextPosition not in self.board:  # 跳过己方空格
+                    nowPosition = nextPosition
+                    nextPosition = theNext(nextPosition)
+                if inBoard(nextPosition) and nextPosition in self.board and nextPosition not in eaten \
+                        and chessman.value == self.board[nextPosition].value:  # 满足吃棋条件
+                    self.anime.append(chessman.position + nextPosition)
+                    self.belongs[belong].remove(chessman.position)
+                    self.belongs[belong if nextPosition in self.belongs[belong] else not belong].remove(nextPosition)
+                    self.belongs[belong].append(nextPosition)
+                    self.board[nextPosition] = Chessman(belong, nextPosition, chessman.value + 1)
+                    del self.board[chessman.position]
+                    eaten.append(nextPosition)
+                    return True
+                elif nowPosition != chessman.position:  # 不吃棋但移动了
+                    self.anime.append(chessman.position + nowPosition)
+                    self.belongs[belong].remove(chessman.position)
+                    self.belongs[belong].append(nowPosition)
+                    self.board[nowPosition] = Chessman(belong, nowPosition, chessman.value)
+                    del self.board[chessman.position]
+                    return True
+                else:  # 未发生移动
+                    return False
+            eaten = []
+            change = False
+            for _ in conditionalSorted(self.belongs[belong]):
+                if move_one(self.board[_], eaten): change = True
+            return change
+
+        def getBelong(self, position):
+            '''
+            -> 返回归属
+            '''
+            return self.board[position].belong if position in self.board else position[1] < COLUMNS // 2
+
+        def getValue(self, position):
+            '''
+            -> 返回数值
+            '''
+            return self.board[position].value if position in self.board else 0
+
+        def getScore(self, belong):
+            '''
+            -> 返回某方的全部棋子数值列表
+            '''
+            return list(map(lambda x: self.board[x].value, self.belongs[belong]))
+
+        def getNone(self, belong):
+            '''
+            -> 返回某方的全部空位列表
+            '''
+            return [(row, column) for row in range(ROWS) for column in range(COLUMNS) \
+                    if ((column < COLUMNS // 2) == belong) and (row, column) not in self.board]
+        
+        def getNext(self, belong, currentRound):
+            '''
+            -> 根据随机序列得到在本方领域允许下棋的位置
+            '''
+            available = self.getNone(belong)
+            if not belong: available.reverse()  # 后手序列翻转
+            return available[self.array[currentRound] % len(available)] if available != [] else ()
+
+        def getDecision(self, belong):
+            '''
+            -> 返回上一步的决策信息
+            -> 无决策为(), 位置决策为position, 方向决策为(direction,)
+            -> 采用同类型返回值是为了和优化库统一接口
+            '''
+            return self.decision[belong]
+
+        def updateTime(self, belong, time):
+            '''
+            -> 更新剩余时间
+            '''
+            self.time[belong] = time
+
+        def getTime(self, belong):
+            '''
+            -> 返回剩余时间
+            '''
+            return self.time[belong]
+
+        def getAnime(self):
+            '''
+            -> 返回动画效果辅助信息
+            '''
+            return self.anime
+
+        def copy(self):
+            '''
+            -> 返回一个对象拷贝
+            '''
+            new = Chessboard(self.array)
+            new.board = self.board.copy()
+            new.belongs[True] = self.belongs[True].copy()
+            new.belongs[False] = self.belongs[False].copy()
+            new.decision = self.decision.copy()
+            new.time = self.time.copy()
+            new.anime = self.anime.copy()
+            return new
+
+        def __repr__(self):
+            '''
+            -> 打印棋盘, + 代表先手, - 代表后手
+            '''       
+            return '\n'.join([' '.join([('+' if self.getBelong((row, column)) else '-') + str(self.getValue((row, column))).zfill(2) \
+                                       for column in range(COLUMNS)]) \
+                             for row in range(ROWS)])
+        __str__ = __repr__
+
+
 
 import gui, dialog
 
@@ -22,7 +226,7 @@ pos, dirt, phase, plat_cur, statelabel, MainWindow = None, None, None, None, Non
 
 
 class Platform:
-    def __init__(self, states, match, livequeue, toSave, MAXTIME, ROUNDS):
+    def __init__(self, states, match, livequeue, toSave, MAXTIME, ROUNDS, BOARDXXX):
         '''
         初始化
         -> 参数: states 保存先后手方模块元信息的字典
@@ -118,6 +322,13 @@ class Platform:
         self.next = (None, None)            # 按照随机序列得到的下一个位置
         self.board = c.Chessboard(c.ARRAY)  # 棋盘
         self.log = Log(self)                # 日志, &d 决策 decision, &p 棋盘 platform, &e 事件 event
+        
+        if BOARDXXX != None:
+            for row in range(c.ROWS):
+                for column in range(c.COLUMNS):
+                    if BOARDXXX[row][column][1]:
+                        self.board.add(BOARDXXX[row][column][0] == '+', (row, column), BOARDXXX[row][column][1])
+                        
 
     def play(self):
         '''
@@ -488,7 +699,8 @@ def main(playerList,
          debug = False,
          REPEAT = c.REPEAT,
          MAXTIME = c.MAXTIME,
-         ROUNDS = c.ROUNDS):
+         ROUNDS = c.ROUNDS,
+         BOARDXXX = None):
     '''
     主函数
     -> 参数: playerList 参赛队伍的模块列表, 支持绝对路径, 相对路径, 和已读取的类. 例如 playerList = ['player.py', 'player.py']
@@ -586,7 +798,8 @@ def main(playerList,
               'livequeue': livequeue,
               'toSave': toSave,
               'MAXTIME': MAXTIME,
-              'ROUNDS': ROUNDS}
+              'ROUNDS': ROUNDS,
+              'BOARDXXX': BOARDXXX}
     platforms = {}
     global plat_cur
     if mode == 1:
@@ -756,6 +969,8 @@ class mywindow(QMainWindow):
     
     def loadmode(self, matchList = None, index = 1):
         # matchList = [mode, {'path': path, 'topText': topText, 'bottomText': bottomText}, ...]
+        self.ui.continue_match.setEnabled(True)
+        self.ui.continue_match.triggered.connect(self.continue_match)
         self.matchList = matchList
         self.index = index
         self.load = True
@@ -777,12 +992,7 @@ class mywindow(QMainWindow):
 
             print('=' * 50)
             x = QWidget()
-            while True:  # 选择模式
-                self.mode = QInputDialog.getInt(x,'选择模式','enter 0 for original mode.\nenter 1 for YuzuSoft mode.\nmode: ', 0, 0, 1)
-                if self.mode in range(2):
-                    break
-                else:
-                    print('wrong input.')
+            self.mode = QInputDialog.getInt(x,'选择模式','enter 0 for original mode.\nenter 1 for YuzuSoft mode.\nmode: ', 0, 0, 1)[0]
         else:
             self.match = self.matchList[index]
             self.log = open(self.match['path'], 'r').read().split('&')  # 读取全部记录并分成单条
@@ -796,11 +1006,6 @@ class mywindow(QMainWindow):
         for declaration in declarations:
             if declaration != '' and declaration[0] != '*':
                 print(declaration)  # 打印说明信息
-
-
-        '''if self.mode == 1:  # 柚子社版
-            self.photos = {'+': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[0], _)) for _ in range(14)],
-                           '-': [PhotoImage(file='../pic/%s_%d.png' % (c.PICTURES[1], _)) for _ in range(14)]}'''
 
         self.cur = 0        # 读取单条记录的游标
         self.state = True   # 游标运动的状态, True代表向前
@@ -821,20 +1026,19 @@ class mywindow(QMainWindow):
                 platform.append((piece[0], int(piece[1:])))
             cur = 0
 
-            if self.mode == 0:  # 2048原版
-                while cur < c.ROWS * c.COLUMNS:
-                    row = cur // c.COLUMNS
-                    column = cur % c.COLUMNS
-                    belong, number = platform[cur]
-                    if self.mode == 0:
-                        self.button[row][column].setStyleSheet("background-color:" + c.COLOR_CELL[belong])
-                        if number == 0:
-                            self.button[row][column].setText("")
-                        else:
-                            self.button[row][column].setText(str(2 ** number))
+            while cur < c.ROWS * c.COLUMNS:
+                row = cur // c.COLUMNS
+                column = cur % c.COLUMNS
+                belong, number = platform[cur]
+                if self.mode == 0:
+                    self.button[row][column].setStyleSheet("background-color:" + c.COLOR_CELL[belong])
+                    if number == 0:
+                        self.button[row][column].setText("")
                     else:
-                        self.button[row][column].setStyleSheet("border-image: url(../src/analyser/pic/%s_%d.png)" % (self.photos[belong], number))
-                    cur += 1
+                        self.button[row][column].setText(str(2 ** number))
+                else:
+                    self.button[row][column].setStyleSheet("border-image: url(../src/analyser/pic/%s_%d.png)" % (c.PICTURES[0 if belong == '+' else 1], number))
+                cur += 1
     
     def previous(self):
         self.keyPressEvent(None, Qt.Key_A)
@@ -842,8 +1046,52 @@ class mywindow(QMainWindow):
     def succ(self):
         self.keyPressEvent(None, Qt.Key_D)
     
+    def continue_match(self):
+        platform = []
+        pieces = self.log[self.cur].split(':')[1].split()
+        for piece in pieces:
+            platform.append((piece[0], int(piece[1:])))
+        cur = 0
+        BOARDXXX = [[None for _ in range(c.COLUMNS)] for _ in range(c.ROWS)]
+        while cur < c.ROWS * c.COLUMNS:
+            row = cur // c.COLUMNS
+            column = cur % c.COLUMNS
+            belong, number = platform[cur]
+            BOARDXXX[row][column] = (belong, number)
+            cur += 1
+        plst = []
+        for _ in range(len(player_list)):
+            if player_state[_]:
+                plst.append(player_list[_])
+        if mode == 0:
+            global ui
+            x = QWidget()
+            QMessageBox.information(x, "提示", "尚未选择模式", QMessageBox.Yes)
+            return
+        elif mode == 1:
+            if len(plst) < 2:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
+            else:
+                main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+                x = QWidget()
+            QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
+        elif mode == 2:
+            if len(plst) != 1:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
+            else:
+                main(plst + ["human"], toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+        elif mode == 3:
+            if len(plst) != 1:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
+            else:
+                main(["human"] + plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+        else:
+            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+    
     def keyPressEvent(self, event, key = None):
-        print("1")
         if not self.load:
             return
         if key == None:
