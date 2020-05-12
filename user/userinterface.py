@@ -1251,7 +1251,9 @@ class mywindow(QMainWindow):
         self.load = True
         self.ui.left.setEnabled(True)
         self.ui.right.setEnabled(True)
+        self.ui.left.clicked.disconnect()
         self.ui.left.clicked.connect(self.previous)
+        self.ui.right.clicked.disconnect()
         self.ui.right.clicked.connect(self.succ)
         self.ui.left.setText("后退\n(A)")
         self.ui.right.setText("前进\n(D)")
