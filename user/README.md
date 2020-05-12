@@ -15,6 +15,7 @@ pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
 如果想要对战，请在菜单中选择模式以及加载ai
 
 加载ai的说明：操作是即时的，设置完成后直接关闭加载窗口即可，不需担心保存的问题
+样例ai见src内的player.py
 如果想要更改对战的参数，请选择下方的设置菜单（若不打开设置则自动使用默认参数）
 其中对checkbox的操作依然是即时的，但输入框需要点击确定按钮确认修改
 
