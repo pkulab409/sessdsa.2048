@@ -1339,11 +1339,17 @@ class mywindow(QMainWindow):
             BOARDXXX[row][column] = (belong, number)
             cur += 1
         plst = []
+        self.ui.left.setText("左")
+        self.ui.right.setText("右")
+        dirtlst = [click1(_) for _ in range(4)]
+        self.ui.left.clicked.disconnect()
+        self.ui.left.clicked.connect(dirtlst[2].proc)
+        self.ui.right.clicked.disconnect()
+        self.ui.right.clicked.connect(dirtlst[3].proc)
         for _ in range(len(player_list)):
             if player_state[_]:
                 plst.append(player_list[_])
         if mode == 0:
-            global ui
             x = QWidget()
             QMessageBox.information(x, "提示", "尚未选择模式", QMessageBox.Yes)
             return
@@ -1360,13 +1366,13 @@ class mywindow(QMainWindow):
                 x = QWidget()
                 QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
             else:
-                main(plst + ["human"], toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+                main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
         elif mode == 3:
             if len(plst) != 1:
                 x = QWidget()
                 QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
             else:
-                main(["human"] + plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+                main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
         else:
             main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
     
@@ -1548,9 +1554,16 @@ class loadai_content(QItemDelegate):
                         self.parent(),
                         clicked=self.parent().openfile
                     )
+                    button_write = QPushButton(
+                        self.tr('添加默认ai'),
+                        self.parent(),
+                        clicked=self.parent().openfile1
+                    )
                     button_read.index = [index.row(), index.column()]
+                    button_write.index = [index.row(), index.column()]
                     h_box_layout = QHBoxLayout()
                     h_box_layout.addWidget(button_read)
+                    h_box_layout.addWidget(button_write)
                     h_box_layout.setContentsMargins(0, 0, 0, 0)
                     h_box_layout.setAlignment(Qt.AlignCenter)
                     widget = QWidget()
@@ -1606,6 +1619,13 @@ class ai_load(QTableView):
         x = QWidget()
         c=QFileDialog.getOpenFileName(x,'选择文件','','Python files(*.py)')[0]
         player_list.append(c)
+        player_state.append(True)
+        loadai()
+    
+    def openfile1(self):
+        global cnt
+        x = QWidget()
+        player_list.append("../src/tools/player.py")
         player_state.append(True)
         loadai()
 
