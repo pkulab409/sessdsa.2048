@@ -18,7 +18,7 @@ pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 同一个ai可被反复加载
 
-样例ai见src/tools内的player.py
+样例ai见src/tools内的player.py，也可直接通过点击添加默认ai的按钮来添加
 
 如果想要更改对战的参数，请选择下方的设置菜单（若不打开设置则自动使用默认参数）
 
