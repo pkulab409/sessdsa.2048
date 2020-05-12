@@ -713,6 +713,7 @@ class Platform:
         else:
             self.board.add(isFirst, position)
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())
             return True
     def human_get_direction(self, isFirst):
         global dirt
@@ -720,12 +721,13 @@ class Platform:
         direction = dirt
         dirt = None
         statelabel.setText(("player1" if isFirst else "player2") + " choose direction " + str(direction))
+        self.change = self.board.move(isFirst, direction)
         if self.checkViolate(isFirst, 'direction', direction):
             self.violator = None
             return False
         else:
-            self.change = self.board.move(isFirst, direction)
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))
+            self.log.add('&p%d:\n' % currentRound + self.board.__repr__())
             return True
     def involved_play(self, currentRound):
         def if_position(isFirst):
@@ -1446,6 +1448,7 @@ class click():
         if plat_cur.phase == 2 or plat_cur.phase == 3:
             x = QWidget()
             QMessageBox.information(x, "提示", "请选择方向！", QMessageBox.Yes)
+            return
         global pos
         pos = self.pos
         ui.selectlabel.setText("you selected " + str(pos))
@@ -1457,6 +1460,7 @@ class click1():
         if plat_cur.phase == 0 or plat_cur.phase == 1:
             x = QWidget()
             QMessageBox.information(x, "提示", "请选择位置！", QMessageBox.Yes)
+            return
         global dirt
         dirt = self.d
         if dirt == 0:
@@ -1709,13 +1713,13 @@ def match_init():
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
         else:
-            main(plst + ["human"], toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
     elif mode == 3:
         if len(plst) != 1:
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
         else:
-            main(["human"] + plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
     else:
         main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
 
