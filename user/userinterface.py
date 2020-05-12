@@ -1769,7 +1769,7 @@ if __name__ == '__main__':
     ui.loadfile.triggered.connect(loadmode)
     def about():
         x = QWidget()
-        QMessageBox.information(x, "说明", "本程序对之前的调试工具做了整合，并制作了可视化界面\n什么，你问我为什么那么多按钮不能用？\n因为功能没做出来（悲，后面会尽力补全", QMessageBox.Yes)
+        QMessageBox.information(x, "说明", "本程序对之前的调试工具做了整合，并制作了可视化界面\其中有一些功能未经测试，可能会有bug\n不建议在运行中更换模式，可能会导致未知错误", QMessageBox.Yes)
     ui.about.triggered.connect(about)
     statelabel = ui.statelabel
     MainWindow.show()
