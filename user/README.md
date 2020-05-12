@@ -5,6 +5,7 @@
 打开cmd并键入如下指令：
 
 pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
 等待完成即可
 ## 功能
 提供对战和读取记录两种功能
