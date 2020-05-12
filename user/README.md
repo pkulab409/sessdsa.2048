@@ -16,6 +16,8 @@ pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 加载ai的说明：操作是即时的，设置完成后直接关闭加载窗口即可，不需担心保存的问题
 
+同一个ai可被反复加载
+
 样例ai见src/tools内的player.py
 
 如果想要更改对战的参数，请选择下方的设置菜单（若不打开设置则自动使用默认参数）
