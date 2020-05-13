@@ -446,11 +446,7 @@ struct Chessboard {
     }
 };
 
-#ifndef FOR_PYTHON37_AND_PYTHON36
 PYBIND11_MODULE(libchessboard, m) {
-#else
-PYBIND11_MODULE(libchessboard7, m) {
-#endif
     class_<Chessboard>(m, "Chessboard")
         .def(init<std::vector<int>>())
         .def("add", &Chessboard::add)
