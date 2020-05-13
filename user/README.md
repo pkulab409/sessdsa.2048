@@ -51,4 +51,4 @@ pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 从此继续对战将会以现在的棋盘作为初始棋盘开始对战，其余同上
 
-#可能会出现bug，若出现请反馈给@大卫
+# 可能会出现bug，若出现请反馈给@大卫
