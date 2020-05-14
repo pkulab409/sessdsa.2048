@@ -116,7 +116,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
        参数:belong操作者，position位置坐标，value 下棋的级别，缺省值为1
 
-       注:棋子的数值取以 2 为底的对数即为其级别，为int变量。
+       注:棋子的数值取以 2 为底的对数即为其级别，为int变量。若value为0, 为未定义行为.
 
    3. `move(self: Chessboard, belong: bool, direction: int) -> bool` 向指定方向合并，并且返回棋盘是否变化
 
@@ -140,7 +140,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
        参数:belong某方
 
-       返回:由该方全部棋子的级别构成的list类型变量
+       返回:由该方全部棋子的级别构成的list类型变量. 保证升序排列.
 
    7. `getNone(self: Chessboard, belong: bool) -> List[Tuple[int, int]]` 获取某方的全部空位的位置列表
 
@@ -183,7 +183,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
    14. `getAnime(self: Chessboard) -> Any`
 
-       给出上一次棋盘合并时棋子的移动信息. 用户调用不会导致异常, 但作为undocumented api, 具体数据形式不给出保证.
+       给出上一次棋盘合并时棋子的移动信息. 用户调用不会导致异常, 但作为undocumented api, 具体数据形式不给出保证, 天梯平台上现有实现返回`None`, 请勿假定其与本地版本行为一致.
 
 ### 杂项
 
