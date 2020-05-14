@@ -16,9 +16,10 @@
 #   -> 给出己方的决策(下棋的位置或合并的方向)
 #   -> 参数: currentRound当前轮数, 为从0开始的int
 #   -> 参数: board棋盘对象
-#   -> 参数: mode模式, mode = 'position' 对应位置模式, mode = 'direction' 对应方向模式
+#   -> 参数: mode模式, mode = 'position' 对应位置模式, mode = 'direction' 对应方向模式, 如果为 '_position' 和 '_direction' 表示在对应模式下己方无法给出合法输出
 #   -> 返回: 位置模式返回tuple (row, column), row行, 从上到下为0到3的int; column列, 从左到右为0到7的int
 #   -> 返回: 方向模式返回direction = 0, 1, 2, 3 对应 上, 下, 左, 右
+#   -> 返回: 在己方无法给出合法输出时, 对返回值不作要求
 #
 # 其余的属性与方法请自行设计
 
@@ -40,9 +41,11 @@ class Player:
             else:
                 from random import choice
                 return choice(available)
-        else:  # 给出己方合并的方向
+        elif mode == 'direction':  # 给出己方合并的方向
             from random import shuffle
             directionList = [0, 1, 2, 3]
             shuffle(directionList)
             for direction in directionList:
                 if board.move(self.isFirst, direction): return direction
+        else:
+            return
