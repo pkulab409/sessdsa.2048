@@ -653,13 +653,13 @@ class Platform:
         '''
         进行比赛
         '''
-        def if_position(isFirst):
+        def if_position(isFirst, currentRound):
             if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
             self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
 
-        def if_direction(isFirst):
+        def if_direction(isFirst, currentRound):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
             self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
@@ -691,10 +691,10 @@ class Platform:
                 
         # 进行比赛
         for _ in range(self.rounds):
-            if if_position(True) and get_position(True, _): break
-            if if_position(False) and get_position(False, _): break
-            if if_direction(True) and get_direction(True, _): break
-            if if_direction(False) and get_direction(False, _): break
+            if if_position(True, _) and get_position(True, _): break
+            if if_position(False, _) and get_position(False, _): break
+            if if_direction(True, _) and get_direction(True, _): break
+            if if_direction(False, _) and get_direction(False, _): break
 
         # 记录总轮数
         self.currentRound = _ + 1
@@ -737,14 +737,16 @@ class Platform:
     def involved_play(self, currentRound):
         def if_position(isFirst):
             if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
-            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
+            if self.states[isFirst]['player'] != 'human':
+                self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
 
         def if_direction(isFirst):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
-            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
+            if self.states[isFirst]['player'] != 'human':
+                self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
@@ -785,8 +787,9 @@ class Platform:
         if currentRound < self.rounds:
             self.currentRound = currentRound
             if self.phase == 0:
-                if not if_position(True):
+                if not if_position(True, currentRound):
                     self.phase = 1
+                    self.involved_play(currentRound)
                     return
                 if mode == 3 or mode == 4:
                     self.next = self.board.getNext(True, currentRound)
@@ -799,8 +802,9 @@ class Platform:
                     self.phase = 1
                     self.involved_play(currentRound)
             if self.phase == 1:
-                if not if_position(False):
+                if not if_position(False, currentRound):
                     self.phase = 2
+                    self.involved_play(currentRound)
                     return
                 if mode == 2 or mode == 4:
                     self.next = self.board.getNext(False, currentRound)
@@ -813,8 +817,9 @@ class Platform:
                     self.phase = 2
                     self.involved_play(currentRound)
             if self.phase == 2:
-                if not if_direction(True):
+                if not if_direction(True, currentRound):
                     self.phase = 3
+                    self.involved_play(currentRound)
                     return
                 if mode == 3 or mode == 4:
                     MainWindow.drawboard(currentRound, self.log[-2], self.board)
@@ -826,8 +831,9 @@ class Platform:
                     self.phase = 3
                     self.involved_play(currentRound)
             if self.phase == 3:
-                if not if_direction(False):
+                if not if_direction(False, currentRound):
                     self.phase = 4
+                    self.involved_play(currentRound)
                     return
                 if mode == 2 or mode == 4:
                     MainWindow.drawboard(currentRound, self.log[-2], self.board)
