@@ -133,9 +133,9 @@ class Chessboard:
 
     def getScore(self, belong):
         '''
-        -> 返回某方的全部棋子数值列表
+        -> 返回升序排列的某方的全部棋子数值列表
         '''
-        return list(map(lambda x: self.board[x].value, self.belongs[belong]))
+        return sorted(map(lambda x: self.board[x].value, self.belongs[belong]))
 
     def getNone(self, belong):
         '''
