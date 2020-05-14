@@ -64,7 +64,6 @@ class Chessboard:
         '''
         -> 在指定位置下棋
         '''
-        self.decision[belong] = position
         belong = position[1] < COLUMNS // 2  # 重定义棋子的归属
         self.belongs[belong].append(position)
         self.board[position] = Chessman(belong, position, value)
@@ -74,7 +73,6 @@ class Chessboard:
         -> 向指定方向合并, 返回是否变化
         '''
         self.anime = []
-        self.decision[belong] = (direction,)
         def inBoard(position):  # 判断是否在棋盘内
             return position[0] in range(ROWS) and position[1] in range(COLUMNS)
         def isMine(position):   # 判断是否在领域中
@@ -133,7 +131,7 @@ class Chessboard:
 
     def getScore(self, belong):
         '''
-        -> 返回升序排列的某方的全部棋子数值列表
+        -> 返回某方的全部棋子数值列表
         '''
         return sorted(map(lambda x: self.board[x].value, self.belongs[belong]))
 
@@ -151,6 +149,12 @@ class Chessboard:
         available = self.getNone(belong)
         if not belong: available.reverse()  # 后手序列翻转
         return available[self.array[currentRound] % len(available)] if available != [] else ()
+
+    def updateDecision(self, belong, decision):
+        '''
+        -> 更新决策
+        '''
+        self.decision[belong] = decision
 
     def getDecision(self, belong):
         '''
