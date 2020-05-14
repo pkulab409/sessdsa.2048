@@ -149,14 +149,14 @@ class Platform:
         进行比赛
         '''
 
-        def if_position(isFirst):
+        def if_position(isFirst, currentRound):
             if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
             self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
 
-        def if_direction(isFirst):
+        def if_direction(isFirst, currentRound):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
             self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
@@ -188,10 +188,10 @@ class Platform:
 
         # 进行比赛
         for _ in range(self.rounds):
-            if if_position(True) and get_position(True, _): break
-            if if_position(False) and get_position(False, _): break
-            if if_direction(True) and get_direction(True, _): break
-            if if_direction(False) and get_direction(False, _): break
+            if if_position(True, _) and get_position(True, _): break
+            if if_position(False, _) and get_position(False, _): break
+            if if_direction(True, _) and get_direction(True, _): break
+            if if_direction(False, _) and get_direction(False, _): break
 
         # 记录总轮数
         self.currentRound = _ + 1
