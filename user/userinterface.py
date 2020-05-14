@@ -75,7 +75,6 @@ class Chessboard:
         '''
         -> 在指定位置下棋
         '''
-        self.decision[belong] = position
         belong = position[1] < c.COLUMNS // 2  # 重定义棋子的归属
         self.belongs[belong].append(position)
         self.board[position] = Chessman(belong, position, value)
@@ -85,7 +84,6 @@ class Chessboard:
         -> 向指定方向合并, 返回是否变化
         '''
         self.anime = []
-        self.decision[belong] = (direction,)
         def inBoard(position):  # 判断是否在棋盘内
             return position[0] in range(c.ROWS) and position[1] in range(c.COLUMNS)
         def isMine(position):   # 判断是否在领域中
@@ -146,7 +144,7 @@ class Chessboard:
         '''
         -> 返回某方的全部棋子数值列表
         '''
-        return list(map(lambda x: self.board[x].value, self.belongs[belong]))
+        return sorted(map(lambda x: self.board[x].value, self.belongs[belong]))
 
     def getNone(self, belong):
         '''
@@ -162,6 +160,12 @@ class Chessboard:
         available = self.getNone(belong)
         if not belong: available.reverse()  # 后手序列翻转
         return available[self.array[currentRound] % len(available)] if available != [] else ()
+
+    def updateDecision(self, belong, decision):
+        '''
+        -> 更新决策
+        '''
+        self.decision[belong] = decision
 
     def getDecision(self, belong):
         '''
@@ -650,11 +654,14 @@ class Platform:
         进行比赛
         '''
         def if_position(isFirst):
-            return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
+            if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
+            self.board.updateDecision(isFirst, ())  # 更新决策
+            return False
 
         def if_direction(isFirst):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
+            self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
         def get_position(isFirst, currentRound):
@@ -665,6 +672,7 @@ class Platform:
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
             if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
             self.board.add(isFirst, position)  # 更新棋盘
+            self.board.updateDecision(isFirst, position)  # 更新决策
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
             return False
 
@@ -674,6 +682,7 @@ class Platform:
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
             self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            self.board.updateDecision(isFirst, (direction,))  # 更新决策
             if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
             return False
@@ -704,6 +713,7 @@ class Platform:
             return False
         else:
             self.board.add(isFirst, position)
+            self.board.updateDecision(isFirst, position)
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())
             return True
@@ -718,17 +728,20 @@ class Platform:
             self.violator = None
             return False
         else:
+            self.board.updateDecision(isFirst, (direction,))  # 更新决策
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())
             return True
     def involved_play(self, currentRound):
         def if_position(isFirst):
-            return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
+            if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
+            self.board.updateDecision(isFirst, ())  # 更新决策
+            return False
 
         def if_direction(isFirst):
-            if self.board.getNone(isFirst) != []: return True  # 加快判定
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
+            self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
         def get_position(isFirst):
@@ -739,6 +752,7 @@ class Platform:
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
             if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
             self.board.add(isFirst, position)  # 更新棋盘
+            self.board.updateDecision(isFirst, position)  # 更新决策
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
             return False
         
@@ -749,6 +763,7 @@ class Platform:
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
             self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            self.board.updateDecision(isFirst, (direction,))  # 更新决策
             if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
             return False
