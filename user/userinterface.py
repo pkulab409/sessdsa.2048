@@ -655,12 +655,14 @@ class Platform:
         '''
         def if_position(isFirst):
             if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
+            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
 
         def if_direction(isFirst):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
+            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
@@ -735,12 +737,14 @@ class Platform:
     def involved_play(self, currentRound):
         def if_position(isFirst):
             if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
+            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
 
         def if_direction(isFirst):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
+            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
