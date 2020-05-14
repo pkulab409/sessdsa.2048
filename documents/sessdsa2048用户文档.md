@@ -108,7 +108,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
 该对象具有以下方法
 
-   1. `__init__(self: Chessboard, array: List[int]) -> None` 初始化棋盘对象
+   1. `__init__(self: Chessboard, array: tuple[int]) -> None` 初始化棋盘对象
 
        参数:array随机序列
 
@@ -136,7 +136,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
        返回:该位置上的棋子的级别，若为空位，则返回 0
 
-   6. `getScore(self: Chessboard, belong: bool) -> List[int]` 获取某方的全部棋子的级别列表
+   6. `getScore(self: Chessboard, belong: bool) -> List[int]` 获取升序排列的某方的全部棋子的级别列表
 
        参数:belong某方
 
