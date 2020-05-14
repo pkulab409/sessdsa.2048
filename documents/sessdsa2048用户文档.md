@@ -60,7 +60,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
     2. `board`: 当前盘面
     3. `mode`: 当前决策内容。
 
-    在轮到某方在给定位置下棋时`mode`参数取值`"position"`, 选择合并方向时取值`"direction"`. 用户分别应当返回`Tuple[row, column]`表示下棋位置和`direction`表示合并方向.
+    在轮到某方在给定位置下棋时`mode`参数取值`"position"`, 选择合并方向时取值`"direction"`. 用户分别应当返回`Tuple[row, column]`表示下棋位置和`direction`表示合并方向. 而当`mode`参数取`"_position"`与`"_direction"`时表示在对应模式下没有可用操作，此时对返回值没有要求。
 
     1. `row`: 要下棋位置的棋盘的行号, 从上到下为0到3的`int`
     2. `column`: 要下棋位置的棋盘的列号, 从左到右为0到7的`int`
