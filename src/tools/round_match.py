@@ -64,8 +64,10 @@ def main(playerList,
         if isinstance(playerList[count], str):  # 路径
             path = playerList[count]
             sys.path.insert(0, os.path.dirname(os.path.abspath(path)))
-            Players.append(__import__(os.path.splitext(os.path.basename(path))[0]).Player)
+            module = os.path.splitext(os.path.basename(path))[0]
+            Players.append(__import__(module).Player)
             sys.path.pop(0)
+            del sys.modules[module]
         else:  # 已读取的类
             Players.append(playerList[count])
     
