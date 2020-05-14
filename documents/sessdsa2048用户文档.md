@@ -14,12 +14,12 @@
 
 ### 引言
 
-Sessdsa.2048 AI 是实现了包含读入本局随机数列表,根据现有的盘面和轮数输出合法的放置位置以及合并方向两个方法的命名为`Player`的类.
+Sessdsa.2048 AI 是实现了包含读入本局随机数序列,根据现有的盘面和轮数输出合法的放置位置以及合并方向两个方法的命名为`Player`的类.
 
 需要实现的成员方法具有以下原型
 
 ```Python
-def __init__(self: Player, isFirst: bool, array: List[int]) -> None:
+def __init__(self: Player, isFirst: bool, array: tuple[int]) -> None:
     pass
 def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Union[Tuple[int, int], int]:
     pass
