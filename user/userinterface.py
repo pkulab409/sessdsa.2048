@@ -397,81 +397,75 @@ class dialog():
     class Ui_settings(object):
         def setupUi(self, settings):
             settings.setObjectName("settings")
-            settings.resize(363, 254)
+            settings.resize(289, 317)
             self.layoutWidget = QtWidgets.QWidget(settings)
-            self.layoutWidget.setGeometry(QtCore.QRect(30, 20, 251, 201))
+            self.layoutWidget.setGeometry(QtCore.QRect(30, 20, 221, 231))
             self.layoutWidget.setObjectName("layoutWidget")
             self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget)
-            self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+            self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
             self.gridLayout.setContentsMargins(0, 0, 0, 0)
             self.gridLayout.setObjectName("gridLayout")
-            self.checkBox_2 = QtWidgets.QCheckBox(self.layoutWidget)
-            self.checkBox_2.setMaximumSize(QtCore.QSize(20, 20))
-            self.checkBox_2.setText("")
-            self.checkBox_2.setObjectName("checkBox_2")
-            self.gridLayout.addWidget(self.checkBox_2, 1, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
-            self.checkBox = QtWidgets.QCheckBox(self.layoutWidget)
-            self.checkBox.setMaximumSize(QtCore.QSize(20, 20))
-            self.checkBox.setText("")
-            self.checkBox.setObjectName("checkBox")
-            self.gridLayout.addWidget(self.checkBox, 0, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
-            self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
-            self.pushButton.setObjectName("pushButton")
-            self.gridLayout.addWidget(self.pushButton, 3, 2, 1, 1)
-            self.textEdit_2 = QtWidgets.QTextEdit(self.layoutWidget)
-            self.textEdit_2.setMinimumSize(QtCore.QSize(80, 18))
-            self.textEdit_2.setMaximumSize(QtCore.QSize(16777215, 40))
-            self.textEdit_2.setObjectName("textEdit_2")
-            self.gridLayout.addWidget(self.textEdit_2, 4, 1, 1, 1)
             self.textEdit = QtWidgets.QTextEdit(self.layoutWidget)
             sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
             sizePolicy.setHorizontalStretch(0)
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(self.textEdit.sizePolicy().hasHeightForWidth())
             self.textEdit.setSizePolicy(sizePolicy)
-            self.textEdit.setMinimumSize(QtCore.QSize(80, 18))
-            self.textEdit.setMaximumSize(QtCore.QSize(16777215, 40))
+            self.textEdit.setMinimumSize(QtCore.QSize(80, 36))
+            self.textEdit.setMaximumSize(QtCore.QSize(16777215, 36))
             self.textEdit.setObjectName("textEdit")
             self.gridLayout.addWidget(self.textEdit, 3, 1, 1, 1)
-            self.pushButton_2 = QtWidgets.QPushButton(self.layoutWidget)
-            self.pushButton_2.setObjectName("pushButton_2")
-            self.gridLayout.addWidget(self.pushButton_2, 4, 2, 1, 1)
+            self.textEdit_2 = QtWidgets.QTextEdit(self.layoutWidget)
+            self.textEdit_2.setMinimumSize(QtCore.QSize(80, 36))
+            self.textEdit_2.setMaximumSize(QtCore.QSize(16777215, 36))
+            self.textEdit_2.setObjectName("textEdit_2")
+            self.gridLayout.addWidget(self.textEdit_2, 4, 1, 1, 1)
+            self.checkBox_2 = QtWidgets.QCheckBox(self.layoutWidget)
+            self.checkBox_2.setMaximumSize(QtCore.QSize(20, 20))
+            self.checkBox_2.setText("")
+            self.checkBox_2.setObjectName("checkBox_2")
+            self.gridLayout.addWidget(self.checkBox_2, 1, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
+            self.label_6 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_6.setObjectName("label_6")
+            self.gridLayout.addWidget(self.label_6, 5, 0, 1, 1)
+            self.label_3 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_3.setObjectName("label_3")
+            self.gridLayout.addWidget(self.label_3, 2, 0, 1, 1)
             self.label = QtWidgets.QLabel(self.layoutWidget)
             self.label.setObjectName("label")
             self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-            self.label_4 = QtWidgets.QLabel(self.layoutWidget)
-            self.label_4.setObjectName("label_4")
-            self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
             self.checkBox_3 = QtWidgets.QCheckBox(self.layoutWidget)
             self.checkBox_3.setMaximumSize(QtCore.QSize(20, 20))
             self.checkBox_3.setText("")
             self.checkBox_3.setObjectName("checkBox_3")
             self.gridLayout.addWidget(self.checkBox_3, 2, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
-            self.label_3 = QtWidgets.QLabel(self.layoutWidget)
-            self.label_3.setObjectName("label_3")
-            self.gridLayout.addWidget(self.label_3, 2, 0, 1, 1)
-            self.label_5 = QtWidgets.QLabel(self.layoutWidget)
-            self.label_5.setObjectName("label_5")
-            self.gridLayout.addWidget(self.label_5, 4, 0, 1, 1)
+            self.checkBox = QtWidgets.QCheckBox(self.layoutWidget)
+            self.checkBox.setMaximumSize(QtCore.QSize(20, 20))
+            self.checkBox.setText("")
+            self.checkBox.setObjectName("checkBox")
+            self.gridLayout.addWidget(self.checkBox, 0, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
             self.label_2 = QtWidgets.QLabel(self.layoutWidget)
             self.label_2.setObjectName("label_2")
             self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
-            self.label_6 = QtWidgets.QLabel(self.layoutWidget)
-            self.label_6.setObjectName("label_6")
-            self.gridLayout.addWidget(self.label_6, 5, 0, 1, 1)
+            self.label_4 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_4.setObjectName("label_4")
+            self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
+            self.label_5 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_5.setObjectName("label_5")
+            self.gridLayout.addWidget(self.label_5, 4, 0, 1, 1)
             self.textEdit_3 = QtWidgets.QTextEdit(self.layoutWidget)
             sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
             sizePolicy.setHorizontalStretch(0)
             sizePolicy.setVerticalStretch(0)
             sizePolicy.setHeightForWidth(self.textEdit_3.sizePolicy().hasHeightForWidth())
             self.textEdit_3.setSizePolicy(sizePolicy)
-            self.textEdit_3.setMinimumSize(QtCore.QSize(80, 18))
-            self.textEdit_3.setMaximumSize(QtCore.QSize(16777215, 40))
+            self.textEdit_3.setMinimumSize(QtCore.QSize(80, 36))
+            self.textEdit_3.setMaximumSize(QtCore.QSize(16777215, 36))
             self.textEdit_3.setObjectName("textEdit_3")
             self.gridLayout.addWidget(self.textEdit_3, 5, 1, 1, 1)
-            self.pushButton_3 = QtWidgets.QPushButton(self.layoutWidget)
-            self.pushButton_3.setObjectName("pushButton_3")
-            self.gridLayout.addWidget(self.pushButton_3, 5, 2, 1, 1)
+            self.pushButton = QtWidgets.QPushButton(settings)
+            self.pushButton.setGeometry(QtCore.QRect(120, 270, 131, 31))
+            self.pushButton.setObjectName("pushButton")
 
             self.retranslateUi(settings)
             QtCore.QMetaObject.connectSlotsByName(settings)
@@ -479,15 +473,13 @@ class dialog():
         def retranslateUi(self, settings):
             _translate = QtCore.QCoreApplication.translate
             settings.setWindowTitle(_translate("settings", "设置"))
-            self.pushButton.setText(_translate("settings", "确定"))
-            self.pushButton_2.setText(_translate("settings", "确定"))
-            self.label.setText(_translate("settings", "保存对局记录"))
-            self.label_4.setText(_translate("settings", "总用时限制"))
-            self.label_3.setText(_translate("settings", "打印报错信息"))
-            self.label_5.setText(_translate("settings", "最大回合数"))
-            self.label_2.setText(_translate("settings", "生成统计报告"))
             self.label_6.setText(_translate("settings", "重复次数"))
-            self.pushButton_3.setText(_translate("settings", "确定"))
+            self.label_3.setText(_translate("settings", "打印报错信息"))
+            self.label.setText(_translate("settings", "保存对局记录"))
+            self.label_2.setText(_translate("settings", "生成统计报告"))
+            self.label_4.setText(_translate("settings", "总用时限制"))
+            self.label_5.setText(_translate("settings", "最大回合数"))
+            self.pushButton.setText(_translate("settings", "保存并退出"))
 
 #以下基于plat.py,analyser.py和round_match.py
 
@@ -974,7 +966,7 @@ def main(playerList,
          toReport = True,
          toGet = False,
          debug = False,
-         REPEAT = c.REPEAT,
+         REPEAT = c.REPEAT + 1,
          MAXTIME = c.MAXTIME,
          ROUNDS = c.ROUNDS,
          BOARDXXX = None):
@@ -1504,6 +1496,23 @@ class loadai_content(QItemDelegate):
                         index,
                         widget
                     )
+                else:
+                    button_read = QPushButton(
+                        self.tr('关闭窗口'),
+                        self.parent(),
+                        clicked=self.parent().destroyself
+                    )
+                    button_read.index = [index.row(), index.column()]
+                    h_box_layout = QHBoxLayout()
+                    h_box_layout.addWidget(button_read)
+                    h_box_layout.setContentsMargins(0, 0, 0, 0)
+                    h_box_layout.setAlignment(Qt.AlignCenter)
+                    widget = QWidget()
+                    widget.setLayout(h_box_layout)
+                    self.parent().setIndexWidget(
+                        index,
+                        widget
+                    )
             elif index.column() == 1:
                 if index.row() < len(player_list):
                     button_read = QCheckBox(
@@ -1615,6 +1624,9 @@ class ai_load(QTableView):
         player_list.pop(self.sender().index[0])
         player_state.pop(self.sender().index[0])
         loadai()
+
+    def destroyself(self):
+        load.destroy()
     
     def openfile(self):
         global cnt
@@ -1633,35 +1645,26 @@ class ai_load(QTableView):
 
 
 def settings():
-    global dialog1
+    global dialog1, toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
     ui_settings = dialog.Ui_settings()
     dialog1 = QDialog()
     ui_settings.setupUi(dialog1)
-    def savechanged():
+    def savechange():
+        global toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
         toSave = ui_settings.checkBox.isChecked()
-    def reportchanged():
         toReport = ui_settings.checkBox_2.isChecked()
-    def debugchanged():
         debug = ui_settings.checkBox_3.isChecked()
-    def timechanged():
-        MAXTIME = ui_settings.textEdit.toPlainText()
-    def roundchanged():
-        ROUNDS = ui_settings.textEdit_2.toPlainText()
-    def repeatchanged():
-        print(ui_settings.textEdit_3.toPlainText())
-        REPEAT = ui_settings.textEdit_3.toPlainText()
+        MAXTIME = int(ui_settings.textEdit.toPlainText())
+        ROUNDS = int(ui_settings.textEdit_2.toPlainText())
+        REPEAT = int(ui_settings.textEdit_3.toPlainText())
+        dialog1.destroy()
     ui_settings.checkBox.setChecked(toSave)
-    ui_settings.checkBox.stateChanged.connect(savechanged)
     ui_settings.checkBox_2.setChecked(toReport)
-    ui_settings.checkBox_2.stateChanged.connect(reportchanged)
     ui_settings.checkBox_3.setChecked(debug)
-    ui_settings.checkBox_3.stateChanged.connect(debugchanged)
     ui_settings.textEdit.setText(str(MAXTIME))
-    ui_settings.pushButton.clicked.connect(timechanged)
     ui_settings.textEdit_2.setText(str(ROUNDS))
-    ui_settings.pushButton_2.clicked.connect(roundchanged)
     ui_settings.textEdit_3.setText(str(REPEAT))
-    ui_settings.pushButton_3.clicked.connect(repeatchanged)
+    ui_settings.pushButton.clicked.connect(savechange)
     dialog1.show()
 
 class setmode():
@@ -1714,6 +1717,7 @@ def work():
                 QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
 
 def match_init():
+    global toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
     plst = []
     for _ in range(len(player_list)):
         if player_state[_]:
