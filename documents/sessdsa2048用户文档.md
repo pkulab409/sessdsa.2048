@@ -191,6 +191,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
 + 比赛服务器的Python版本可能是`3.6`到`3.8`之间任一版本, 请注意不要使用版本限定的语法, 以节约调试时间
 + 所有可能的索引均从`0`开始, 包括但不限于`currentRound`, `position`的两个坐标等变量.
++ 单个AI的内存限制现在为`1GB`
 
 ## 有用信息
 
@@ -199,3 +200,10 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 ## 编辑历史
 
 2020.5.10 @HamiltonHuaji 创建此文档
+
+## 最近更改
+
++ getScore接口保证返回升序的列表
++ 向add接口传入的value为0为未定义行为
++ 增加了对单个AI的内存限制
++ 传入mode参数的可能值增加了`'_position'`和`'_direction'`, 表示我方AI卡住了不能下棋的两个阶段
