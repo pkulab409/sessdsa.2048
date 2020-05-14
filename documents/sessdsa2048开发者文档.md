@@ -481,7 +481,7 @@ main(
 
             返回:该位置上的棋子的级别，若为空位，则返回 0
 
-        6. `getScore(self, belong)` 获取某方的全部棋子的级别列表
+        6. `getScore(self, belong)` 获取升序排列的某方的全部棋子的级别列表
 
             参数:belong某方
 
