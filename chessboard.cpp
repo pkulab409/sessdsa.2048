@@ -110,7 +110,7 @@ struct Chessboard {
         this->board[y][x].belong = belong;
         this->board[y][x].value  = value;
 
-        decisions[_] = position;
+        // decisions[_] = position;
 
         if (value != 0) {
             occupied[y][x] = true;
@@ -123,11 +123,11 @@ struct Chessboard {
         bool change = false;
 
         if (maybe_none.is_none()) {
-            decisions[belong] = make_tuple();
+            // decisions[belong] = make_tuple();
             return false;
         }
         int direction     = cast<int>(maybe_none);
-        decisions[belong] = make_tuple(direction);
+        // decisions[belong] = make_tuple(direction);
 
         auto value   = [&](int y, int x) -> unsigned char { return board[y][x].value; };
         auto is_mine = [&](int y, int x) {
@@ -413,6 +413,9 @@ struct Chessboard {
     tuple getDecision(bool belong) {
         return decisions[belong];
     }
+    void updateDecision(bool belong, tuple decision){
+        decisions[belong] = decision;
+    }
     void updateTime(bool belong, float time) {
         this->times[belong] = time;
     }
@@ -462,6 +465,7 @@ PYBIND11_MODULE(libchessboard, m) {
         .def("getNext", &Chessboard::getNext)
         .def("getTime", &Chessboard::getTime)
         .def("getDecision", &Chessboard::getDecision)
+        .def("updateDecision", &Chessboard::updateDecision)
         .def("updateTime", &Chessboard::updateTime)
         .def("getAnime", &Chessboard::getAnime)
         .def("_getArray", &Chessboard::_getArray)
