@@ -1033,8 +1033,10 @@ def main(playerList,
         if isinstance(playerList[count], str):  # 路径
             path = playerList[count]
             sys.path.insert(0, os.path.dirname(os.path.abspath(path)))
-            Players.append(__import__(os.path.splitext(os.path.basename(path))[0]).Player)
+            module = os.path.splitext(os.path.basename(path))[0]
+            Players.append(__import__(module).Player)
             sys.path.pop(0)
+            del sys.modules[module]
         else:  # 已读取的类
             Players.append(playerList[count])
     
@@ -1358,7 +1360,7 @@ class mywindow(QMainWindow):
                 x = QWidget()
                 QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
             else:
-                main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+                main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
                 x = QWidget()
             QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
         elif mode == 2:
@@ -1366,15 +1368,15 @@ class mywindow(QMainWindow):
                 x = QWidget()
                 QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
             else:
-                main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+                main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
         elif mode == 3:
             if len(plst) != 1:
                 x = QWidget()
                 QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
             else:
-                main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+                main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
         else:
-            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, BOARDXXX = BOARDXXX)
+            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
     
     def keyPressEvent(self, event, key = None):
         if not self.load:
@@ -1646,6 +1648,7 @@ def settings():
     def roundchanged():
         ROUNDS = ui_settings.textEdit_2.toPlainText()
     def repeatchanged():
+        print(ui_settings.textEdit_3.toPlainText())
         REPEAT = ui_settings.textEdit_3.toPlainText()
     ui_settings.checkBox.setChecked(toSave)
     ui_settings.checkBox.stateChanged.connect(savechanged)
@@ -1725,7 +1728,7 @@ def match_init():
             x = QWidget()
             QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
         else:
-            main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
             x = QWidget()
         QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
     elif mode == 2:
@@ -1733,15 +1736,15 @@ def match_init():
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
         else:
-            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
     elif mode == 3:
         if len(plst) != 1:
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
         else:
-            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+            main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
     else:
-        main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS)
+        main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
 
 
 player_list = []
