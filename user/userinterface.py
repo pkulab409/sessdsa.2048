@@ -1759,7 +1759,7 @@ def match_init():
         else:
             main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
             x = QWidget()
-        QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
+            QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
     elif mode == 2:
         if len(plst) != 1:
             x = QWidget()
