@@ -312,6 +312,7 @@ struct Chessboard {
                 }
             }
         }
+        result.attr("sort")();
         return result;
     }
     list getNone(bool belong) const {
@@ -331,7 +332,7 @@ struct Chessboard {
         std::vector<std::tuple<int, int>> available;
         char spare[4]    = {0, 0, 0, 0};
         char total_spare = 0;
-        currentRound = this->array[currentRound % this->array.size()];
+        currentRound     = this->array[currentRound % this->array.size()];
         if (belong) {
             // 因为左玩家是低4位, 二进制的显示顺序和棋盘的左右顺序是反的
             std::bitset<8> mask(0b11110000);
@@ -440,7 +441,7 @@ struct Chessboard {
         s(3, 0), s(3, 1), s(3, 2), s(3, 3), s(3, 4), s(3, 5), s(3, 6), s(3, 7);
         return result.str();
     }
-
+    constexpr void getAnime() {}
     Chessboard copy() {
         return Chessboard(*this);
     }
@@ -462,6 +463,7 @@ PYBIND11_MODULE(libchessboard, m) {
         .def("getTime", &Chessboard::getTime)
         .def("getDecision", &Chessboard::getDecision)
         .def("updateTime", &Chessboard::updateTime)
+        .def("getAnime", &Chessboard::getAnime)
         .def("_getArray", &Chessboard::_getArray)
         .def("_add_dbg", &Chessboard::add_dbg)
 #ifndef FOR_PYTHON37_AND_PYTHON36
