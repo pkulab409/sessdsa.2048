@@ -787,7 +787,7 @@ class Platform:
         if currentRound < self.rounds:
             self.currentRound = currentRound
             if self.phase == 0:
-                if not if_position(True, currentRound):
+                if not if_position(True):
                     self.phase = 1
                     self.involved_play(currentRound)
                     return
@@ -802,7 +802,7 @@ class Platform:
                     self.phase = 1
                     self.involved_play(currentRound)
             if self.phase == 1:
-                if not if_position(False, currentRound):
+                if not if_position(False):
                     self.phase = 2
                     self.involved_play(currentRound)
                     return
@@ -817,7 +817,7 @@ class Platform:
                     self.phase = 2
                     self.involved_play(currentRound)
             if self.phase == 2:
-                if not if_direction(True, currentRound):
+                if not if_direction(True):
                     self.phase = 3
                     self.involved_play(currentRound)
                     return
@@ -831,7 +831,7 @@ class Platform:
                     self.phase = 3
                     self.involved_play(currentRound)
             if self.phase == 3:
-                if not if_direction(False, currentRound):
+                if not if_direction(False):
                     self.phase = 4
                     self.involved_play(currentRound)
                     return
