@@ -791,7 +791,7 @@ class Platform:
                     self.phase = 1
                     self.involved_play(currentRound)
                     return
-                if mode == 3 or mode == 4:
+                if self.states[True]['player'] == 'human':
                     self.next = self.board.getNext(True, currentRound)
                     MainWindow.drawboard(currentRound, self.log[-2] if len(self.log) else "", self.board)
                     return
@@ -806,7 +806,7 @@ class Platform:
                     self.phase = 2
                     self.involved_play(currentRound)
                     return
-                if mode == 2 or mode == 4:
+                if self.states[False]['player'] == 'human':
                     self.next = self.board.getNext(False, currentRound)
                     MainWindow.drawboard(currentRound, self.log[-2], self.board)
                     return
@@ -821,7 +821,7 @@ class Platform:
                     self.phase = 3
                     self.involved_play(currentRound)
                     return
-                if mode == 3 or mode == 4:
+                if self.states[True]['player'] == 'human':
                     MainWindow.drawboard(currentRound, self.log[-2], self.board)
                     return
                 else:
@@ -835,7 +835,7 @@ class Platform:
                     self.phase = 4
                     self.involved_play(currentRound)
                     return
-                if mode == 2 or mode == 4:
+                if self.states[False]['player'] == 'human':
                     MainWindow.drawboard(currentRound, self.log[-2], self.board)
                     return
                 else:
@@ -849,6 +849,40 @@ class Platform:
                 self.involved_play(currentRound + 1)
         else:
             endstage()
+    
+    def undo(self):
+        if self.currentRound > 1:
+            x = len(self.log) - 2
+            while int(self.log[x].split(':')[0][2:]) >= self.currentRound - 1:
+                x -= 2
+                self.log.pop()
+                self.log.pop()
+            platform = []
+            pieces = self.log[x + 1].split(':')[1].split()
+            for piece in pieces:
+                platform.append((piece[0], int(piece[1:])))
+            cur = 0
+            BOARDXXX = [[None for _ in range(c.COLUMNS)] for _ in range(c.ROWS)]
+            while cur < c.ROWS * c.COLUMNS:
+                row = cur // c.COLUMNS
+                column = cur % c.COLUMNS
+                belong, number = platform[cur]
+                BOARDXXX[row][column] = (belong, number)
+                cur += 1
+            self.board = Chessboard(c.ARRAY)
+            for row in range(c.ROWS):
+                for column in range(c.COLUMNS):
+                    if BOARDXXX[row][column][1]:
+                        self.board.add(BOARDXXX[row][column][0] == '+', (row, column), BOARDXXX[row][column][1])
+            MainWindow.drawboard(self.currentRound - 1, "撤销", self.board)
+            self.phase = 0
+            self.involved_play(self.currentRound - 1)
+        else:
+            self.board = Chessboard(c.ARRAY)
+            MainWindow.drawboard(0, "撤销", self.board)
+            self.phase = 0
+            self.involved_play(0)
+            
         
     def checkState(self, isFirst):
         '''
@@ -951,7 +985,10 @@ class Platform:
         '''
         计分并保存比赛记录
         '''
-        
+        x = QWidget()
+        self.name = QFileDialog.getSaveFileName(x,"保存记录","" ,"Text files (*.txt);;all files(*.*)")
+        if len(self.name) == 0:
+            return
         # 获取所有棋子并计数
         results = {True: self.board.getScore(True), False: self.board.getScore(False)}
         scores = {True: {}, False: {}}
@@ -962,8 +999,6 @@ class Platform:
         # 比较比分
 
         # 保存对局信息, 可以用analyser.py解析
-        x = QWidget()
-        self.name = QFileDialog.getSaveFileName(x,"保存记录","" ,"Text files (*.txt);;all files(*.*)")
         file = open(self.name[0],'w')
         myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
         title = 'player0: %d from path %s\n' % (self.states[True]['index'][0], self.states[True]['path']) + \
@@ -1260,29 +1295,19 @@ def main(playerList,
 class mywindow(QMainWindow):
     def __init__(self):
         super(mywindow, self).__init__(None)
-        self.load = False
+        self.load = 0
     
     
     def loadmode(self, matchList = None, index = 1):
         # matchList = [mode, {'path': path, 'topText': topText, 'bottomText': bottomText}, ...]
-        self.ui.continue_match.setEnabled(True)
-        self.ui.continue_match.triggered.connect(self.continue_match)
-        self.matchList = matchList
-        self.index = index
-        self.load = True
-        self.ui.left.setEnabled(True)
-        self.ui.right.setEnabled(True)
-        self.ui.left.clicked.disconnect()
-        self.ui.left.clicked.connect(self.previous)
-        self.ui.right.clicked.disconnect()
-        self.ui.right.clicked.connect(self.succ)
-        self.ui.left.setText("后退\n(A)")
-        self.ui.right.setText("前进\n(D)")
         if matchList == None:
             while True:  # 加载对局记录
                 try:
                     x = QWidget()
-                    self.log = open(QFileDialog.getOpenFileName(x,'选择文件','','Text files(*.txt)')[0], 'r').read().split('&')  # 读取全部记录并分成单条
+                    y = QFileDialog.getOpenFileName(x,'选择文件','','Text files(*.txt)')[0]
+                    if len(y) == 0:
+                        return
+                    self.log = open(y, 'r').read().split('&')  # 读取全部记录并分成单条    
                     self.size = len(self.log)
                     break
                 except FileNotFoundError:
@@ -1296,6 +1321,20 @@ class mywindow(QMainWindow):
             self.log = open(self.match['path'], 'r').read().split('&')  # 读取全部记录并分成单条
             self.size = len(self.log)
             self.mode = self.matchList[0]
+        
+        self.ui.continue_match.setEnabled(True)
+        self.ui.continue_match.triggered.connect(self.continue_match)
+        self.matchList = matchList
+        self.index = index
+        self.load = 1
+        self.ui.left.setEnabled(True)
+        self.ui.right.setEnabled(True)
+        self.ui.left.clicked.disconnect()
+        self.ui.left.clicked.connect(self.previous)
+        self.ui.right.clicked.disconnect()
+        self.ui.right.clicked.connect(self.succ)
+        self.ui.left.setText("后退\n(A)")
+        self.ui.right.setText("前进\n(D)")
             
         self.statelabel.setText('press any key to start\nA previous step D next step')
 
@@ -1368,6 +1407,7 @@ class mywindow(QMainWindow):
         for _ in range(len(player_list)):
             if player_state[_]:
                 plst.append(player_list[_])
+        self.load = 2
         if mode == 0:
             x = QWidget()
             QMessageBox.information(x, "提示", "尚未选择模式", QMessageBox.Yes)
@@ -1396,50 +1436,69 @@ class mywindow(QMainWindow):
             main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
     
     def keyPressEvent(self, event, key = None):
-        if not self.load:
+        if self.load == 0:
             return
-        if key == None:
-            key = event.key()
-        if self.cur == 0:  # 第一条信息
-            while True:
-                self.cur += 1
-                self.analyse(self.log[self.cur])
-                if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
-                    break
-        elif key == Qt.Key_A and self.cur > 1:     # 回退, 更新至决策
-            while True:
-                while self.log[self.cur - 1][0] == 'e':  # 忽略全部事件
-                    self.cur -= 1
-                if self.state:
-                    if self.log[self.cur - 1][0] == 'd':  
+        elif self.load == 1:
+            if key == None:
+                key = event.key()
+            if self.cur == 0:  # 第一条信息
+                while True:
+                    self.cur += 1
+                    self.analyse(self.log[self.cur])
+                    if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
+                        break
+            elif key == Qt.Key_A and self.cur > 1:     # 回退, 更新至决策
+                while True:
+                    while self.log[self.cur - 1][0] == 'e':  # 忽略全部事件
                         self.cur -= 1
-                    self.state = False
-                self.cur -= 1
-                self.analyse(self.log[self.cur])
-                if self.cur <= 1 or self.log[self.cur][0] != 'p':
-                    break
-        elif key == Qt.Key_D and self.cur < self.size - 1:  # 前进, 更新至棋盘
-            while True:
-                if not self.state:
-                    if self.log[self.cur + 1][0] == 'p':
-                        self.cur += 1
-                    self.state = True
-                self.cur += 1
-                self.analyse(self.log[self.cur])
-                if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
-                    break
-        elif key == Qt.Key_N and self.index != len(self.matchList) - 1:
-            self.destroy()
-            self.loadmode(self.matchList, self.index + 1)
-        elif key == Qt.Key_P and self.index != 1:
-            self.destroy()
-            self.loadmode(self.matchList, self.index - 1)
+                    if self.state:
+                        if self.log[self.cur - 1][0] == 'd':  
+                            self.cur -= 1
+                        self.state = False
+                    self.cur -= 1
+                    self.analyse(self.log[self.cur])
+                    if self.cur <= 1 or self.log[self.cur][0] != 'p':
+                        break
+            elif key == Qt.Key_D and self.cur < self.size - 1:  # 前进, 更新至棋盘
+                while True:
+                    if not self.state:
+                        if self.log[self.cur + 1][0] == 'p':
+                            self.cur += 1
+                        self.state = True
+                    self.cur += 1
+                    self.analyse(self.log[self.cur])
+                    if self.cur >= self.size - 1 or self.log[self.cur][0] != 'd':
+                        break
+            elif key == Qt.Key_N and self.index != len(self.matchList) - 1:
+                self.destroy()
+                self.loadmode(self.matchList, self.index + 1)
+            elif key == Qt.Key_P and self.index != 1:
+                self.destroy()
+                self.loadmode(self.matchList, self.index - 1)
+        elif self.load == 2:
+            key = event.key()
+            if key == Qt.Key_W:
+                dirtlst[0].proc()
+            if key == Qt.Key_S:
+                dirtlst[1].proc()
+            if key == Qt.Key_A:
+                dirtlst[2].proc()
+            if key == Qt.Key_D:
+                dirtlst[3].proc()
+            if key == Qt.Key_Y:
+                work()
 
     def drawboard(self, currentRound, log, board):
         ui.save_current.setEnabled(True)
+        ui.undo.setEnabled(True)
         try:
             ui.save_current.triggered.disconnect()
             ui.save_current.triggered.connect(plat_cur.human_save)
+        except:
+            pass
+        try:
+            ui.undo.triggered.disconnect()
+            ui.undo.triggered.connect(plat_cur.undo)
         except:
             pass
         ui.up.setEnabled(True)
@@ -1657,9 +1716,10 @@ class ai_load(QTableView):
         global cnt
         x = QWidget()
         c=QFileDialog.getOpenFileName(x,'选择文件','','Python files(*.py)')[0]
-        player_list.append(c)
-        player_state.append(True)
-        loadai()
+        if len(c):
+            player_list.append(c)
+            player_state.append(True)
+            loadai()
     
     def openfile1(self):
         global cnt
@@ -1742,17 +1802,16 @@ def work():
                 QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
 
 def match_init():
-    global toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
+    global dirtlst, ui, MainWindow, toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
     plst = []
     for _ in range(len(player_list)):
         if player_state[_]:
             plst.append(player_list[_])
     if mode == 0:
-        global ui
         x = QWidget()
         QMessageBox.information(x, "提示", "尚未选择模式", QMessageBox.Yes)
         return
-    elif mode == 1:
+    if mode == 1:
         if len(plst) < 2:
             x = QWidget()
             QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
@@ -1760,7 +1819,15 @@ def match_init():
             main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
             x = QWidget()
             QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
-    elif mode == 2:
+        return
+    MainWindow.load = 2
+    ui.left.setText("左")
+    ui.right.setText("右")
+    ui.left.clicked.disconnect()
+    ui.left.clicked.connect(dirtlst[2].proc)
+    ui.right.clicked.disconnect()
+    ui.right.clicked.connect(dirtlst[3].proc)
+    if mode == 2:
         if len(plst) != 1:
             x = QWidget()
             QMessageBox.information(x, "提示", "请只启用一个ai", QMessageBox.Yes)
@@ -1783,7 +1850,7 @@ cnt = 0
 toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT = True, True, False, c.MAXTIME, c.ROUNDS, c.REPEAT
 
 if __name__ == '__main__':
-    global ui
+    global ui, dirtlst
     app = QApplication(sys.argv)
     MainWindow = mywindow()
     ui = gui.Ui_MainWindow()
