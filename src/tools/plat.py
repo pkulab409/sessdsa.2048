@@ -150,11 +150,15 @@ class Platform:
         '''
 
         def if_position(isFirst):
-            return not (self.board.getNone(True) == [] and self.board.getNone(False) == [])
+            if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
+            self.board.updateDecision(isFirst, ())  # 更新决策
+            return False
+            
 
         def if_direction(isFirst):
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
+            self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
         def get_position(isFirst, currentRound):
@@ -165,6 +169,7 @@ class Platform:
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
             if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
             self.board.add(isFirst, position)  # 更新棋盘
+            self.board.updateDecision(isFirst, position)  # 更新决策
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
             return False
 
@@ -174,6 +179,7 @@ class Platform:
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
             self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            self.board.updateDecision(isFirst, (direction,))  # 更新决策
             if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
             return False
