@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 #请注意，本程序仅为本地可视化调试工具，为不会使用或无法使用平台的用户提供帮助，未经过优化，内容非常丑陋，若想详细了解平台原理，请观看平台源代码
 #pyqt is totally disastrous
 
-class c1():
+class c1:
     def __init__(self):
         self.MAXTIME = 5     # 最大时间限制
         self.ROUNDS = 500    # 总回合数
@@ -216,8 +216,32 @@ class Chessboard:
     __str__ = __repr__
 
 
+class defaultplayer:
+    def __init__(self, isFirst, array):
+        # 初始化
+        self.isFirst = isFirst
+        self.array = array
 
-class gui():
+    def output(self, currentRound, board, mode):
+        if mode == 'position':  # 给出己方下棋的位置
+            another = board.getNext(self.isFirst, currentRound)  # 己方的允许落子点
+            if another != (): return another
+
+            available = board.getNone(not self.isFirst)  # 对方的允许落子点
+            if not available:   # 整个棋盘已满
+                return None
+            else:
+                from random import choice
+                return choice(available)
+        else:  # 给出己方合并的方向
+            from random import shuffle
+            directionList = [0, 1, 2, 3]
+            shuffle(directionList)
+            for direction in directionList:
+                if board.move(self.isFirst, direction): return direction
+
+
+class gui:
     class Ui_MainWindow(object):
         def setupUi(self, MainWindow):
             MainWindow.setObjectName("MainWindow")
@@ -396,7 +420,7 @@ class gui():
             self.loadfile.setShortcut(_translate("MainWindow", "Ctrl+L"))
             self.continue_match.setText(_translate("MainWindow", "在此继续游戏"))
 
-class dialog():
+class dialog:
     class Ui_settings(object):
         def setupUi(self, settings):
             settings.setObjectName("settings")
@@ -1087,6 +1111,9 @@ def main(playerList,
         if playerList[count] == 'human':
             Players.append('human')
             continue
+        if playerList[count] == 'defaultplayer':
+            Players.append(defaultplayer)
+            continue
         if isinstance(playerList[count], tuple):  # 指定初始时间
             time0[count] = playerList[count][1]
             playerList[count] = playerList[count][0]
@@ -1530,7 +1557,7 @@ class mywindow(QMainWindow):
         self.rounddisplay.setText(str(currentRound))
         self.statelabel.setText(log)
 
-class click():
+class click:
     def __init__(self, x, y):
         self.pos = (x, y)
     def proc(self):
@@ -1544,7 +1571,7 @@ class click():
         ui.selectlabel.setText("you selected " + str(pos))
         work()
 
-class click1():
+class click1:
     def __init__(self, d):
         self.d = d
     def proc(self):
@@ -1733,7 +1760,7 @@ class ai_load(QTableView):
     def openfile1(self):
         global cnt
         x = QWidget()
-        player_list.append("../src/tools/player.py")
+        player_list.append("defaultplayer")
         player_state.append(True)
         loadai()
 
@@ -1763,7 +1790,7 @@ def settings():
     ui_settings.pushButton.clicked.connect(savechange)
     dialog1.show()
 
-class setmode():
+class setmode:
     def __init__(self, set_mode):
         self.mode = set_mode
     def proc(self):
