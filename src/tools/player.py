@@ -49,3 +49,4 @@ class Player:
                 if board.move(self.isFirst, direction): return direction
         else:
             return
+
