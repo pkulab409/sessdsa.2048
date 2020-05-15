@@ -48,10 +48,10 @@ c = c1()
 from collections import namedtuple
 
 '''
--> 初始化棋子
--> 参数: belong   归属, 为bool, True代表先手
--> 参数: position 位置, 为tuple
--> 参数: value    数值, 为int
+-> 初始化棋子
+-> 参数: belong   归属, 为bool, True代表先手
+-> 参数: position 位置, 为tuple
+-> 参数: value    数值, 为int
 '''
 
 Chessman = namedtuple('Chessman', 'belong position value', defaults=(1,))
@@ -245,15 +245,6 @@ class gui():
             self.chessboard.setContentsMargins(0, 0, 0, 0)
             self.chessboard.setSpacing(0)
             self.chessboard.setObjectName("chessboard")
-            self.confirm = QtWidgets.QPushButton(self.centralwidget)
-            self.confirm.setEnabled(False)
-            self.confirm.setGeometry(QtCore.QRect(290, 470, 91, 61))
-            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(self.confirm.sizePolicy().hasHeightForWidth())
-            self.confirm.setSizePolicy(sizePolicy)
-            self.confirm.setObjectName("confirm")
             self.roundnumber = QtWidgets.QLabel(self.centralwidget)
             self.roundnumber.setGeometry(QtCore.QRect(50, 20, 51, 20))
             self.roundnumber.setObjectName("roundnumber")
@@ -282,7 +273,7 @@ class gui():
             self.statelabel.setText("")
             self.statelabel.setObjectName("statelabel")
             self.selectlabel = QtWidgets.QLabel(self.centralwidget)
-            self.selectlabel.setGeometry(QtCore.QRect(420, 470, 271, 61))
+            self.selectlabel.setGeometry(QtCore.QRect(280, 470, 411, 61))
             self.selectlabel.setText("")
             self.selectlabel.setObjectName("selectlabel")
             MainWindow.setCentralWidget(self.centralwidget)
@@ -367,7 +358,6 @@ class gui():
         def retranslateUi(self, MainWindow):
             _translate = QtCore.QCoreApplication.translate
             MainWindow.setWindowTitle(_translate("MainWindow", "调试工具"))
-            self.confirm.setText(_translate("MainWindow", "确定"))
             self.roundnumber.setText(_translate("MainWindow", "轮数"))
             self.up.setText(_translate("MainWindow", "上"))
             self.left.setText(_translate("MainWindow", "左"))
@@ -410,48 +400,30 @@ class dialog():
     class Ui_settings(object):
         def setupUi(self, settings):
             settings.setObjectName("settings")
-            settings.resize(289, 317)
+            settings.resize(289, 373)
             self.layoutWidget = QtWidgets.QWidget(settings)
-            self.layoutWidget.setGeometry(QtCore.QRect(30, 20, 221, 231))
+            self.layoutWidget.setGeometry(QtCore.QRect(30, 20, 221, 271))
             self.layoutWidget.setObjectName("layoutWidget")
             self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget)
             self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
             self.gridLayout.setContentsMargins(0, 0, 0, 0)
             self.gridLayout.setObjectName("gridLayout")
-            self.textEdit = QtWidgets.QTextEdit(self.layoutWidget)
-            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            sizePolicy.setHeightForWidth(self.textEdit.sizePolicy().hasHeightForWidth())
-            self.textEdit.setSizePolicy(sizePolicy)
-            self.textEdit.setMinimumSize(QtCore.QSize(80, 36))
-            self.textEdit.setMaximumSize(QtCore.QSize(16777215, 36))
-            self.textEdit.setObjectName("textEdit")
-            self.gridLayout.addWidget(self.textEdit, 3, 1, 1, 1)
-            self.textEdit_2 = QtWidgets.QTextEdit(self.layoutWidget)
-            self.textEdit_2.setMinimumSize(QtCore.QSize(80, 36))
-            self.textEdit_2.setMaximumSize(QtCore.QSize(16777215, 36))
-            self.textEdit_2.setObjectName("textEdit_2")
-            self.gridLayout.addWidget(self.textEdit_2, 4, 1, 1, 1)
-            self.checkBox_2 = QtWidgets.QCheckBox(self.layoutWidget)
-            self.checkBox_2.setMaximumSize(QtCore.QSize(20, 20))
-            self.checkBox_2.setText("")
-            self.checkBox_2.setObjectName("checkBox_2")
-            self.gridLayout.addWidget(self.checkBox_2, 1, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
-            self.label_6 = QtWidgets.QLabel(self.layoutWidget)
-            self.label_6.setObjectName("label_6")
-            self.gridLayout.addWidget(self.label_6, 5, 0, 1, 1)
+            self.label_4 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_4.setObjectName("label_4")
+            self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
             self.label_3 = QtWidgets.QLabel(self.layoutWidget)
             self.label_3.setObjectName("label_3")
             self.gridLayout.addWidget(self.label_3, 2, 0, 1, 1)
-            self.label = QtWidgets.QLabel(self.layoutWidget)
-            self.label.setObjectName("label")
-            self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
             self.checkBox_3 = QtWidgets.QCheckBox(self.layoutWidget)
             self.checkBox_3.setMaximumSize(QtCore.QSize(20, 20))
             self.checkBox_3.setText("")
             self.checkBox_3.setObjectName("checkBox_3")
             self.gridLayout.addWidget(self.checkBox_3, 2, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
+            self.checkBox_2 = QtWidgets.QCheckBox(self.layoutWidget)
+            self.checkBox_2.setMaximumSize(QtCore.QSize(20, 20))
+            self.checkBox_2.setText("")
+            self.checkBox_2.setObjectName("checkBox_2")
+            self.gridLayout.addWidget(self.checkBox_2, 1, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
             self.checkBox = QtWidgets.QCheckBox(self.layoutWidget)
             self.checkBox.setMaximumSize(QtCore.QSize(20, 20))
             self.checkBox.setText("")
@@ -460,12 +432,14 @@ class dialog():
             self.label_2 = QtWidgets.QLabel(self.layoutWidget)
             self.label_2.setObjectName("label_2")
             self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
-            self.label_4 = QtWidgets.QLabel(self.layoutWidget)
-            self.label_4.setObjectName("label_4")
-            self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
             self.label_5 = QtWidgets.QLabel(self.layoutWidget)
             self.label_5.setObjectName("label_5")
             self.gridLayout.addWidget(self.label_5, 4, 0, 1, 1)
+            self.textEdit_2 = QtWidgets.QTextEdit(self.layoutWidget)
+            self.textEdit_2.setMinimumSize(QtCore.QSize(80, 36))
+            self.textEdit_2.setMaximumSize(QtCore.QSize(16777215, 36))
+            self.textEdit_2.setObjectName("textEdit_2")
+            self.gridLayout.addWidget(self.textEdit_2, 4, 1, 1, 1)
             self.textEdit_3 = QtWidgets.QTextEdit(self.layoutWidget)
             sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
             sizePolicy.setHorizontalStretch(0)
@@ -476,8 +450,32 @@ class dialog():
             self.textEdit_3.setMaximumSize(QtCore.QSize(16777215, 36))
             self.textEdit_3.setObjectName("textEdit_3")
             self.gridLayout.addWidget(self.textEdit_3, 5, 1, 1, 1)
+            self.textEdit = QtWidgets.QTextEdit(self.layoutWidget)
+            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
+            sizePolicy.setHorizontalStretch(0)
+            sizePolicy.setVerticalStretch(0)
+            sizePolicy.setHeightForWidth(self.textEdit.sizePolicy().hasHeightForWidth())
+            self.textEdit.setSizePolicy(sizePolicy)
+            self.textEdit.setMinimumSize(QtCore.QSize(80, 36))
+            self.textEdit.setMaximumSize(QtCore.QSize(16777215, 36))
+            self.textEdit.setObjectName("textEdit")
+            self.gridLayout.addWidget(self.textEdit, 3, 1, 1, 1)
+            self.label_6 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_6.setObjectName("label_6")
+            self.gridLayout.addWidget(self.label_6, 5, 0, 1, 1)
+            self.label = QtWidgets.QLabel(self.layoutWidget)
+            self.label.setObjectName("label")
+            self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+            self.label_7 = QtWidgets.QLabel(self.layoutWidget)
+            self.label_7.setObjectName("label_7")
+            self.gridLayout.addWidget(self.label_7, 6, 0, 1, 1)
+            self.checkBox_5 = QtWidgets.QCheckBox(self.layoutWidget)
+            self.checkBox_5.setMaximumSize(QtCore.QSize(20, 20))
+            self.checkBox_5.setText("")
+            self.checkBox_5.setObjectName("checkBox_5")
+            self.gridLayout.addWidget(self.checkBox_5, 6, 1, 1, 1, QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
             self.pushButton = QtWidgets.QPushButton(settings)
-            self.pushButton.setGeometry(QtCore.QRect(120, 270, 131, 31))
+            self.pushButton.setGeometry(QtCore.QRect(110, 320, 131, 31))
             self.pushButton.setObjectName("pushButton")
 
             self.retranslateUi(settings)
@@ -486,12 +484,13 @@ class dialog():
         def retranslateUi(self, settings):
             _translate = QtCore.QCoreApplication.translate
             settings.setWindowTitle(_translate("settings", "设置"))
-            self.label_6.setText(_translate("settings", "重复次数"))
-            self.label_3.setText(_translate("settings", "打印报错信息"))
-            self.label.setText(_translate("settings", "保存对局记录"))
-            self.label_2.setText(_translate("settings", "生成统计报告"))
             self.label_4.setText(_translate("settings", "总用时限制"))
+            self.label_3.setText(_translate("settings", "打印报错信息"))
+            self.label_2.setText(_translate("settings", "生成统计报告"))
             self.label_5.setText(_translate("settings", "最大回合数"))
+            self.label_6.setText(_translate("settings", "重复次数"))
+            self.label.setText(_translate("settings", "保存对局记录"))
+            self.label_7.setText(_translate("settings", "非法操作反馈"))
             self.pushButton.setText(_translate("settings", "保存并退出"))
 
 #以下基于plat.py,analyser.py和round_match.py
@@ -1494,8 +1493,6 @@ class mywindow(QMainWindow):
                 dirtlst[2].proc()
             if key == Qt.Key_D:
                 dirtlst[3].proc()
-            if key == Qt.Key_Y:
-                work()
 
     def drawboard(self, currentRound, log, board):
         ui.save_current.setEnabled(True)
@@ -1514,7 +1511,6 @@ class mywindow(QMainWindow):
         ui.down.setEnabled(True)
         ui.left.setEnabled(True)
         ui.right.setEnabled(True)
-        ui.confirm.setEnabled(True)
         for i in range(c.ROWS):
             for j in range(c.COLUMNS):
                 if board.getValue((i, j)) == 0:
@@ -1539,20 +1535,23 @@ class click():
         self.pos = (x, y)
     def proc(self):
         if plat_cur.phase == 2 or plat_cur.phase == 3:
-            x = QWidget()
-            QMessageBox.information(x, "提示", "请选择方向！", QMessageBox.Yes)
+            if warning:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "请选择方向！", QMessageBox.Yes)
             return
         global pos
         pos = self.pos
         ui.selectlabel.setText("you selected " + str(pos))
+        work()
 
 class click1():
     def __init__(self, d):
         self.d = d
     def proc(self):
         if plat_cur.phase == 0 or plat_cur.phase == 1:
-            x = QWidget()
-            QMessageBox.information(x, "提示", "请选择位置！", QMessageBox.Yes)
+            if warning:
+                x = QWidget()
+                QMessageBox.information(x, "提示", "请选择位置！", QMessageBox.Yes)
             return
         global dirt
         dirt = self.d
@@ -1564,6 +1563,7 @@ class click1():
             ui.selectlabel.setText("you selected left")
         if dirt == 3:
             ui.selectlabel.setText("you selected right")
+        work()
 
 class loadai_content(QItemDelegate):
     def __init__(self, parent = None):
@@ -1739,18 +1739,19 @@ class ai_load(QTableView):
 
 
 def settings():
-    global dialog1, toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
+    global dialog1, toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT, warning
     ui_settings = dialog.Ui_settings()
     dialog1 = QDialog()
     ui_settings.setupUi(dialog1)
     def savechange():
-        global toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
+        global toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT, warning
         toSave = ui_settings.checkBox.isChecked()
         toReport = ui_settings.checkBox_2.isChecked()
         debug = ui_settings.checkBox_3.isChecked()
         MAXTIME = int(ui_settings.textEdit.toPlainText())
         ROUNDS = int(ui_settings.textEdit_2.toPlainText())
         REPEAT = int(ui_settings.textEdit_3.toPlainText())
+        warning = ui_settings.checkBox_5.isChecked()
         dialog1.destroy()
     ui_settings.checkBox.setChecked(toSave)
     ui_settings.checkBox_2.setChecked(toReport)
@@ -1758,6 +1759,7 @@ def settings():
     ui_settings.textEdit.setText(str(MAXTIME))
     ui_settings.textEdit_2.setText(str(ROUNDS))
     ui_settings.textEdit_3.setText(str(REPEAT))
+    ui_settings.checkBox_5.setChecked(warning)
     ui_settings.pushButton.clicked.connect(savechange)
     dialog1.show()
 
@@ -1783,32 +1785,36 @@ def work():
                 plat_cur.phase = 1
                 plat_cur.involved_play(plat_cur.currentRound)
             else:
-                x = QWidget()
-                QMessageBox.information(x, "提示", "位置非法", QMessageBox.Yes)
+                if warning:
+                    x = QWidget()
+                    QMessageBox.information(x, "提示", "位置非法", QMessageBox.Yes)
     elif plat_cur.phase == 1:
         if pos != None and plat_cur != None:
             if plat_cur.human_get_position(False):
                 plat_cur.phase = 2
                 plat_cur.involved_play(plat_cur.currentRound)
             else:
-                x = QWidget()
-                QMessageBox.information(x, "提示", "位置非法", QMessageBox.Yes)
+                if warning:
+                    x = QWidget()
+                    QMessageBox.information(x, "提示", "位置非法", QMessageBox.Yes)
     elif plat_cur.phase == 2:
         if dirt != None and plat_cur != None:
             if plat_cur.human_get_direction(True):
                 plat_cur.phase = 3
                 plat_cur.involved_play(plat_cur.currentRound)
             else:
-                x = QWidget()
-                QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
+                if warning:
+                    x = QWidget()
+                    QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
     elif plat_cur.phase == 3:
         if dirt != None and plat_cur != None:
             if plat_cur.human_get_direction(False):
                 plat_cur.phase = 4
                 plat_cur.involved_play(plat_cur.currentRound)
             else:
-                x = QWidget()
-                QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
+                if warning:
+                    x = QWidget()
+                    QMessageBox.information(x, "提示", "方向非法", QMessageBox.Yes)
 
 def match_init():
     global dirtlst, ui, MainWindow, toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT
@@ -1856,7 +1862,7 @@ player_list = []
 player_state = []
 mode = 0
 cnt = 0
-toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT = True, True, False, c.MAXTIME, c.ROUNDS, c.REPEAT
+toSave, toReport, debug, MAXTIME, ROUNDS, REPEAT, warning = True, True, False, c.MAXTIME, c.ROUNDS, c.REPEAT, True
 
 if __name__ == '__main__':
     global ui, dirtlst
@@ -1892,7 +1898,6 @@ if __name__ == '__main__':
     ui.down.clicked.connect(dirtlst[1].proc)
     ui.left.clicked.connect(dirtlst[2].proc)
     ui.right.clicked.connect(dirtlst[3].proc)
-    ui.confirm.clicked.connect(work)
     modelst = [setmode(_) for _ in range(1,5)]
     ui.mode1.triggered.connect(modelst[0].proc)
     ui.mode2.triggered.connect(modelst[1].proc)
