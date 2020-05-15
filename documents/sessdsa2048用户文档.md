@@ -93,6 +93,9 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
     + collections
     + itertools
     + functools
+    + heapq
+    如果有合理需求, 可以向助教或技术组申请引入新的模块.
+
     此外, 为了阻止绕过代码检查, 以下方法被禁用
     + exec
     + eval
@@ -207,3 +210,4 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 + 向add接口传入的value为0为未定义行为
 + 增加了对单个AI的内存限制
 + 传入mode参数的可能值增加了`'_position'`和`'_direction'`, 表示我方AI卡住了不能下棋的两个阶段
++ 新增了允许使用的模块: `heapq`. 可以向助教或技术组申请增加允许使用的模块
