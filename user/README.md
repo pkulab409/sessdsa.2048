@@ -13,6 +13,8 @@
 pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 等待完成即可
+
+若提示没有安装pip，是系统中未安装python的缘故。可以通过安装python并将thonny解释器设为安装的解释器来解决，也可直接在thonny内安装。具体方法见陈斌老师视频。也可采取以下办法：打开thonny安装目录，按住shift后点击右键，选择在此处打开powershell窗口，并输入python -m pip install pyqt5 -i https://pypi.tuna.tsinghua.edu.cn/simple 来安装pyqt5
 ## 功能
 提供对战和读取记录两种功能
 ## 对战
