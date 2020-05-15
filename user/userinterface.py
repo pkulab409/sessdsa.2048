@@ -1946,3 +1946,4 @@ if __name__ == '__main__':
     statelabel = ui.statelabel
     MainWindow.show()
     sys.exit(app.exec_())
+ 
