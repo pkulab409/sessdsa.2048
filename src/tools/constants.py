@@ -16,10 +16,10 @@ NAMES[0] = '0000'
 class _dict(dict):
     def __init__(self, dict_like):
         super().__init__(dict_like)
-    def __getattr__(self, key):
-        return super().__getattr__(key) if key in self else key
+    def __getitem__(self, key):
+        return super().__getitem__(key) if key in self else key
     
-DIRECTIONS = _dict({0: 'up', 1: 'down', 2: 'left', 3: 'right', None: 'None'})    # 换算方向的字典
+DIRECTIONS = _dict({0: 'up', 1: 'down', 2: 'left', 3: 'right'})    # 换算方向的字典
 PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
 
 PICTURES = ['nanami', 'ayase']  # 游戏图片名称
