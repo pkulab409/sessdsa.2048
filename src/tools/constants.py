@@ -13,13 +13,13 @@ ARRAY = list(range(ROUNDS))  # 随机(?)列表
 NAMES = {_: str(2 ** _).zfill(4) for _ in range(MAXLEVEL)}  # 将内在级别转换为显示对象的字典
 NAMES[0] = '0000'
 
-class _dict(dict):
-    def __init__(self, dict_like):
-        super().__init__(dict_like)
+class _DIRECTIONS(list):
+    def __init__(self):
+        super().__init__(['up', 'down', 'left', 'right'])
     def __getitem__(self, key):
-        return super().__getitem__(key) if key in self else 'unknown'
-    
-DIRECTIONS = _dict({0: 'up', 1: 'down', 2: 'left', 3: 'right'})    # 换算方向的字典
+        return super().__getitem__(key) if key in range(4) else 'unknown'
+DIRECTIONS = _DIRECTIONS()      # 换算方向的字典
+
 PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
 
 PICTURES = ['nanami', 'ayase']  # 游戏图片名称
