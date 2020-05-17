@@ -52,11 +52,17 @@ try:  #判断文件是否存放在项目中
     if os.path.abspath("../").endswith("sessdsa.2048"):
         prefix = "../"
     else:
-        os.mkdir("./sessdsa.2048")
         prefix = "./sessdsa.2048/"
+        try:
+            os.mkdir("./sessdsa.2048")
+        except:
+            pass
 except:
-    os.mkdir("./sessdsa.2048")
     prefix = "./sessdsa.2048/"
+    try:
+        os.mkdir("./sessdsa.2048")
+    except:
+        pass
 items = json.loads(main.text)["tree"]
 codes, path = [], []
 for i in range(len(items)):
