@@ -13,26 +13,31 @@ class _DIRECTIONS(list):
         super().__init__(['up', 'down', 'left', 'right'])
     def __getitem__(self, key):
         return super().__getitem__(key) if key in range(4) else 'unknown'
-DIRECTIONS = _DIRECTIONS()      # 换算方向的字典
+DIRECTIONS = _DIRECTIONS()     # 换算方向的字典
 
 PLAYERS = {True: 'player 0',
-           False: 'player 1'}   # 换算先后手名称的字典
-
-INITBOARD = [int(column >= COLUMNS // 2)
-             for column in range(COLUMNS)
-             for row in range(ROWS)]  # 空棋盘
+           False: 'player 1'}  # 换算先后手名称的字典
 
 # 棋盘
 
 class Chessboard:
-    def __init__(self, array, board = INITBOARD.copy(), decision = [(), ()], time = [0, 0]):
+    def __init__(self, array, board = None, decision = None, time = None):
         '''
         -> 初始化棋盘
         '''
-        self.array = array        # 随机序列
-        self.board = board        # 初始棋盘
-        self.decision = decision  # 双方上一步的决策
-        self.time = time          # 双方剩余的时长
+        self.array = array      # 随机序列
+        if board:       # 初始棋盘
+            self.board = board
+        else:
+            self.board = [int(_ >= ROWS * COLUMNS // 2) for _ in range(ROWS * COLUMNS)]
+        if decision:    # 双方上一步的决策
+            self.decision = decision
+        else:
+            self.decision = [(), ()]
+        if time:        # 双方剩余的时长
+            self.time = time
+        else:
+            self.time = [0, 0]
 
     def add(self, belong, position, value = 1):
         '''
@@ -59,7 +64,7 @@ class Chessboard:
             while True:  # 跳过己方空格
                 if (not inBoard(p2)) or notMine(p2) or self.board[p2] >= 2: break
                 p1, p2 = p2, theNext(p2)
-            if inBoard(p2) and self.board[p2] == self.board[p0] and p2 != eat:  # 满足吃棋条件
+            if inBoard(p2) and self.board[p2] // 2 == self.board[p0] // 2 and p2 != eat:  # 满足吃棋条件
                 self.board[p2] = self.board[p0] + 2
                 self.board[p0] = int(p0 >= ROWS * COLUMNS // 2)
                 eat, change = p2, True
@@ -109,14 +114,14 @@ class Chessboard:
         -> 返回某方的全部棋子数值列表
         '''
         return sorted([self.board[_position] // 2 for _position in range(ROWS * COLUMNS)
-                       if (self.board[_position] % 2 == 1) ^ belong])
+                       if (self.board[_position] % 2 == 1) ^ belong and self.board[_position] >= 2])
 
     def getNone(self, belong):
         '''
         -> 返回某方的全部空位列表
         '''
         return [(row, column) for row in range(ROWS) for column in range(COLUMNS) \
-                if self.getValue((row, column)) == 0 and self.getBelong((row, column)) == belong]
+                if ((column < COLUMNS // 2) == belong) and self.getValue((row, column)) == 0]
     
     def getNext(self, belong, currentRound):
         '''
