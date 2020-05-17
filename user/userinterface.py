@@ -92,11 +92,11 @@ class Chessboard:
             delta = [(-1,0), (1,0), (0,-1), (0,1)][direction]
             return (position[0] + delta[0], position[1] + delta[1])
         def conditionalSorted(chessmanList):  # 返回根据不同的条件排序结果
-            if direction == None: return []
             if direction == 0: return sorted(chessmanList, key = lambda x:x[0], reverse = False)
             if direction == 1: return sorted(chessmanList, key = lambda x:x[0], reverse = True )
             if direction == 2: return sorted(chessmanList, key = lambda x:x[1], reverse = False)
             if direction == 3: return sorted(chessmanList, key = lambda x:x[1], reverse = True )
+            return []
         def move_one(chessman, eaten):  # 移动一个棋子并返回是否移动, eaten是已经被吃过的棋子位置
             nowPosition = chessman.position
             nextPosition = theNext(nowPosition)
