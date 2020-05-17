@@ -23,7 +23,13 @@ class c1:
         self.NAMES = {_: str(2 ** _).zfill(4) for _ in range(self.MAXLEVEL)}  # 将内在级别转换为显示对象的字典
         self.NAMES[0] = '0000'
 
-        self.DIRECTIONS = {0: 'up', 1: 'down', 2: 'left', 3: 'right', None: 'None'}    # 换算方向的字典
+        class _dict(dict):
+            def __init__(self, dict_like):
+                super().__init__(dict_like)
+        def __getitem__(self, key):
+            return super().__getitem__(key) if key in self else 'unknown'
+            
+        DIRECTIONS = _dict({0: 'up', 1: 'down', 2: 'left', 3: 'right'})    # 换算方向的字典
         self.PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
 
         self.PICTURES = ['nanami', 'ayase']  # 游戏图片名称
