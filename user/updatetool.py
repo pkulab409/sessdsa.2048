@@ -1,15 +1,18 @@
 #运行此文件可以自动下载仓库中的最新代码并更新本地文件（注意本地文件必须已存在）
 #若连接不上请使用北大vpn以实现对仓库的访问
-#有些文件会被反复更新，具体原因未知（可能由换行问题引起）
-import requests, re, json, hashlib, base64
+import requests, re, json, hashlib, base64, os
 
 def CalcSha1(filepath):
-    if filepath == '../user/updatetool.py':
+    if os.path.splitext(os.path.basename(filepath))[1] == '':
+        if not os.path.exists(filepath):
+            os.mkdir(filepath)
         return None
     with open(filepath, 'r', encoding='utf-8') as f:
         sha1obj = hashlib.sha1()
         try:
             data = f.read().encode()
+        except FileNotFoundError:
+            return ''
         except:
             return None
         sha1obj.update(b"blob " + str(len(data)).encode() + b'\0' + data)
