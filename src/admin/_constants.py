@@ -52,19 +52,15 @@ class Chessboard:
         '''
         -> 向指定方向合并, 返回是否变化
         '''
-        def inBoard(_position):  # 在棋盘里
-            return 0 <= _position < ROWS * COLUMNS
-        def notMine(_position):  # 非己方
-            return (self.board[_position] % 2 == 0) ^ belong
         def move_one(row, column):  # 一次移动
             nonlocal eat, change  # 非局部变量
             p0 = row + column * ROWS
-            if notMine(p0) or self.board[p0] < 2: return  # 非己方或空格
+            if ((self.board[p0] % 2 == 0) ^ belong) or self.board[p0] < 2: return  # 非己方或空格
             p1, p2 = p0, theNext(p0)
             while True:  # 跳过己方空格
-                if (not inBoard(p2)) or notMine(p2) or self.board[p2] >= 2: break
+                if (not (0 <= p2 < ROWS * COLUMNS)) or ((self.board[p2] % 2 == 0) ^ belong) or self.board[p2] >= 2: break
                 p1, p2 = p2, theNext(p2)
-            if inBoard(p2) and self.board[p2] // 2 == self.board[p0] // 2 and p2 != eat:  # 满足吃棋条件
+            if (0 <= p2 < ROWS * COLUMNS) and self.board[p2] // 2 == self.board[p0] // 2 and p2 != eat:  # 满足吃棋条件
                 self.board[p2] = self.board[p0] + 2
                 self.board[p0] = int(p0 >= ROWS * COLUMNS // 2)
                 eat, change = p2, True
@@ -121,7 +117,7 @@ class Chessboard:
         -> 返回某方的全部空位列表
         '''
         return [(row, column) for row in range(ROWS) for column in range(COLUMNS) \
-                if ((column < COLUMNS // 2) == belong) and self.getValue((row, column)) == 0]
+                if ((column < COLUMNS // 2) == belong) and self.board[row + column * ROWS] < 2]
     
     def getNext(self, belong, currentRound):
         '''
