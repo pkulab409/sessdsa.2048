@@ -26,8 +26,8 @@ class c1:
         class _dict(dict):
             def __init__(self, dict_like):
                 super().__init__(dict_like)
-        def __getitem__(self, key):
-            return super().__getitem__(key) if key in self else 'unknown'
+            def __getitem__(self, key):
+                return super().__getitem__(key) if key in self else 'unknown'
             
         DIRECTIONS = _dict({0: 'up', 1: 'down', 2: 'left', 3: 'right'})    # 换算方向的字典
         self.PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
