@@ -1461,7 +1461,7 @@ class mywindow(QMainWindow):
                 x = QWidget()
                 QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
             else:
-                main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
+                main(plst, toSave = toSave, toReport = toReport, debug = debug, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT, BOARDXXX = BOARDXXX)
                 x = QWidget()
             QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
         elif mode == 2:
@@ -1867,7 +1867,7 @@ def match_init():
             x = QWidget()
             QMessageBox.information(x, "提示", "ai数量小于两个", QMessageBox.Yes)
         else:
-            main(plst, toSave = toSave, toReport = toReport, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
+            main(plst, toSave = toSave, toReport = toReport, debug = debug, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
             x = QWidget()
             QMessageBox.information(x, "提示", "已完成", QMessageBox.Yes)
         return
