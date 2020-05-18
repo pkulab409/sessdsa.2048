@@ -76,11 +76,12 @@ class Chessboard:
         self.anime = []  # 动画效果
         
 
-    def add(self, belong, position, value = 1):
+    def add(self, belong, position, value = 1, force_change = False):
         '''
         -> 在指定位置下棋
         '''
-        belong = position[1] < c.COLUMNS // 2  # 重定义棋子的归属
+        if not force_change:
+            belong = position[1] < c.COLUMNS // 2  # 重定义棋子的归属
         self.belongs[belong].append(position)
         self.board[position] = Chessman(belong, position, value)
 
@@ -635,7 +636,7 @@ class Platform:
             for row in range(c.ROWS):
                 for column in range(c.COLUMNS):
                     if BOARDXXX[row][column][1]:
-                        self.board.add(BOARDXXX[row][column][0] == '+', (row, column), BOARDXXX[row][column][1])
+                        self.board.add(BOARDXXX[row][column][0] == '+', (row, column), BOARDXXX[row][column][1], True)
                         
 
     def play(self):
@@ -914,7 +915,7 @@ class Platform:
             for row in range(c.ROWS):
                 for column in range(c.COLUMNS):
                     if BOARDXXX[row][column][1]:
-                        self.board.add(BOARDXXX[row][column][0] == '+', (row, column), BOARDXXX[row][column][1])
+                        self.board.add(BOARDXXX[row][column][0] == '+', (row, column), BOARDXXX[row][column][1], True)
             MainWindow.drawboard(self.currentRound - 1, "撤销", self.board)
             self.phase = 0
             self.involved_play(self.currentRound - 1)
