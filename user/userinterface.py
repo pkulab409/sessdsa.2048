@@ -363,6 +363,9 @@ class gui:
             self.load_from_net = QtWidgets.QAction(MainWindow)
             self.load_from_net.setEnabled(True)
             self.load_from_net.setObjectName("load_from_net")
+            self.download_from_net = QtWidgets.QAction(MainWindow)
+            self.download_from_net.setEnabled(True)
+            self.download_from_net.setObjectName("download_from_net")
             self.continue_match = QtWidgets.QAction(MainWindow)
             self.continue_match.setEnabled(False)
             self.continue_match.setObjectName("continue_match")
@@ -380,6 +383,7 @@ class gui:
             self.menu_2.addAction(self.save_current)
             self.menu_2.addAction(self.loadfile)
             self.menu_2.addAction(self.load_from_net)
+            self.menu_2.addAction(self.download_from_net)
             self.menu_2.addAction(self.continue_match)
             self.menu_3.addAction(self.about)
             self.menubar.addAction(self.menu.menuAction())
@@ -429,6 +433,7 @@ class gui:
             self.loadfile.setText(_translate("MainWindow", "读取记录"))
             self.loadfile.setShortcut(_translate("MainWindow", "Ctrl+L"))
             self.load_from_net.setText(_translate("MainWindow", "从天梯读取记录"))
+            self.download_from_net.setText(_translate("MainWindow", "从天梯下载记录"))
             self.continue_match.setText(_translate("MainWindow", "在此继续游戏"))
 
 class dialog:
@@ -1903,7 +1908,7 @@ def match_init():
     else:
         main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
 
-def get_log_from_net():
+def get_log_from_net(download = False):
     import requests
     import json
 
@@ -1927,8 +1932,34 @@ def get_log_from_net():
     url = QInputDialog.getText(x,'加载记录','请输入查看比赛页面的地址: ')[0]
     if url == '':
         return
+    #url = "http://" + url
     r = requests.get(url, headers=headers)
     items = json.loads(r.text.split('使用比赛参数')[1].split("<div>")[1].split("</div>")[0].replace("&quot;", "\""))
+    if download:
+        import os
+        dirname = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())
+        os.mkdir(dirname)
+        for i in range(int(items["rounds"])):
+            r = requests.get(url + str(i) + "/", headers=headers)
+            items = json.loads(r.text.split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
+            f = open(dirname + "/" + str(i) + ".txt", "w")
+            f.write(items["time"])
+            for i in items["logs"]:
+                f.write("&d" + str(i['D']['r']) + ":player " + str(i['D']['p']) + " set " + i['D']['d'][0] + " " + str(i['D']['d'][1]))
+                f.write("&p" + str(i['D']['r']) + ":\n" + '\n'.join([' '.join([('+' if i['P'][row][column] > 0 or (i['P'][row][column] == 0 and column < c.COLUMNS / 2) else '-')\
+                                     + str(abs(i['P'][row][column])).zfill(2) \
+                                     for column in range(c.COLUMNS)]) for row in range(c.ROWS)]))
+            for i in items["logs"][-1]["E"]:
+                f.write("&e:" + i)
+            f.write("&e:cause" + items["cause"])
+            f.write("&e:winner" + str(items["winner"]))
+            try:
+                f.write("&e:error" + items["error"])
+            except:
+                pass
+            f.close()
+        QMessageBox.information(x, '', '已完成', QMessageBox.Yes)
+        return
     num = QInputDialog.getInt(x,'加载记录','您想查看哪一场比赛: ', 0, 0, int(items["rounds"]) - 1, 1)[0]
     r = requests.get(url + str(num) + "/", headers=headers)
     items = json.loads(r.text.split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
@@ -1938,6 +1969,14 @@ def get_log_from_net():
         log.append("p" + str(i['D']['r']) + ":\n" + '\n'.join([' '.join([('+' if i['P'][row][column] > 0 or (i['P'][row][column] == 0 and column < c.COLUMNS / 2) else '-')\
                              + str(abs(i['P'][row][column])).zfill(2) \
                              for column in range(c.COLUMNS)]) for row in range(c.ROWS)]))
+    for i in items["logs"][-1]["E"]:
+        log.append("e:" + i)
+    log.append("e:cause" + items["cause"])
+    log.append("e:winner" + items["winner"])
+    try:
+        log.append("e:error" + items["error"])
+    except:
+        pass
     return log
 
 
@@ -1994,6 +2033,9 @@ if __name__ == '__main__':
     def load_from_net():
         MainWindow.loadmode(log = get_log_from_net())
     ui.load_from_net.triggered.connect(load_from_net)
+    def download_from_net():
+        get_log_from_net(True)
+    ui.download_from_net.triggered.connect(download_from_net)
     def about():
         x = QWidget()
         QMessageBox.information(x, "", "本程序对之前的调试工具做了整合，并制作了可视化界面\n其中有一些功能未经测试，可能会有bug\n不建议在运行中更换模式，可能会导致未知错误", QMessageBox.Yes)
