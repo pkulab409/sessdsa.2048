@@ -108,7 +108,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
 ### 棋盘状态
 
-对战中某时刻的棋盘状态由经参数`board`传给用户AI实现的`output`函数的一个`Chessboard`对象给出.
+对战中某时刻的棋盘状态由经参数`board`传给用户AI实现的`output`函数的一个`Chessboard`对象给出. 若调用或使用了棋盘除给出接口外的方法或属性, 后果自负.
 
 该对象具有以下方法
 
@@ -126,7 +126,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
        参数:belong操作者，direction合并方向
 
-       返回:棋盘是否变化，为bool类型
+       返回:棋盘是否变化，为bool类型. direction必须为`0,1,2,3,None`五个值之一, 否则为未定义行为.
 
    4. `getBelong(self: Chessboard, position: Tuple[int, int]) -> bool` 根据位置得到归属
 
@@ -156,7 +156,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
        参数:belong某方，currentRound当前轮数
 
-       返回:该方在本方领域允许下棋的位置，若不可下棋，返回空元组
+       返回:该方在本方领域允许下棋的位置，若不可下棋，返回空元组. currentRound必须处于`range(0, len(array))`内, 其中`array`是初始化棋盘时传入的随机列表. 超出该范围为未定义行为.
 
    9. `copy(self: Chessboard) -> Chessboard` 返回一个对象拷贝
 
@@ -213,4 +213,5 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 + 传入mode参数的可能值增加了`'_position'`和`'_direction'`, 表示我方AI卡住了不能下棋的两个阶段
 + 新增了允许使用的模块: `heapq`. 可以向助教或技术组申请增加允许使用的模块
 + 增加了对随机位置算法源码的引用, 以方便理解
-+ 新增了允许使用的模块: `operator`.
++ 新增了允许使用的模块: `operator`
++ 明确了部分对棋盘的不合值域操作为未定义行为
