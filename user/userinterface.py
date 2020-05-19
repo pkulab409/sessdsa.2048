@@ -360,6 +360,9 @@ class gui:
             self.loadfile = QtWidgets.QAction(MainWindow)
             self.loadfile.setEnabled(True)
             self.loadfile.setObjectName("loadfile")
+            self.load_from_net = QtWidgets.QAction(MainWindow)
+            self.load_from_net.setEnabled(True)
+            self.load_from_net.setObjectName("load_from_net")
             self.continue_match = QtWidgets.QAction(MainWindow)
             self.continue_match.setEnabled(False)
             self.continue_match.setObjectName("continue_match")
@@ -376,6 +379,7 @@ class gui:
             self.menu_2.addSeparator()
             self.menu_2.addAction(self.save_current)
             self.menu_2.addAction(self.loadfile)
+            self.menu_2.addAction(self.load_from_net)
             self.menu_2.addAction(self.continue_match)
             self.menu_3.addAction(self.about)
             self.menubar.addAction(self.menu.menuAction())
@@ -424,6 +428,7 @@ class gui:
             self.match_settings.setIconText(_translate("MainWindow", "设置"))
             self.loadfile.setText(_translate("MainWindow", "读取记录"))
             self.loadfile.setShortcut(_translate("MainWindow", "Ctrl+L"))
+            self.load_from_net.setText(_translate("MainWindow", "从天梯读取记录"))
             self.continue_match.setText(_translate("MainWindow", "在此继续游戏"))
 
 class dialog:
@@ -1343,20 +1348,24 @@ class mywindow(QMainWindow):
         self.load = 0
     
     
-    def loadmode(self, matchList = None, index = 1):
+    def loadmode(self, matchList = None, index = 1, log = None):
         # matchList = [mode, {'path': path, 'topText': topText, 'bottomText': bottomText}, ...]
         if matchList == None:
-            while True:  # 加载对局记录
-                try:
-                    x = QWidget()
-                    y = QFileDialog.getOpenFileName(x,'选择文件','','Text files(*.txt)')[0]
-                    if len(y) == 0:
-                        return
-                    self.log = open(y, 'r').read().split('&')  # 读取全部记录并分成单条    
-                    self.size = len(self.log)
-                    break
-                except FileNotFoundError:
-                    print('%s is not found.' % filename)
+            if log != None:
+                self.log = log  
+                self.size = len(self.log)
+            else:
+                while True:  # 加载对局记录
+                    try:
+                        x = QWidget()
+                        y = QFileDialog.getOpenFileName(x,'选择文件','','Text files(*.txt)')[0]
+                        if len(y) == 0:
+                            return
+                        self.log = open(y, 'r').read().split('&')  # 读取全部记录并分成单条    
+                        self.size = len(self.log)
+                        break
+                    except FileNotFoundError:
+                        print('%s is not found.' % filename)
 
             print('=' * 50)
             x = QWidget()
@@ -1894,6 +1903,43 @@ def match_init():
     else:
         main(plst, toSave = False, toReport = False, debug = False, MAXTIME = MAXTIME, ROUNDS = ROUNDS, REPEAT = REPEAT)
 
+def get_log_from_net():
+    import requests
+    import json
+
+    token = "MQ6KWY9RRyL6ldFHd0E3hsVF5YFgZdOJOvrf5YBEwLz9V4R34O27lSGrofXy1Mxg"
+    sessionid = "ngschzmuskjgos3fcjapznm6ihnqza5t"
+
+    headers = {
+        "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "zh-Hans-CN, zh-Hans; q=0.5",
+        "Cache-Control": "max-age=0",
+        "Connection": "Keep-Alive",
+        "Cookie": f"csrftoken={token}; sessionid={sessionid}",
+        "Host": "gis4g.pku.edu.cn",
+        "Pragma": "no-cache",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763",
+    }
+    
+    x = QWidget()
+    url = QInputDialog.getText(x,'加载记录','请输入查看比赛页面的地址: ')[0]
+    if url == '':
+        return
+    r = requests.get(url, headers=headers)
+    items = json.loads(r.text.split('使用比赛参数')[1].split("<div>")[1].split("</div>")[0].replace("&quot;", "\""))
+    num = QInputDialog.getInt(x,'加载记录','您想查看哪一场比赛: ', 0, 0, int(items["rounds"]) - 1, 1)[0]
+    r = requests.get(url + str(num) + "/", headers=headers)
+    items = json.loads(r.text.split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
+    log = [items["time"]]
+    for i in items["logs"]:
+        log.append("d" + str(i['D']['r']) + ":player " + str(i['D']['p']) + " set " + i['D']['d'][0] + " " + str(i['D']['d'][1]))
+        log.append("p" + str(i['D']['r']) + ":\n" + '\n'.join([' '.join([('+' if i['P'][row][column] > 0 or (i['P'][row][column] == 0 and column < c.COLUMNS / 2) else '-')\
+                             + str(abs(i['P'][row][column])).zfill(2) \
+                             for column in range(c.COLUMNS)]) for row in range(c.ROWS)]))
+    return log
+
 
 player_list = []
 player_state = []
@@ -1945,6 +1991,9 @@ if __name__ == '__main__':
     def loadmode():
         MainWindow.loadmode()
     ui.loadfile.triggered.connect(loadmode)
+    def load_from_net():
+        MainWindow.loadmode(log = get_log_from_net())
+    ui.load_from_net.triggered.connect(load_from_net)
     def about():
         x = QWidget()
         QMessageBox.information(x, "", "本程序对之前的调试工具做了整合，并制作了可视化界面\n其中有一些功能未经测试，可能会有bug\n不建议在运行中更换模式，可能会导致未知错误", QMessageBox.Yes)
