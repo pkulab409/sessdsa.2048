@@ -173,7 +173,7 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
        +01 +01 +04 +00 -05 -01 -04 -00\0
        ```
 
-   11. `getTime(self: Chessboard) -> float`
+   11. `getTime(self: Chessboard, belong: bool) -> float`
 
        返回用户AI剩余思考时间, 单位为秒.
 
