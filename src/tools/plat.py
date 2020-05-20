@@ -66,11 +66,7 @@ class Platform:
                 return wrappedFunc
             return decorator
 
-        # 重载对象方法
-        for isFirst in [True, False]:
-            states[isFirst]['player'].__init__ = stateManager(isFirst)(states[isFirst]['player'].__init__)
-            states[isFirst]['player'].output = stateManager(isFirst)(states[isFirst]['player'].output)
-
+        self.manager = stateManager
 
         # 构建一个日志类, 可以实现直播功能
         class Log(list):
@@ -108,7 +104,7 @@ class Platform:
         '''
         
         for isFirst in [True, False]:
-            self.states[isFirst]['player'].__init__(isFirst, c.ARRAY)
+            self.manager(isFirst)(self.states[isFirst]['player'].__init__)(isFirst, c.ARRAY)
             
         # 检查双方是否合法加载
         fail = [self.checkState(True), self.checkState(False)]
@@ -152,7 +148,7 @@ class Platform:
         def if_position(isFirst, currentRound):
             if not (self.board.getNone(True) == [] and self.board.getNone(False) == []): return True
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
-            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_position')  # 获取输出
+            self.manager(isFirst)(self.states[isFirst]['player'].output)(currentRound, self.board.copy(), '_position')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
@@ -161,14 +157,14 @@ class Platform:
             for _ in range(4):
                 if self.board.copy().move(isFirst, _): return True
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
-            self.states[isFirst]['player'].output(currentRound, self.board.copy(), '_direction')  # 获取输出
+            self.manager(isFirst)(self.states[isFirst]['player'].output)(currentRound, self.board.copy(), '_direction')  # 获取输出
             self.board.updateDecision(isFirst, ())  # 更新决策
             return False
             
         def get_position(isFirst, currentRound):
             self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
-            position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
+            position = self.manager(isFirst)(self.states[isFirst]['player'].output)(currentRound, self.board.copy(), 'position')  # 获取输出
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
             if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
@@ -179,7 +175,7 @@ class Platform:
 
         def get_direction(isFirst, currentRound):
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
-            direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
+            direction = self.manager(isFirst)(self.states[isFirst]['player'].output)(currentRound, self.board.copy(), 'direction')  # 获取输出
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
             self.change = self.board.move(isFirst, direction)  # 更新棋盘
