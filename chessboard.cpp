@@ -1,5 +1,6 @@
 #include <bitset>
 #include <iomanip>
+#include <memory>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <sstream>
@@ -66,7 +67,7 @@ struct Chessboard {
     Chessman board[4][8];
 
     // random position sequence
-    std::vector<int> array;
+    std::shared_ptr<std::vector<int>> array;
 
     std::bitset<8> occupied[4];
 
@@ -75,11 +76,7 @@ struct Chessboard {
 
   public:
     // copies given seq to this->array
-    Chessboard(std::vector<int> array) {
-
-        // this->array.resize(len(array));
-        this->array = array;
-
+    Chessboard(std::vector<int> &&array) : array(new std::vector<int>(std::move(array))) {
         for (auto y = 0; y < 4; y++) {
             for (auto x = 0; x < 8; x++) {
                 board[y][x] = Chessman{x < 4 ? left_player : right_player, 0};
@@ -126,7 +123,7 @@ struct Chessboard {
             // decisions[belong] = make_tuple();
             return false;
         }
-        int direction     = cast<int>(maybe_none);
+        int direction = cast<int>(maybe_none);
         // decisions[belong] = make_tuple(direction);
 
         auto value   = [&](int y, int x) -> unsigned char { return board[y][x].value; };
@@ -332,7 +329,7 @@ struct Chessboard {
         std::vector<std::tuple<int, int>> available;
         char spare[4]    = {0, 0, 0, 0};
         char total_spare = 0;
-        currentRound     = this->array[currentRound % this->array.size()];
+        currentRound     = this->array->at(currentRound % this->array->size());
         if (belong) {
             // 因为左玩家是低4位, 二进制的显示顺序和棋盘的左右顺序是反的
             std::bitset<8> mask(0b11110000);
@@ -408,12 +405,12 @@ struct Chessboard {
         throw std::runtime_error("unknown error");
     }
     int _getArray(int index) const {
-        return this->array.at(index);
+        return this->array->at(index);
     }
     tuple getDecision(bool belong) {
         return decisions[belong];
     }
-    void updateDecision(bool belong, tuple decision){
+    void updateDecision(bool belong, tuple decision) {
         decisions[belong] = decision;
     }
     void updateTime(bool belong, float time) {
@@ -470,9 +467,5 @@ PYBIND11_MODULE(libchessboard, m) {
         .def("getAnime", &Chessboard::getAnime)
         .def("_getArray", &Chessboard::_getArray)
         .def("_add_dbg", &Chessboard::add_dbg)
-#ifndef FOR_PYTHON37_AND_PYTHON36
         .def("__repr__", &Chessboard::__repr__);
-#else
-        .def("repr", &Chessboard::__repr__);
-#endif
 }
