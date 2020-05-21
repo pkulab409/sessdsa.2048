@@ -445,6 +445,12 @@ struct Chessboard {
     Chessboard copy() {
         return Chessboard(*this);
     }
+    object __copy__() {
+        throw std::runtime_error("Surprise, Motherfucker!!!");
+    }
+    object __deepcopy__(object memo) {
+        throw std::runtime_error("Surprise, Motherfucker!!!");
+    }
 };
 
 PYBIND11_MODULE(libchessboard, m) {
@@ -452,7 +458,6 @@ PYBIND11_MODULE(libchessboard, m) {
         .def(init<std::vector<int>>())
         .def("add", &Chessboard::add)
         .def("add", &Chessboard::add1)
-        .def("add_dbg", &Chessboard::add_dbg)
         .def("move", &Chessboard::move)
         .def("copy", &Chessboard::copy)
         .def("getBelong", &Chessboard::getBelong)
@@ -465,7 +470,7 @@ PYBIND11_MODULE(libchessboard, m) {
         .def("updateDecision", &Chessboard::updateDecision)
         .def("updateTime", &Chessboard::updateTime)
         .def("getAnime", &Chessboard::getAnime)
-        .def("_getArray", &Chessboard::_getArray)
-        .def("_add_dbg", &Chessboard::add_dbg)
+        .def("__copy__", &Chessboard::__copy__)
+        .def("__deepcopy__", &Chessboard::__deepcopy__)
         .def("__repr__", &Chessboard::__repr__);
 }
