@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Analyser</title>
+    <script>
+        (function detectSupportablity() {
+            if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+                alert('Your browser not support the application, try the latest verion of Mozila FireFox');
+            }
+        })();
+    </script>
+    <script src="./jquery.min.js"></script>
+    <style>
+        #main {
+            display: grid;
+            grid-template-columns: repeat(8, 100px);
+            grid-template-rows: repeat(4, 100px);
+            background-color: #ddd;
+            width: 800px;
+            height: 400px;
+            margin: auto;
+        }
+
+        .free {
+            opacity: 60%;
+        }
+
+        @keyframes tile_left {
+            0% {}
+
+            100% {
+                opacity: 0%;
+                transform: translate(-100px, 0px);
+            }
+        }
+
+        .belongs-to-0 {
+            background-color: cadetblue !important;
+            border: 10px solid #ddd;
+            font-size: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+        }
+
+        .belongs-to-1 {
+            background-color: blueviolet !important;
+            border: 10px solid #ddd;
+            font-size: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+        }
+
+        div p {
+            margin: auto;
+            text-align: center;
+        }
+
+        .c_button_upload {
+            margin: auto;
+            margin-top: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <div class="belongs-to-0" id="tile00" style="grid-column: 1;grid-row: 1;"></div>
+        <div class="belongs-to-0" id="tile01" style="grid-column: 1;grid-row: 2;"></div>
+        <div class="belongs-to-0" id="tile02" style="grid-column: 1;grid-row: 3;"></div>
+        <div class="belongs-to-0" id="tile03" style="grid-column: 1;grid-row: 4;"></div>
+        <div class="belongs-to-0" id="tile10" style="grid-column: 2;grid-row: 1;"></div>
+        <div class="belongs-to-0" id="tile11" style="grid-column: 2;grid-row: 2;"></div>
+        <div class="belongs-to-0" id="tile12" style="grid-column: 2;grid-row: 3;"></div>
+        <div class="belongs-to-0" id="tile13" style="grid-column: 2;grid-row: 4;"></div>
+        <div class="belongs-to-0" id="tile20" style="grid-column: 3;grid-row: 1;"></div>
+        <div class="belongs-to-0" id="tile21" style="grid-column: 3;grid-row: 2;"></div>
+        <div class="belongs-to-0" id="tile22" style="grid-column: 3;grid-row: 3;"></div>
+        <div class="belongs-to-0" id="tile23" style="grid-column: 3;grid-row: 4;"></div>
+        <div class="belongs-to-0" id="tile30" style="grid-column: 4;grid-row: 1;"></div>
+        <div class="belongs-to-0" id="tile31" style="grid-column: 4;grid-row: 2;"></div>
+        <div class="belongs-to-0" id="tile32" style="grid-column: 4;grid-row: 3;"></div>
+        <div class="belongs-to-0" id="tile33" style="grid-column: 4;grid-row: 4;"></div>
+        <div class="belongs-to-1" id="tile40" style="grid-column: 5;grid-row: 1;"></div>
+        <div class="belongs-to-1" id="tile41" style="grid-column: 5;grid-row: 2;"></div>
+        <div class="belongs-to-1" id="tile42" style="grid-column: 5;grid-row: 3;"></div>
+        <div class="belongs-to-1" id="tile43" style="grid-column: 5;grid-row: 4;"></div>
+        <div class="belongs-to-1" id="tile50" style="grid-column: 6;grid-row: 1;"></div>
+        <div class="belongs-to-1" id="tile51" style="grid-column: 6;grid-row: 2;"></div>
+        <div class="belongs-to-1" id="tile52" style="grid-column: 6;grid-row: 3;"></div>
+        <div class="belongs-to-1" id="tile53" style="grid-column: 6;grid-row: 4;"></div>
+        <div class="belongs-to-1" id="tile60" style="grid-column: 7;grid-row: 1;"></div>
+        <div class="belongs-to-1" id="tile61" style="grid-column: 7;grid-row: 2;"></div>
+        <div class="belongs-to-1" id="tile62" style="grid-column: 7;grid-row: 3;"></div>
+        <div class="belongs-to-1" id="tile63" style="grid-column: 7;grid-row: 4;"></div>
+        <div class="belongs-to-1" id="tile70" style="grid-column: 8;grid-row: 1;"></div>
+        <div class="belongs-to-1" id="tile71" style="grid-column: 8;grid-row: 2;"></div>
+        <div class="belongs-to-1" id="tile72" style="grid-column: 8;grid-row: 3;"></div>
+        <div class="belongs-to-1" id="tile73" style="grid-column: 8;grid-row: 4;"></div>
+    </div>
+    <div id="path" style="display: grid;grid-template-columns: repeat(4, 1fr);width: 800px;margin: auto;">
+        <div id="left-path" style="grid-column: 1;text-align: left;"></div>
+        <div id="right-path" style="grid-column: 4;text-align: right;"></div>
+    </div>
+    <div id="current" style="text-align: center;"></div>
+    <div id="comment" style="text-align: center;"></div>
+    <div id="events" style="text-align: center;"></div>
+    <script>
+
+        var record = null;
+        var record_splited = null;
+        var board_list = [];
+        var current_frame = 0;
+        var vsc = acquireVsCodeApi();
+
+        function on_get_record_content(event) {
+            if (event.data.command === "reload") {
+                record = event.data.record.replace(/\r/g, "");
+                console.log(record);
+                process_text();
+                render(current_frame = 0);
+            }
+            if (event.data.command === "go") {
+                go();
+            }
+            if (event.data.command === "back") {
+                back();
+            }
+            if (event.data.command === "jump") {
+                current_frame = event.data.frame;
+                render(current_frame);
+            }
+        }
+
+        window.addEventListener('message', on_get_record_content);
+
+        function process_text() {
+            record_splited = record.split("&");
+            var comment = [];
+            var current_back = null;
+            board_list = [];
+            record_splited.forEach(function (element, index) {
+                if (index == 0) {
+                    var s = element.split("\n");
+                    document.getElementById("left-path").innerText = s[0];
+                    document.getElementById("right-path").innerText = s[1];
+                    return;
+                }
+                if (element[0] === "p") {
+                    var s = element.split(":\n");
+                    current_back = board_list.length;
+                    board_list.push({
+                        "board": s[1],
+                        "comment": comment,
+                        "round": Number(s[0].slice(1)),
+                        "events": []
+                    });
+                    comment = [];
+                    return;
+                }
+                if (element[0] === "d") {
+                    comment.push(element.split(":")[1]);
+                    return;
+                }
+                if (element[0] === "e") {
+                    board_list[current_back].events.push(element.split(":")[1]);
+                    return;
+                }
+            });
+        }
+
+        function render(frame) {
+            var current_board = board_list[frame];
+            var board = current_board.board;
+            var comment = current_board.comment;
+            var events = current_board.events;
+            console.log(frame);
+            console.log(board);
+            $("#comment").empty();
+            comment.forEach(function (value) {
+                $("#comment").append("<p>" + value + "</p>");
+            });
+            $("#events").empty();
+            events.forEach(function (value) {
+                $("#events").append("<p>" + value + "</p>");
+            });
+            document.getElementById("current").innerText = `Current Round: ${current_board.round}`;
+            board.split("\n").forEach((value, index) => {
+                if (index >= 4) { return; }
+                value.split(" ").forEach((val, ind) => {
+                    if (ind >= 8) { return; }
+                    var style = "belongs-to-0";
+                    if (val[0] == "-") {
+                        style = "belongs-to-1";
+                    }
+                    var v = "<p></p>";
+                    if (Number(val.slice(1)) != 0) {
+                        v = "<p>" + String(Math.pow(2, Number(val.slice(1)))) + "</p>";
+                    } else {
+                        style += " free";
+                    }
+                    var x = ind;
+                    var y = index;
+                    var id = "tile" + String(x) + String(y);
+                    try {
+                        document.getElementById(id).innerHTML = v;
+                        document.getElementById(id).className = style;
+                    } catch (error) {
+                        console.log(x, y, id, val, value, frame, board);
+                    }
+                });
+            });
+        }
+        function back() {
+            if (current_frame > 0) {
+                current_frame -= 1;
+                render(current_frame);
+            }
+        }
+        function go() {
+            if (current_frame < board_list.length - 1) {
+                current_frame += 1;
+                render(current_frame);
+            }
+        }
+        function key_listener(event) {
+            var e = e || window.event;
+            console.log(e.key);
+            if (e.key == "[") {
+                back();
+                return;
+            }
+            if (e.key == "]") {
+                go();
+                return;
+            }
+        }
+        window.addEventListener("keydown", key_listener);
+    </script>
+</body>
