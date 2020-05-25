@@ -287,6 +287,7 @@ main(
 ### D. 数据协议
 
 1. result
+
     `result = {(i, j): [platform1, platform2, ... ], ... }`有序数对 (i, j) 表示 playerList 中下标为 i, j 的模块分别作为先后手。一个数对对应的值为多轮比赛的平台对象列表(长度为REPEAT)。
 2. 全部比赛统计报告
     
@@ -529,9 +530,16 @@ main(
             
             返回:若无决策, 返回`tuple()`. 若为决定合并方向, 为`tuple(direction)`. 若为决定下棋位置, 为`(int, int)`.
 
-        14. `getAnime(self)` 给出上一次棋盘合并时棋子的移动信息. 用户无需调用.
+        14. `updateDecision(self, belong, decision)` 更新用户AI的决策信息. 用户无需调用.
+
+            参数:belong某方，decision决策
+
+        15. `getAnime(self)` 给出上一次棋盘合并时棋子的移动信息. 用户无需调用.
         
             **undocumented** 
+        16. `getRaw(self)` 给出二维列表形式的棋盘
+        
+            返回:一个4*8的二维list类型, 为`[[(value, belong) for column in range(8)] for row in range(4)]`, 这里 value 和 belong 分别为该位置的级别和归属。
 
    4. 复盘可视化analyser
 
@@ -591,3 +599,5 @@ main(
 2020.5.11 @HamiltonHuaji 加入chessboard类四个新接口的介绍
 
 2020.5.14 @SophieARG 修改player的output接口，增加无合法输出的mode
+
+2020.5.25 @SophieARG 增加chessboard类的getRaw接口介绍
