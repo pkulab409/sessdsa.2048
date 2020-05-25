@@ -41,13 +41,11 @@ try:
 +03 +01 +03 +05 -04 -05 -02 -02
 +01 +04 +02 +01 -02 -01 -03 -02'''
     c.move(False, 3)
-    print(repr(c))
     assert repr(c) == '''\
 +01 +03 +01 +00 -00 -00 -01 -02
 +02 +06 -05 +00 -02 -03 -06 -01
 +03 +01 +03 +05 -00 -04 -05 -03
 +01 +04 +02 +01 -02 -01 -03 -02'''
-
     assert c.getBelong((0, 0)) == True
     assert c.getBelong((0, 3)) == True
     assert c.getBelong((1, 2)) == False
@@ -77,3 +75,14 @@ try:
 +01 +04 +02 +01 -02 -01 -03 -02'''
 except Exception as e:
     print(repr(c), e)
+print("pass")
+try:
+    import copy
+    copy.copy(c)
+except Exception as e:
+    print("pass")
+
+try:
+    c.getValue((114, 514))
+except Exception as e:
+    print("pass")

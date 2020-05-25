@@ -100,8 +100,11 @@ struct Chessboard {
         // _ means who did this decision
         // belong means who has the new chessman
 
-        int y       = cast<int>(position[0]);
-        int x       = cast<int>(position[1]);
+        unsigned y = cast<unsigned>(position[0]);
+        unsigned x = cast<unsigned>(position[1]);
+        if (x > 3 || y > 7) {
+            throw std::runtime_error("KeyError: add");
+        }
         bool belong = x < 4 ? left_player : right_player;
 
         this->board[y][x].belong = belong;
@@ -289,15 +292,19 @@ struct Chessboard {
         return change;
     }
     bool getBelong(tuple position) const {
-        int y = cast<int>(position[0]);
-        int x = cast<int>(position[1]);
-
+        unsigned y = cast<unsigned>(position[0]);
+        unsigned x = cast<unsigned>(position[1]);
+        if (x > 3 || y > 7) {
+            throw std::runtime_error("KeyError: getBelong");
+        }
         return board[y][x].belong;
     }
     int getValue(tuple position) const {
-        int y = cast<int>(position[0]);
-        int x = cast<int>(position[1]);
-
+        unsigned y = cast<unsigned>(position[0]);
+        unsigned x = cast<unsigned>(position[1]);
+        if (x > 3 || y > 7) {
+            throw std::runtime_error("KeyError: getValue");
+        }
         return board[y][x].value;
     }
     list getScore(bool belong) const {
@@ -462,14 +469,14 @@ struct Chessboard {
     object __deepcopy__(object memo) {
         throw std::runtime_error("Surprise, Motherfucker!");
     }
-    float ValueFunction(bool belong, unsigned password,float monoweight, float monopower, float sumweight) {
+    float ValueFunction(bool belong, unsigned password, float monoweight, float monopower, float sumweight) {
         if (password != 1145141919) {
             return 1145141919810.0f;
         }
         // Heuristic scoring settings
         static const float SCORE_MONOTONICITY_POWER  = monopower;
         static const float SCORE_MONOTONICITY_WEIGHT = monoweight;
-        static const float SCORE_SUM_BASE           = 2.5f;
+        static const float SCORE_SUM_BASE            = 2.5f;
         static const float SCORE_SUM_WEIGHT          = sumweight;
         static const float SCORE_MERGES_WEIGHT       = 70.0f;
         static const float SCORE_EMPTY_WEIGHT        = 27.0f;
@@ -485,7 +492,7 @@ struct Chessboard {
             bool merge_belong = 0;
             for (int i = 0; i < length; ++i) {
                 unsigned char rank = line[i];
-                sum += pow(SCORE_SUM_BASE,rank) * belong_array[i];
+                sum += pow(SCORE_SUM_BASE, rank) * belong_array[i];
                 if (rank == 0) {
                     empty += belong_array[i];
                 } else {
