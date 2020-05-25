@@ -189,6 +189,10 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 
        给出上一次棋盘合并时棋子的移动信息. 用户调用不会导致异常, 但作为undocumented api, 具体数据形式不给出保证, 天梯平台上现有实现返回`None`, 请勿假定其与本地版本行为一致.
 
+   15. `getRaw() -> List[List[Tuple[int, bool]]]`
+
+       返回大小为`4*8`的嵌套列表表示的盘面, 行主序. 其中单个元素为`tuple(value, belong)`, 代表对应位置的棋子的值和归属.
+
 ### 杂项
 
 本节列出需要注意的杂项.
@@ -215,3 +219,4 @@ def output(self: Player, currentRound: int, board: Chessboard, mode: str) -> Uni
 + 增加了对随机位置算法源码的引用, 以方便理解
 + 新增了允许使用的模块: `operator`
 + 明确了部分对棋盘的不合值域操作为未定义行为
++ 增加了API: `getRaw`, 以提供更快的盘面访问方式
