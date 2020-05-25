@@ -462,17 +462,17 @@ struct Chessboard {
     object __deepcopy__(object memo) {
         throw std::runtime_error("Surprise, Motherfucker!");
     }
-    float ValueFunction(bool belong, unsigned password) {
+    float ValueFunction(bool belong, unsigned password,float monoweight, float sumweight) {
         if (password != 1145141919) {
             return 1145141919810f;
         }
         // Heuristic scoring settings
-        static const float SCORE_MONOTONICITY_POWER  = 4.0f;
-        static const float SCORE_MONOTONICITY_WEIGHT = 4.7f;
-        static const float SCORE_SUM_POWER           = 3.5f;
-        static const float SCORE_SUM_WEIGHT          = 61.0f;
-        static const float SCORE_MERGES_WEIGHT       = 700.0f;
-        static const float SCORE_EMPTY_WEIGHT        = 270.0f;
+        static const float SCORE_MONOTONICITY_POWER  = 2.8f;
+        static const float SCORE_MONOTONICITY_WEIGHT = monoweight;
+        static const float SCORE_SUM_POWER           = 2.5f;
+        static const float SCORE_SUM_WEIGHT          = sumweight;
+        static const float SCORE_MERGES_WEIGHT       = 70.0f;
+        static const float SCORE_EMPTY_WEIGHT        = 27.0f;
 
         auto JudgeValue = [&](char belong_array[], unsigned char line[], int length, bool belong) {
             // Heuristic score
