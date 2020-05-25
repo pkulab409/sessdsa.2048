@@ -462,6 +462,97 @@ struct Chessboard {
     object __deepcopy__(object memo) {
         throw std::runtime_error("Surprise, Motherfucker!");
     }
+    float ValueFunction(bool belong, unsigned password) {
+        if (password != 1145141919) {
+            return 1145141919810f;
+        }
+        // Heuristic scoring settings
+        static const float SCORE_MONOTONICITY_POWER  = 4.0f;
+        static const float SCORE_MONOTONICITY_WEIGHT = 4.7f;
+        static const float SCORE_SUM_POWER           = 3.5f;
+        static const float SCORE_SUM_WEIGHT          = 61.0f;
+        static const float SCORE_MERGES_WEIGHT       = 700.0f;
+        static const float SCORE_EMPTY_WEIGHT        = 270.0f;
+
+        auto JudgeValue = [&](char belong_array[], unsigned char line[], int length, bool belong) {
+            // Heuristic score
+            float sum         = 0;
+            int empty         = 0;
+            int merges        = 0;
+            int prev          = 0;
+            int counter       = 0;
+            bool prev_belong  = 0;
+            bool merge_belong = 0;
+            for (int i = 0; i < length; ++i) {
+                unsigned char rank = line[i];
+                sum += pow(rank, SCORE_SUM_POWER) * belong_array[i];
+                if (rank == 0) {
+                    empty += belong_array[i];
+                } else {
+                    if (prev == rank) {
+                        counter++;
+                    } else if (counter > 0) {
+                        if (prev_belong == belong_array[i]) {
+                            merge_belong = prev_belong;
+                        } else {
+                            merge_belong = belong;
+                        }
+                        merges += (1 + counter) * merge_belong;
+                        counter = 0;
+                    }
+                    prev        = rank;
+                    prev_belong = belong_array[i];
+                }
+            }
+            if (prev_belong == belong_array[length - 1]) {
+                merge_belong = prev_belong;
+            } else {
+                merge_belong = belong;
+            }
+            if (counter > 0) {
+                merges += (1 + counter) * merge_belong;
+            }
+
+            float monotonicity_left  = 0;
+            float monotonicity_right = 0;
+            for (int i = 1; i < length; ++i) {
+                if (line[i - 1] > line[i] && belong_array[i - 1] == belong_array[i]) {
+                    monotonicity_left += (pow(line[i - 1], SCORE_MONOTONICITY_POWER) - pow(line[i], SCORE_MONOTONICITY_POWER)) * belong_array[i];
+                } else if (belong_array[i - 1] == belong_array[i]) {
+                    monotonicity_right += (pow(line[i], SCORE_MONOTONICITY_POWER) - pow(line[i - 1], SCORE_MONOTONICITY_POWER)) * belong_array[i];
+                }
+            }
+            return SCORE_EMPTY_WEIGHT * empty + SCORE_MERGES_WEIGHT * merges - SCORE_MONOTONICITY_WEIGHT * std::min(monotonicity_left, monotonicity_right) + SCORE_SUM_WEIGHT * sum;
+        };
+        float advanced_value = 0.0f;
+        for (auto y = 0; y < 4; y++) {
+            unsigned char line[8];
+            char belong_array[8];
+            for (auto x = 0; x < 8; x++) {
+                line[x] = board[y][x].value;
+                if (board[y][x].belong) {
+                    belong_array[x] = 1;
+                } else {
+                    belong_array[x] = -1;
+                }
+            }
+            advanced_value += JudgeValue(belong_array, line, 8, belong);
+        }
+        for (auto y = 0; y < 8; y++) {
+            unsigned char line[4];
+            char belong_array[4];
+            for (auto x = 0; x < 4; x++) {
+                line[x] = board[x][y].value;
+                if (board[x][y].belong) {
+                    belong_array[x] = 1;
+                } else {
+                    belong_array[x] = -1;
+                }
+            }
+            advanced_value += JudgeValue(belong_array, line, 4, belong);
+        }
+        return advanced_value;
+    }
 };
 
 PYBIND11_MODULE(libchessboard, m) {
@@ -483,6 +574,7 @@ PYBIND11_MODULE(libchessboard, m) {
         .def("updateTime", &Chessboard::updateTime)
         .def("getAnime", &Chessboard::getAnime)
         .def("getRaw", &Chessboard::getRaw)
+        .def("ValueFunction", &Chessboard::ValueFunction)
         .def("__copy__", &Chessboard::__copy__)
         .def("__deepcopy__", &Chessboard::__deepcopy__)
         .def("__repr__", &Chessboard::__repr__);
