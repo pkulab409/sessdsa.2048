@@ -1,3 +1,4 @@
+#include <array>
 #include <bitset>
 #include <iomanip>
 #include <memory>
@@ -64,7 +65,7 @@ struct Chessman {
 
 struct Chessboard {
   private:
-    Chessman board[4][8];
+    std::array<std::array<Chessman, 8>, 4> board;
 
     // random position sequence
     std::shared_ptr<std::vector<int>> array;
@@ -100,15 +101,12 @@ struct Chessboard {
         // _ means who did this decision
         // belong means who has the new chessman
 
-        unsigned y = cast<unsigned>(position[0]);
-        unsigned x = cast<unsigned>(position[1]);
-        if (x > 3 || y > 7) {
-            throw std::runtime_error("KeyError: add");
-        }
+        int y       = cast<int>(position[0]);
+        int x       = cast<int>(position[1]);
         bool belong = x < 4 ? left_player : right_player;
 
-        this->board[y][x].belong = belong;
-        this->board[y][x].value  = value;
+        this->board.at(y).at(x).belong = belong;
+        this->board.at(y).at(x).value  = value;
 
         // decisions[_] = position;
 
@@ -292,20 +290,14 @@ struct Chessboard {
         return change;
     }
     bool getBelong(tuple position) const {
-        unsigned y = cast<unsigned>(position[0]);
-        unsigned x = cast<unsigned>(position[1]);
-        if (x > 3 || y > 7) {
-            throw std::runtime_error("KeyError: getBelong");
-        }
-        return board[y][x].belong;
+        int y = cast<int>(position[0]);
+        int x = cast<int>(position[1]);
+        return this->board.at(y).at(x).belong;
     }
     int getValue(tuple position) const {
-        unsigned y = cast<unsigned>(position[0]);
-        unsigned x = cast<unsigned>(position[1]);
-        if (x > 3 || y > 7) {
-            throw std::runtime_error("KeyError: getValue");
-        }
-        return board[y][x].value;
+        int y = cast<int>(position[0]);
+        int x = cast<int>(position[1]);
+        return this->board.at(y).at(x).value;
     }
     list getScore(bool belong) const {
         list result;
