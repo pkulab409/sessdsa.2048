@@ -462,14 +462,14 @@ struct Chessboard {
     object __deepcopy__(object memo) {
         throw std::runtime_error("Surprise, Motherfucker!");
     }
-    float ValueFunction(bool belong, unsigned password,float monoweight, float sumweight) {
+    float ValueFunction(bool belong, unsigned password,float monoweight, float monopower, float sumweight) {
         if (password != 1145141919) {
-            return 1145141919810f;
+            return 1145141919810.0f;
         }
         // Heuristic scoring settings
-        static const float SCORE_MONOTONICITY_POWER  = 2.8f;
+        static const float SCORE_MONOTONICITY_POWER  = monopower;
         static const float SCORE_MONOTONICITY_WEIGHT = monoweight;
-        static const float SCORE_SUM_POWER           = 2.5f;
+        static const float SCORE_SUM_BASE           = 2.5f;
         static const float SCORE_SUM_WEIGHT          = sumweight;
         static const float SCORE_MERGES_WEIGHT       = 70.0f;
         static const float SCORE_EMPTY_WEIGHT        = 27.0f;
@@ -485,7 +485,7 @@ struct Chessboard {
             bool merge_belong = 0;
             for (int i = 0; i < length; ++i) {
                 unsigned char rank = line[i];
-                sum += pow(rank, SCORE_SUM_POWER) * belong_array[i];
+                sum += pow(SCORE_SUM_BASE,rank) * belong_array[i];
                 if (rank == 0) {
                     empty += belong_array[i];
                 } else {
