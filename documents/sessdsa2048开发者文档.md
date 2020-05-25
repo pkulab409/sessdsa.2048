@@ -287,6 +287,7 @@ main(
 ### D. 数据协议
 
 1. result
+
     `result = {(i, j): [platform1, platform2, ... ], ... }`有序数对 (i, j) 表示 playerList 中下标为 i, j 的模块分别作为先后手。一个数对对应的值为多轮比赛的平台对象列表(长度为REPEAT)。
 2. 全部比赛统计报告
     
@@ -598,3 +599,5 @@ main(
 2020.5.11 @HamiltonHuaji 加入chessboard类四个新接口的介绍
 
 2020.5.14 @SophieARG 修改player的output接口，增加无合法输出的mode
+
+2020.5.25 @SophieARG 增加chessboard类的getRaw接口介绍
