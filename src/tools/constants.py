@@ -201,6 +201,13 @@ class Chessboard:
         new.anime = self.anime.copy()
         return new
 
+    def getRaw(self):
+        '''
+        -> 返回一个代表棋盘的二维列表, 元素为(value, belong)
+        '''
+        return [[(self.getValue((row, column)), self.getBelong((row, column)))
+                 for column in range(COLUMNS)] for row in range(ROWS)]
+
     def __repr__(self):
         '''
         -> 打印棋盘, + 代表先手, - 代表后手
