@@ -211,6 +211,14 @@ class Chessboard:
         new.time = self.time.copy()
         new.anime = self.anime.copy()
         return new
+    
+    def getRaw(self):
+        '''
+        -> 返回一个代表棋盘的二维列表, 元素为(value, belong)
+        '''
+        return [[(self.getValue((row, column)), self.getBelong((row, column)))
+
+                 for column in range(COLUMNS)] for row in range(ROWS)]
 
     def __repr__(self):
         '''
@@ -806,7 +814,13 @@ class Platform:
             self.next = self.board.getNext(isFirst, currentRound)  # 按照随机序列得到下一个位置
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
             position = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'position')  # 获取输出
-            if self.checkState(isFirst): return True  # 判断运行状态
+            if self.checkState(isFirst):
+                x = QWidget()
+                if self.states[isFirst]['time'] >= self.maxtime:  # 超时
+                    QMessageBox.information(x, "提示", "ai超时", QMessageBox.Yes)
+                if self.states[isFirst]['error']:  # 抛出异常
+                    QMessageBox.information(x, "提示", "ai报错\n" + self.states[isFirst]['exception'] , QMessageBox.Yes)
+                return True  # 判断运行状态
             self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
             if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
             self.board.add(isFirst, position)  # 更新棋盘
@@ -818,7 +832,13 @@ class Platform:
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
             direction = self.states[isFirst]['player'].output(currentRound, self.board.copy(), 'direction')  # 获取输出
             statelabel.setText(("player1" if isFirst else "player2") + " choose direction " + str(direction))
-            if self.checkState(isFirst): return True  # 判断运行状态
+            if self.checkState(isFirst):
+                x = QWidget()
+                if self.states[isFirst]['time'] >= self.maxtime:  # 超时
+                    QMessageBox.information(x, "提示", "ai超时", QMessageBox.Yes)
+                if self.states[isFirst]['error']:  # 抛出异常
+                    QMessageBox.information(x, "提示", "ai报错\n" + self.states[isFirst]['exception'] , QMessageBox.Yes)
+                return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
             self.change = self.board.move(isFirst, direction)  # 更新棋盘
             self.board.updateDecision(isFirst, (direction,))  # 更新决策
@@ -1941,7 +1961,7 @@ def get_log_from_net(download = False):
         os.mkdir(dirname)
         for i in range(int(items["rounds"])):
             r = requests.get(url + str(i) + "/", headers=headers)
-            items = json.loads(r.text.split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
+            items = json.loads(r.text.replace("\'", "\"").split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
             f = open(dirname + "/" + str(i) + ".txt", "w")
             f.write(items["time"])
             for i in items["logs"]:
@@ -1962,7 +1982,7 @@ def get_log_from_net(download = False):
         return
     num = QInputDialog.getInt(x,'加载记录','您想查看哪一场比赛: ', 0, 0, int(items["rounds"]) - 1, 1)[0]
     r = requests.get(url + str(num) + "/", headers=headers)
-    items = json.loads(r.text.split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
+    items = json.loads(r.text.replace("\'", "\"").split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
     log = [items["time"]]
     for i in items["logs"]:
         log.append("d" + str(i['D']['r']) + ":player " + str(i['D']['p']) + " set " + i['D']['d'][0] + " " + str(i['D']['d'][1]))
@@ -1972,7 +1992,7 @@ def get_log_from_net(download = False):
     for i in items["logs"][-1]["E"]:
         log.append("e:" + i)
     log.append("e:cause" + items["cause"])
-    log.append("e:winner" + items["winner"])
+    log.append("e:winner" + str(items["winner"]))
     try:
         log.append("e:error" + items["error"])
     except:
