@@ -218,7 +218,7 @@ class Chessboard:
         '''
         return [[(self.getValue((row, column)), self.getBelong((row, column)))
 
-                 for column in range(COLUMNS)] for row in range(ROWS)]
+                 for column in range(c.COLUMNS)] for row in range(c.ROWS)]
 
     def __repr__(self):
         '''
