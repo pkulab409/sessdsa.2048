@@ -166,7 +166,7 @@ class Platform:
             self.board.updateTime(isFirst, self.maxtime - self.states[isFirst]['time'])  # 更新剩余时间
             position = self.manager(isFirst)(self.states[isFirst]['player'].output)(currentRound, self.board.copy(), 'position')  # 获取输出
             if self.checkState(isFirst): return True  # 判断运行状态
-            self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], str(position)))  # 记录
+            self.log.add('&d%d:%s set position %s' % (currentRound, c.PLAYERS[isFirst], c.POSITIONS(position)))  # 记录
             if self.checkViolate(isFirst, 'position', position): return True  # 判断是否违规
             self.board.add(isFirst, position)  # 更新棋盘
             self.board.updateDecision(isFirst, position)  # 更新决策
@@ -178,7 +178,7 @@ class Platform:
             direction = self.manager(isFirst)(self.states[isFirst]['player'].output)(currentRound, self.board.copy(), 'direction')  # 获取输出
             if self.checkState(isFirst): return True  # 判断运行状态
             self.log.add('&d%d:%s set direction %s' % (currentRound, c.PLAYERS[isFirst], c.DIRECTIONS[direction]))  # 记录
-            self.change = self.board.move(isFirst, direction)  # 更新棋盘
+            if direction in range(4): self.change = self.board.move(isFirst, direction)  # 更新棋盘
             self.board.updateDecision(isFirst, (direction,))  # 更新决策
             if self.checkViolate(isFirst, 'direction', direction): return True  # 判断是否违规
             self.log.add('&p%d:\n' % currentRound + self.board.__repr__())  # 记录
