@@ -18,9 +18,11 @@ class _DIRECTIONS(list):
         super().__init__(['up', 'down', 'left', 'right'])
     def __getitem__(self, key):
         return super().__getitem__(key) if key in range(4) else 'unknown'
-DIRECTIONS = _DIRECTIONS()      # 换算方向的字典
+DIRECTIONS = _DIRECTIONS()      # 换算方向
 
-PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称的字典
+POSITIONS = lambda position: str(position) if isinstance(position, tuple) and len(position) == 2 else 'unknown'  # 换算位置
+
+PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称
 
 PICTURES = ['nanami', 'ayase']  # 游戏图片名称
 LENGTH = 100                    # 格子的边长
@@ -91,7 +93,6 @@ class Chessboard:
             if direction == 1: return sorted(chessmanList, key = lambda x:x[0], reverse = True )
             if direction == 2: return sorted(chessmanList, key = lambda x:x[1], reverse = False)
             if direction == 3: return sorted(chessmanList, key = lambda x:x[1], reverse = True )
-            return []
         def move_one(chessman, eaten):  # 移动一个棋子并返回是否移动, eaten是已经被吃过的棋子位置
             nowPosition = chessman.position
             nextPosition = theNext(nowPosition)
