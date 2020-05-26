@@ -20,7 +20,8 @@ class _DIRECTIONS(list):
         return super().__getitem__(key) if key in range(4) else 'unknown'
 DIRECTIONS = _DIRECTIONS()      # 换算方向
 
-POSITIONS = lambda position: str(position) if isinstance(position, tuple) and len(position) == 2 and position[0] in range(ROWS) and position[1] in range(COLUMNS) else 'unknown'  # 换算位置
+POSITIONS = lambda position: str(position) if isinstance(position, tuple) and len(position) == 2 \
+            and position[0] in range(ROWS) and position[1] in range(COLUMNS) else 'unknown'  # 换算位置
 
 PLAYERS = {True: 'player 0', False: 'player 1'}  # 换算先后手名称
 
