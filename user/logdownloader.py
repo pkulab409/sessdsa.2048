@@ -23,7 +23,18 @@ def get_log_from_net():
         try:
             url = input()
             if url == '':
+                print("地址无效")
                 return
+            if not url.startswith("http"):
+                url = "http://" + url
+            if not url.startswith("http://162.105.17.143:9580/match/"):
+                print("地址无效")
+                return
+            if not url.endswith("match/"):
+                if url[-3] == "/":
+                    url = url[:-2]
+                elif url[-4] == "/":
+                    url = url[:-3]
             r = requests.get(url, headers=headers)
         except:
             continue
@@ -41,12 +52,12 @@ def get_log_from_net():
         break
     for i in range(int(items["rounds"])):
         r = requests.get(url + str(i) + "/", headers=headers)
-        print(len(r.text.replace("\'", "\"").split('<div id="record_receiver" style="display:none">')[1].split("</div>")))
+        print(i)
         items = json.loads(r.text.replace("\'", "\"").split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
         f = open(dirname + "/" + str(i) + ".txt", "w")
         f.write(items["time"])
         for i in items["logs"]:
-            f.write("&d" + str(i['D']['r']) + ":player " + str(i['D']['p']) + " set " + i['D']['d'][0] + " " + str(i['D']['d'][1]))
+            f.write("&d" + str(i['D']['r']) + ":player " + str(i['D']['p']) + " set " + i['D']['d'][0] + " " + str(i['D']['d'][1]) + "\n")
             f.write("&p" + str(i['D']['r']) + ":\n" + '\n'.join([' '.join([('+' if i['P'][row][column] > 0 or (i['P'][row][column] == 0 and column < 8 / 2) else '-')\
                                  + str(abs(i['P'][row][column])).zfill(2) \
                                  for column in range(8)]) for row in range(4)]))
