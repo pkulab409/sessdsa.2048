@@ -55,7 +55,7 @@ def get_log_from_net():
         print(i)
         items = json.loads(r.text.replace("\'", "\"").split('<div id="record_receiver" style="display:none">')[1].split("</div>")[0].replace("&quot;", "\""))
         f = open(dirname + "/" + str(i) + ".txt", "w")
-        f.write(items["time"])
+        f.write(repr(items["time"]))
         for i in items["logs"]:
             f.write("&d" + str(i['D']['r']) + ":player " + str(i['D']['p']) + " set " + i['D']['d'][0] + " " + str(i['D']['d'][1]) + "\n")
             f.write("&p" + str(i['D']['r']) + ":\n" + '\n'.join([' '.join([('+' if i['P'][row][column] > 0 or (i['P'][row][column] == 0 and column < 8 / 2) else '-')\
