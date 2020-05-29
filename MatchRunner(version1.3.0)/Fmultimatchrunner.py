@@ -15,6 +15,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 import singlematchrunner as runner
 import information as inf
 import constants as c
+import livequeues as live
 def mkdir(path):
         folder=os.path.exists(path)
         if folder==False:
@@ -25,7 +26,7 @@ def mkdir(path):
                 path=path[0:-1]+str(int(path[-1])+1)
             os.makedirs(path)
         return path
-def F19(livequeue=None):
+def F19(livequeue=None,finallivequeue=None):
     print("""===========================================================================""")
     fileList = os.listdir("F19players")
     if fileList[-1]=="__pycache__":
@@ -175,7 +176,7 @@ def F19(livequeue=None):
             sys.exit(0)
         s=input("Please input F19 final first to start match F19 final : ")
     path=mkdir('F19 final')
-    winnerF19=runner.main(nextstage3,path+"/"+nextstage3[0][11:-3]+" "+"vs"+" "+nextstage3[1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
+    winnerF19=runner.main(nextstage3,path+"/"+nextstage3[0][11:-3]+" "+"vs"+" "+nextstage3[1][11:-3],finallivequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
     F19=winnerF19
     print(winnerF19) 
     f = open(path+'/'+"winners F19 final.txt", 'w')
@@ -197,7 +198,7 @@ def F19(livequeue=None):
                     second.append(inf.information[nextstage3[i][11:-3]])
     return [F19,second,allthirds]
 if __name__ == '__main__':
-    s=F19(None)
+    s=F19(None,live.queues[0])
     with open("F19results.txt","w") as f:
         f.write(s[0]+"\n")
         f.write(s[1][0]+"\n")
