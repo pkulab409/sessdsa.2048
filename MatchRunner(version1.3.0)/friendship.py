@@ -43,7 +43,7 @@ def friendship(livequeue=None):
             os.makedirs(path)
         return path
     
-   print( """==========================================================================""")
+    print( """==========================================================================""")
     ####Friendship####
     s=input("Please input all final to start match all final : ")
     while s!= "all final":
