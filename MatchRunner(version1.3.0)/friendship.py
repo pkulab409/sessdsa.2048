@@ -10,6 +10,7 @@ import os
 import singlematchrunner as runner
 import constants as c
 import information as inf
+import livequeues as live
 
 
 def read_txt(input_dir):#
@@ -42,7 +43,7 @@ def friendship(livequeue=None):
             os.makedirs(path)
         return path
     
-    """=========================================================================="""
+   print( """==========================================================================""")
     ####Friendship####
     s=input("Please input all final to start match all final : ")
     while s!= "all final":
@@ -51,7 +52,7 @@ def friendship(livequeue=None):
         s=input("Please input all final to start match all final : ")
     finalplayerlist=[NwinnerN19,FwinnerF19]
     path=mkdir('all final')
-    winnerfinal=runner.main(finalplayerlist,path+"/"+" "+NwinnerN19[11:-3]+"vs"+" "+FwinnerF19[11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
+    winnerfinal=runner.main(finalplayerlist,path+"/"+" "+NwinnerN19[11:-3]+"vs"+" "+FwinnerF19[11:-3],live.queues[2],True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
     print(winnerfinal)
     f = open(path+'/'+"all final.txt", 'w')
     f.write("all final winners:"+"\n")
@@ -64,7 +65,7 @@ def friendship(livequeue=None):
             break
         else:
             s=input("是否显示总冠军小组详细信息 (Yes or No,输入No进入颁奖) : ")
-    """=============================================================================="""
+    print("""==============================================================================""")
     ###比赛冠亚季军汇报###
     s=input("是否输入命令汇报比赛冠亚季军结果 (Yes or No) : ")
     while s!="No":
