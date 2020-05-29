@@ -13,7 +13,8 @@ from multiprocessing.dummy import Pool as ThreadPool
 import singlematchrunner as runner
 import information as inf
 import constants as c
-def N19(livequeue=None):
+import livequeues as live
+def N19(livequeue=None,finallivequeue=None):
     def mkdir(path):
         folder=os.path.exists(path)
         if folder==False:
@@ -148,7 +149,7 @@ def N19(livequeue=None):
             sys.exit(0)
         s=input("Please input N19 final to start match N19 final : ") 
     path=mkdir('N19 final')
-    winnerN19=runner.main(nextstageN3,path+"/"+nextstageN3[0][11:-3]+" "+"vs"+" "+nextstageN3[1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
+    winnerN19=runner.main(nextstageN3,path+"/"+nextstageN3[0][11:-3]+" "+"vs"+" "+nextstageN3[1][11:-3],finallivequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
     N19=winnerN19
     print(winnerN19) 
     f = open(path+'/'+"winners N19 final.txt", 'w')
@@ -169,7 +170,7 @@ def N19(livequeue=None):
     print("""==========================================================================""")
     return [N19,inf.information[second[0][11:-3]],inf.information[third[11:-3]]]
 if __name__ == '__main__':
-    s=N19(None)  
+    s=N19(None,live.queues[1])  
     with open("N19results.txt","w") as f:
         f.write(s[0]+"\n")
         f.write(s[1]+"\n")
