@@ -91,4 +91,4 @@ def friendship(livequeue=None):
             s=input("是否输入 Report 命令开始汇报比赛冠亚季军结果 (Yes or No,输入No结束比赛) : ")
     print("比赛结束!")
 
-friendship(None)
+friendship(live.queues[2])
