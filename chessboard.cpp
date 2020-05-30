@@ -328,7 +328,7 @@ struct Chessboard {
         std::vector<std::tuple<int, int>> available;
         char spare[4]    = {0, 0, 0, 0};
         char total_spare = 0;
-        currentRound     = this->array->at(currentRound % this->array->size());
+        currentRound     = this->array->at(currentRound);
         if (belong) {
             // 因为左玩家是低4位, 二进制的显示顺序和棋盘的左右顺序是反的
             std::bitset<8> mask(0b11110000);
