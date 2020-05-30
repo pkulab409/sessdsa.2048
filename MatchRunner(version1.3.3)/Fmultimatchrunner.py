@@ -36,8 +36,8 @@ def newmain(args):
 def F19(livequeue=None,finallivequeue=None):
     print("""===================================F19组比赛===================================""")
     fileList = os.listdir("F19players")
-    if fileList[-1]=="__pycache__":
-        fileList.pop()
+    if "__pycache__" in fileList:
+        fileList.remove("__pycache__")
     ####F19 first比赛####
     f = Figlet()
     print(f.renderText("             2 0 4 8     F19"))
