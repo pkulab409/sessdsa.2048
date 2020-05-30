@@ -2,8 +2,8 @@ def get_log_from_net():
     import requests
     import json
 
-    token = "LL2GJWbNopjx7Bmw1WsPZihBY3eLyO1S0FAQaPW7ecIxymBDIGnhSXUfmTqQVPUh"
-    sessionid = "wa7x7wx02elotmi2o9y173zk64x22zya"
+    token = "6nrjaSIVIT89niKBsRP396gO66GHRDw1sJoXc8qz087GfHZ2pHZcjqc27O0ldOB7"
+    sessionid = "vniwps9utog5sy3uywj4bvza7sokvd5i"
 
     headers = {
         "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
@@ -11,11 +11,12 @@ def get_log_from_net():
         "Accept-Language": "zh-Hans-CN, zh-Hans; q=0.5",
         "Cache-Control": "max-age=0",
         "Connection": "Keep-Alive",
+        "Content-Length": "414",
+        "Content-Type": "multipart/form-data; boundary=---------------------------7e4dc1cc0980",
         "Cookie": f"csrftoken={token}; sessionid={sessionid}",
         "Host": "gis4g.pku.edu.cn",
-        "Pragma": "no-cache",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763",
+        "Referer": "http://gis4g.pku.edu.cn/ai_arena/login/",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko",
     }
     
     print('请输入查看比赛页面的地址:')
