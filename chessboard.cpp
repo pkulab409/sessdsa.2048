@@ -461,17 +461,15 @@ struct Chessboard {
     object __deepcopy__(object memo) {
         throw std::runtime_error("Surprise, Motherfucker!");
     }
-    float ValueFunction(bool belong, unsigned password, float monoweight, float monopower, float sumweight) {
+    float ValueFunction(bool belong, unsigned password, float mergeweight, float emptyweight, float sumweight) {
         if (password != 1145141919) {
             return 1145141919810.0f;
         }
         // Heuristic scoring settings
-        static const float SCORE_MONOTONICITY_POWER  = monopower;
-        static const float SCORE_MONOTONICITY_WEIGHT = monoweight;
-        static const float SCORE_SUM_BASE            = 2.5f;
-        static const float SCORE_SUM_WEIGHT          = sumweight;
-        static const float SCORE_MERGES_WEIGHT       = 70.0f;
-        static const float SCORE_EMPTY_WEIGHT        = 27.0f;
+        static const float SCORE_SUM_BASE      = 2.5f;
+        static const float SCORE_SUM_WEIGHT    = sumweight;
+        static const float SCORE_MERGES_WEIGHT = mergeweight;
+        static const float SCORE_EMPTY_WEIGHT  = emptyweight;
 
         auto JudgeValue = [&](char belong_array[], unsigned char line[], int length, bool belong) {
             // Heuristic score
@@ -482,9 +480,25 @@ struct Chessboard {
             int counter       = 0;
             bool prev_belong  = 0;
             bool merge_belong = 0;
+            int attack        = 0.0f;
             for (int i = 0; i < length; ++i) {
                 unsigned char rank = line[i];
-                sum += pow(SCORE_SUM_BASE, rank) * belong_array[i];
+                if (length == 8) {
+                    if (belong_array[i] == 1) {
+                        if (i < 3) {
+                            attack = 2.0;
+                        } else if (i > 3) {
+                            attack = 4.0;
+                        }
+                    } else {
+                        if (i > 4) {
+                            attack = 2.0;
+                        } else if (i < 4) {
+                            attack = 4.0;
+                        }
+                    }
+                    sum += pow(SCORE_SUM_BASE, rank) * belong_array[i] * attack;
+                }
                 if (rank == 0) {
                     empty += belong_array[i];
                 } else {
@@ -511,17 +525,7 @@ struct Chessboard {
             if (counter > 0) {
                 merges += (1 + counter) * merge_belong;
             }
-
-            float monotonicity_left  = 0;
-            float monotonicity_right = 0;
-            for (int i = 1; i < length; ++i) {
-                if (line[i - 1] > line[i] && belong_array[i - 1] == belong_array[i]) {
-                    monotonicity_left += (pow(line[i - 1], SCORE_MONOTONICITY_POWER) - pow(line[i], SCORE_MONOTONICITY_POWER)) * belong_array[i];
-                } else if (belong_array[i - 1] == belong_array[i]) {
-                    monotonicity_right += (pow(line[i], SCORE_MONOTONICITY_POWER) - pow(line[i - 1], SCORE_MONOTONICITY_POWER)) * belong_array[i];
-                }
-            }
-            return SCORE_EMPTY_WEIGHT * empty + SCORE_MERGES_WEIGHT * merges - SCORE_MONOTONICITY_WEIGHT * std::min(monotonicity_left, monotonicity_right) + SCORE_SUM_WEIGHT * sum;
+            return SCORE_EMPTY_WEIGHT * empty + SCORE_MERGES_WEIGHT * merges + SCORE_SUM_WEIGHT * sum;
         };
         float advanced_value = 0.0f;
         for (auto y = 0; y < 4; y++) {
