@@ -100,7 +100,7 @@ def friendship(livequeue=None):
             print("                              N19组冠军:                                       ")
             print("                               "+inf.information[NwinnerN19[11:-3]])
             print("""=============================友谊赛总冠军===================================""")
-            print("                               友谊赛总冠军:                                 ")
+            print("                            友谊赛总冠军:                                 ")
             print("                                "+inf.information[winnerfinal[11:-3]])
             print("""============================================================================""")
             f= Figlet()
