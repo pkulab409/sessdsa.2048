@@ -2,8 +2,8 @@ def get_log_from_net():
     import requests
     import json
 
-    token = "MQ6KWY9RRyL6ldFHd0E3hsVF5YFgZdOJOvrf5YBEwLz9V4R34O27lSGrofXy1Mxg"
-    sessionid = "ngschzmuskjgos3fcjapznm6ihnqza5t"
+    token = "LL2GJWbNopjx7Bmw1WsPZihBY3eLyO1S0FAQaPW7ecIxymBDIGnhSXUfmTqQVPUh"
+    sessionid = "wa7x7wx02elotmi2o9y173zk64x22zya"
 
     headers = {
         "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
