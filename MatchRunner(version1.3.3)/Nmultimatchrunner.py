@@ -38,8 +38,8 @@ def N19(livequeue=None,finallivequeue=None):
     print("""===================================N19 第一场==================================""")
     ####N19 比赛####          
     fileList = os.listdir("N19players")
-    if fileList[-1]=="__pycache__":
-        fileList.pop()
+    if "__pycache__" in fileList:
+        fileList.remove("__pycache__")   
     ####N19 8 4####
     s=input("Please input 1 to start match N19 8 4 : ")
     while s!= "1":
