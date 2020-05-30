@@ -9,6 +9,7 @@ Created on Fri May 29 22:30:12 2020
 import sys
 import os
 from pyfiglet import Figlet
+
 import singlematchrunner as runner
 import constants as c
 import information as inf
