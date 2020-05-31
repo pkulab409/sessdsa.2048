@@ -200,7 +200,7 @@ def F19(livequeue=None,finallivequeue=None):
     #print(winnerF19) 
     f = open(path+'/'+"winners F19 final.txt", 'w')
     f.write("F19 final winners:"+"\n")
-    f.write(inf.information[winnerF19[11:-3])
+    f.write(inf.information[winnerF19[11:-3]])
     f.close()  
     s=input("是否显示出线小组详细信息 (Y or N) : ")
     print("""================================================================================""")
