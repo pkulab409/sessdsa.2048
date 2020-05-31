@@ -72,7 +72,7 @@ def N19(livequeue=None,finallivequeue=None):
     f=open(path+"/"+"winners N19 8 4 .txt", 'w')
     f.write("N19 8 4 winners:"+"\n")
     for i in range(len(nextstageN1)):
-        f.write(nextstageN1[i][11:-3]+"\n")
+        f.write(inf.information[nextstageN1[i][11:-3]]+"\n")
     f.close()
     s=input("是否显示出线小组详细信息 (Y or N) : ")
     f= Figlet()
@@ -120,7 +120,7 @@ def N19(livequeue=None,finallivequeue=None):
     f = open(path+'/'+"winners N19 4 2.txt", 'w')
     f.write("N19 4 2 winners:"+"\n")
     for i in range(len(nextstageN3)):
-        f.write(nextstageN3[i][11:-3]+"\n")
+        f.write(inf.information[nextstageN3[i][11:-3]]+"\n")
     f.close()
     s=input("是否显示出线小组详细信息 (Y or N) : ")
     f= Figlet()
@@ -147,7 +147,7 @@ def N19(livequeue=None,finallivequeue=None):
     #print(third) 
     f = open(path+'/'+"third N19 final.txt", 'w')
     f.write("N19 third:"+"\n")
-    f.write(third)
+    f.write(inf.information[third[11:-3]])
     f.close()
     s=input("是否显示出线小组详细信息 (Y or N) : ")
     f= Figlet()
@@ -174,7 +174,7 @@ def N19(livequeue=None,finallivequeue=None):
     #print(winnerN19) 
     f = open(path+'/'+"winners N19 final.txt", 'w')
     f.write("N19 final winners:"+"\n")
-    f.write(winnerN19)
+    f.write(inf.information[winnerN19[11:-3]])
     f.close()
     second=[]
     for i in range(len(nextstageN3)):
