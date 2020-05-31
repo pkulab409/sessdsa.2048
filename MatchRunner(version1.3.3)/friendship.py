@@ -57,7 +57,7 @@ def friendship(livequeue=None):
         s=input("Please input F to start match all final : ")
     finalplayerlist=[NwinnerN19,FwinnerF19]
     path=mkdir('all final')
-    winnerfinal=runner.main(finalplayerlist,path+"/"+" "+inf.information[NwinnerN19[11:-3]]+"vs"+" "+inf.information[FwinnerF19[11:-3]],live.queues[2],True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
+    winnerfinal=runner.main(finalplayerlist,path+"/"+" "+inf.information[NwinnerN19[11:-3]]+" "+"vs"+" "+inf.information[FwinnerF19[11:-3]],live.queues[2],True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
     #print(winnerfinal)
     f = open(path+'/'+"all final.txt", 'w')
     f.write("all final winners:"+"\n")
