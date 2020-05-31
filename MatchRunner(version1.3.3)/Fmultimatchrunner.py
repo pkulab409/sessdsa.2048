@@ -75,7 +75,7 @@ def F19(livequeue=None,finallivequeue=None):
     nextstage1=[]
     path=mkdir('F19 first result')
     pool = Pool() 
-    nextstage1=pool.map(newmain,[(allplayerlist1[i],path+"/"+allplayerlist1[i][0][11:-3]+" "+"vs"+" "+allplayerlist1[i][1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist1))])  
+    nextstage1=pool.map(newmain,[(allplayerlist1[i],path+"/"+inf.information[allplayerlist1[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist1[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist1))])  
     pool.close()
     pool.join()
     #print(nextstage1)
@@ -117,7 +117,7 @@ def F19(livequeue=None,finallivequeue=None):
     nextstage2=[]
     path=mkdir('F19 8 4')
     pool = Pool() 
-    nextstage2=pool.map(newmain,[(allplayerlist2[i],path+"/"+allplayerlist1[i][0][11:-3]+" "+"vs"+" "+allplayerlist2[i][1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist2))])  
+    nextstage2=pool.map(newmain,[(allplayerlist2[i],path+"/"+inf.information[allplayerlist1[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist2[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist2))])  
     pool.close()
     pool.join() 
     #print(nextstage2) 
@@ -160,7 +160,7 @@ def F19(livequeue=None,finallivequeue=None):
     nextstage3=[]
     path=mkdir('F19 4 2')
     pool = Pool() 
-    nextstage3=pool.map(newmain,[(allplayerlist3[i],path+"/"+allplayerlist3[i][0][11:-3]+" "+"vs"+" "+allplayerlist2[i][1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist3))])  
+    nextstage3=pool.map(newmain,[(allplayerlist3[i],path+"/"+inf.information[allplayerlist3[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist2[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist3))])  
     pool.close()
     pool.join() 
     #print(nextstage3)  
@@ -195,7 +195,7 @@ def F19(livequeue=None,finallivequeue=None):
             sys.exit(0)
         s=input("Please input 4 to start match F19 final : ")
     path=mkdir('F19 final')
-    winnerF19=runner.main(nextstage3,path+"/"+nextstage3[0][11:-3]+" "+"vs"+" "+nextstage3[1][11:-3],finallivequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
+    winnerF19=runner.main(nextstage3,path+"/"+inf.information[nextstage3[0][11:-3]]+" "+"vs"+" "+inf.information[nextstage3[1][11:-3]],finallivequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
     F19=winnerF19
     #print(winnerF19) 
     f = open(path+'/'+"winners F19 final.txt", 'w')
