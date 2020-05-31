@@ -16,6 +16,7 @@ Created on Thu May 28 18:02:36 2020
 import constants as c
 import random
 import information as inf
+
 def main(playerList,
          savepath = None,
          livequeue = None,
@@ -323,7 +324,7 @@ while s1!="Break" and s2!="Break":
     playerList=[reverse_lookup(inf.information,s1),reverse_lookup(inf.information,s2)]
     s=main(playerList,
              savepath = mkdir("challenge "+str(s1)+"vs"+str(s2)),
-             livequeue = None,
+             livequeue = live.queues[-1],
              toSave = True,
              toReport = True,
              toGet = True,
