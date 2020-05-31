@@ -8,6 +8,7 @@ Created on Fri May 29 22:03:33 2020
 F19__final__livequeue=None###F19决赛直播参数
 N19__final__livequeue=None###N19决赛直播参数
 friendship__livequeue=None###友谊赛直播参数
+
 challenge__livequeue=None ###挑战赛直播参数
 
 queues=[F19__final__livequeue,N19__final__livequeue,friendship__livequeue,challenge__livequeue]
