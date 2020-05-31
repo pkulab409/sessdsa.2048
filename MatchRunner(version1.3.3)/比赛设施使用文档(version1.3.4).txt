@@ -29,7 +29,7 @@ N 直接结束比赛
 5.用两个解释器同时分别运行程序Fmultimatchrunner.py，Nmultimatchrunner.py，运行过程中分别依次根据输入提示，和约定的字符串，控制每一大组的比赛进行。
 6.先完成步骤5后，再运行friendship.py，根据交互命令，进行友谊赛
 7.注：每个比赛的主函数含两个参数livequeue，默认为None（控制非决赛的比赛的直播）和finallivequeue参数，控制决赛的直播情况（友谊赛程序只有一个参数）
-8.注：两场决赛和友谊赛需要的直播队列可直接在livequeues.py中对应的修改三个参数写入。
+8.注：两场决赛和友谊赛以及挑战赛需要的直播队列可直接在livequeues.py中对应的修改三个参数写入。
 9.除可视化方法外，其他的程序都拷贝了一份在MatchRunner（version1.3）文件夹中，可将MatchRunner（version1.3）中所有文件按原目录关系移到相应的本地文件夹，即可按
 其他说明运行。
 10.需要下载安装 pyfiglet包（在Anaconda powershell prompt 中进入环境，输入以下命令：pip install pyfiglet）
