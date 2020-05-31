@@ -61,7 +61,7 @@ def friendship(livequeue=None):
     #print(winnerfinal)
     f = open(path+'/'+"all final.txt", 'w')
     f.write("all final winners:"+"\n")
-    f.write(inf.information[winnerfinal[11:3]])
+    f.write(inf.information[winnerfinal[11:-3]])
     f.close()
     s=input("是否显示出线小组详细信息 (Y or N) : ")
     f= Figlet()
