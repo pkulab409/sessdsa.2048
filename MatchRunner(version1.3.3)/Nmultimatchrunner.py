@@ -65,7 +65,7 @@ def N19(livequeue=None,finallivequeue=None):
     nextstageN1=[]
     path=mkdir('N19 8 4')
     pool = Pool() 
-    nextstageN1=pool.map(newmain,[(allplayerlistN1[i],path+"/"+allplayerlistN1[i][0][11:-3]+" "+"vs"+" "+allplayerlistN1[i][1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlistN1))])  
+    nextstageN1=pool.map(newmain,[(allplayerlistN1[i],path+"/"+inf.information[allplayerlistN1[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlistN1[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlistN1))])  
     pool.close()
     pool.join()
     #print(nextstageN1)
@@ -109,7 +109,7 @@ def N19(livequeue=None,finallivequeue=None):
     nextstageN3=[]
     path=mkdir('N19 4 2')
     pool = Pool() 
-    nextstageN3=pool.map(newmain,[(allplayerlistN2[i],path+"/"+allplayerlistN2[i][0][11:-3]+" "+"vs"+" "+allplayerlistN2[i][1][11:-3],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlistN2))])  
+    nextstageN3=pool.map(newmain,[(allplayerlistN2[i],path+"/"+inf.information[allplayerlistN2[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlistN2[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlistN2))])  
     pool.close()
     pool.join()
    #print(nextstageN3) 
@@ -143,7 +143,7 @@ def N19(livequeue=None,finallivequeue=None):
             sys.exit(0)
         s=input("Please input 3 to start match N19 third : ") 
     path=mkdir('N19 third')
-    third=runner.main(third,savepath=path+"/"+third[0][11:-3]+" "+"vs"+" "+third[1][11:-3],toGet=True)[3]
+    third=runner.main(third,savepath=path+"/"+inf.information[third[0][11:-3]]+" "+"vs"+" "+inf.information[third[1][11:-3]],toGet=True)[3]
     #print(third) 
     f = open(path+'/'+"third N19 final.txt", 'w')
     f.write("N19 third:"+"\n")
@@ -169,7 +169,7 @@ def N19(livequeue=None,finallivequeue=None):
             sys.exit(0)
         s=input("Please input 4 to start match N19 final : ") 
     path=mkdir('N19 final')
-    winnerN19=runner.main(nextstageN3,path+"/"+nextstageN3[0][11:-3]+" "+"vs"+" "+nextstageN3[1][11:-3],finallivequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
+    winnerN19=runner.main(nextstageN3,path+"/"+inf.information[nextstageN3[0][11:-3]]+" "+"vs"+" "+inf.information[nextstageN3[1][11:-3]],finallivequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS)[3]
     N19=winnerN19
     #print(winnerN19) 
     f = open(path+'/'+"winners N19 final.txt", 'w')
