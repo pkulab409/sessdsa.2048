@@ -322,8 +322,9 @@ if s1!="Break":
     s2=input("对战者2(或输入Break终止挑战赛)： ")
 while s1!="Break" and s2!="Break":
     playerList=[reverse_lookup(inf.information,s1),reverse_lookup(inf.information,s2)]
+    w=mkdir("challenge "+" "+str(s1)+" "+"vs"+" "+str(s2))
     s=main(playerList,
-             savepath = mkdir("challenge "+str(s1)+"vs"+str(s2)),
+             savepath = w,
              livequeue = live.queues[-1],
              toSave = True,
              toReport = True,
@@ -335,7 +336,7 @@ while s1!="Break" and s2!="Break":
     print("winner is:")
     print(inf.information[s[3][11:-3]])
     print("Scores"+":"+" "+str(s[1])+":"+str(s[2])+"\n")
-    with open(s2+"challenge"+s1+".txt","w") as f:
+    with open(s2+" "+"challenge"+" "+s1+".txt","w") as f:
         f.write("Results:")
         f.write("Scores"+":"+" "+"挑战者1:"+str(s[1])+" "+"挑战者2:"+str(s[2])+"\n")
         f.write("winner is"+str(s[3][11:-3])+"\n")
