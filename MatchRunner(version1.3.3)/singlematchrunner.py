@@ -8,6 +8,7 @@ Created on Thu May 28 18:02:36 2020
 ###两个人进行一场比赛，一共20局比赛，每局500回合，前10局一方先，后10局另外一方先，输出该场比赛的胜者
 import constants as c
 import random
+import information as inf
 def main(playerList,
          savepath = None,
          livequeue = None,
@@ -216,7 +217,7 @@ def main(playerList,
         f.write('\n' + '=' * 50 + '\n')
         f.flush()
         for count in range(len(playerList)):
-            f.write('player%s from path %s\n\n' % (count, playerResults[count]['path']))
+            f.write('player%s from path %s\n\n' % (count, playerResults[count]['path'][0:11]+inf.information[playerResults[count]['path'][11:-3]]+".py"))
             player = playerResults[count][True]
             f.write('''offensive cases:
     average time: %.3f
