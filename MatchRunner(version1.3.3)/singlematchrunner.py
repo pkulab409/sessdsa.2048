@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 28 18:02:36 2020
+Created on Mon Jun  1 22:54:49 2020
 
+@author: 田晨霄
+"""
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May 28 18:02:36 2020
 @author: 田晨霄
 """
 
@@ -19,6 +24,7 @@ def main(playerList,
          REPEAT = c.REPEAT,
          MAXTIME = c.MAXTIME,
          ROUNDS = c.ROUNDS):
+    print("s")
     '''
     主函数
     -> 参数: playerList 参赛队伍的模块列表, 支持绝对路径, 相对路径, 和已读取的类. 例如 playerList = ['player.py', 'player.py']
@@ -112,7 +118,6 @@ def main(playerList,
         for isFirst in [True, False]:
             for _ in result[isFirst]:
                 if _ not in  ['index', 'exception'] and result[isFirst][_]:
-                    print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(playerResults[0][True]["win"][-1]+playerResults[0][False]["win"][-1])+" "+":"+" "+str(playerResults[1][True]["win"][-1]+playerResults[1][False]["win"][-1]))
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
                     
     '''
@@ -129,6 +134,7 @@ def main(playerList,
     platforms[(0, 1)] = []
     platforms[(1, 0)] = []
     for _ in range(REPEAT):
+        print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
         for isFirst in [True, False]:
             counts = (0, 1) if isFirst else (1, 0)
             trueCount, falseCount = counts
@@ -173,6 +179,7 @@ def main(playerList,
                                                        'index': (1, False)}}, **kwargs)
             exresult=temp.play()
             update(matchResults, playerResults, exresult) 
+            print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
             if exresult[True]['win']==1:
                 winner=playerList[0]
                 A=A+1
@@ -196,6 +203,7 @@ def main(playerList,
                                                        'index': (0, False)}}, **kwargs)
             exresult=temp.play()
             update(matchResults, playerResults, exresult)
+            print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
             if exresult[True]['win']==1:
                 winner=playerList[1]
                 B=B+1
@@ -290,4 +298,3 @@ def main(playerList,
 
     # 返回全部平台
     if toGet: return [platforms,A,B,winner]
-
