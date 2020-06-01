@@ -1,6 +1,6 @@
 import constants as c  # 导入游戏常数
 import time
-
+import information as inf
 # 平台
 
 class Platform:
@@ -278,8 +278,8 @@ class Platform:
         if self.toSave:
             file = open('%s/%s.txt' % (self.match, self.name),'w')
             myDict = {True:'player 0', False:'player 1', None:'None', 'both':'both'}  # 协助转换为字符串
-            title = 'player0: %d from path %s\n' % (self.states[True]['index'][0], self.states[True]['path']) + \
-                    'player1: %d from path %s\n' % (self.states[False]['index'][0], self.states[False]['path']) + \
+            title = 'player0: %d from path %s\n' % (self.states[True]['index'][0], self.states[False]['path'][0:11]+inf.information[self.states[True]['path'][11:-3]]+".py") + \
+                    'player1: %d from path %s\n' % (self.states[False]['index'][0], self.states[False]['path'][0:11]+inf.information[self.states[False]['path'][11:-3]]+".py") + \
                     'time: %s\n' % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) + \
                     '{:*^45s}\n'.format('basic record')
             file.write(title)
