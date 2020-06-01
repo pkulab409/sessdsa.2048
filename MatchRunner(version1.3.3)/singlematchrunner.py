@@ -24,7 +24,6 @@ def main(playerList,
          REPEAT = c.REPEAT,
          MAXTIME = c.MAXTIME,
          ROUNDS = c.ROUNDS):
-    print("s")
     '''
     主函数
     -> 参数: playerList 参赛队伍的模块列表, 支持绝对路径, 相对路径, 和已读取的类. 例如 playerList = ['player.py', 'player.py']
