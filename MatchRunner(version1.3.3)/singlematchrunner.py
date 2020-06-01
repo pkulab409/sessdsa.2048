@@ -112,6 +112,7 @@ def main(playerList,
         for isFirst in [True, False]:
             for _ in result[isFirst]:
                 if _ not in  ['index', 'exception'] and result[isFirst][_]:
+                    print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(playerResults[0][True]["win"][-1]+playerResults[0][False]["win"][-1])+" "+":"+" "+str(playerResults[1][True]["win"][-1]+playerResults[1][False]["win"][-1]))
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
                     
     '''
