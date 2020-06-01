@@ -109,6 +109,7 @@ def main(playerList,
                       'path': playerList[count]} for count in range(len(playerList))]
             
     def update(matchResults, playerResults, result):  # 更新成绩记录
+        #print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
         matchResults['basic'].append('name: %s -> player%d to player%d -> %d rounds'
                                     % (result['name'],
                                        result[True]['index'][0],
@@ -119,7 +120,7 @@ def main(playerList,
             for _ in result[isFirst]:
                 if _ not in  ['index', 'exception'] and result[isFirst][_]:
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
-                    
+        print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
     '''
     第三部分, 比赛
     '''
@@ -134,7 +135,7 @@ def main(playerList,
     platforms[(0, 1)] = []
     platforms[(1, 0)] = []
     for _ in range(REPEAT):
-        print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
+       # print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
         for isFirst in [True, False]:
             counts = (0, 1) if isFirst else (1, 0)
             trueCount, falseCount = counts
@@ -179,7 +180,7 @@ def main(playerList,
                                                        'index': (1, False)}}, **kwargs)
             exresult=temp.play()
             update(matchResults, playerResults, exresult) 
-            print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
+            #print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
             if exresult[True]['win']==1:
                 winner=playerList[0]
                 A=A+1
@@ -203,7 +204,6 @@ def main(playerList,
                                                        'index': (0, False)}}, **kwargs)
             exresult=temp.play()
             update(matchResults, playerResults, exresult)
-            print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
             if exresult[True]['win']==1:
                 winner=playerList[1]
                 B=B+1
