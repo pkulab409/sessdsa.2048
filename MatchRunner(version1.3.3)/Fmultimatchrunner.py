@@ -117,7 +117,7 @@ def F19(livequeue=None,finallivequeue=None):
     nextstage2=[]
     path=mkdir('F19 8 4')
     pool = Pool() 
-    nextstage2=pool.map(newmain,[(allplayerlist2[i],path+"/"+inf.information[allplayerlist1[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist2[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist2))])  
+    nextstage2=pool.map(newmain,[(allplayerlist2[i],path+"/"+inf.information[allplayerlist2[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist2[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist2))])  
     pool.close()
     pool.join() 
     #print(nextstage2) 
@@ -160,7 +160,7 @@ def F19(livequeue=None,finallivequeue=None):
     nextstage3=[]
     path=mkdir('F19 4 2')
     pool = Pool() 
-    nextstage3=pool.map(newmain,[(allplayerlist3[i],path+"/"+inf.information[allplayerlist3[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist2[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist3))])  
+    nextstage3=pool.map(newmain,[(allplayerlist3[i],path+"/"+inf.information[allplayerlist3[i][0][11:-3]]+" "+"vs"+" "+inf.information[allplayerlist3[i][1][11:-3]],livequeue,True,True,True,False,c.REPEAT,c.MAXTIME,c.ROUNDS) for i in range(len(allplayerlist3))])  
     pool.close()
     pool.join() 
     #print(nextstage3)  

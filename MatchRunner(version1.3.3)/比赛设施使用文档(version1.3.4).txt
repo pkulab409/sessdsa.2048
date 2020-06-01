@@ -34,7 +34,7 @@ N 直接结束比赛
 其他说明运行。
 10.需要下载安装 pyfiglet包（在Anaconda powershell prompt 中进入环境，输入以下命令：pip install pyfiglet）
 11.挑战赛模块也是单独运行，直接输入真实组名即可开启对战，可以进行多轮，直到输入Break终止比赛。
-
+12plat平台输出做了更改，此版本只在matchrunner文件夹内。
 
 三、输出文件
 1.每场比赛都会输出一个以该场比赛名字命名的文件夹
