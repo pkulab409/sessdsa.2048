@@ -98,9 +98,12 @@ def N19(livequeue=None,finallivequeue=None):
     
     allplayerlistN2=[] 
     a=random.randint(0,1) 
-    b=random.randint(2,3)  
-    players1=[nextstageN1[a],nextstageN1[b]]
-    players2=[nextstageN1[1-a],nextstageN1[5-b]]
+    if a==0:
+        players1=[nextstageN1[0],nextstageN1[1]]
+        players2=[nextstageN1[2],nextstageN1[3]]
+    else:
+        players1=[nextstageN1[0],nextstageN1[1]]
+        players2=[nextstageN1[3],nextstageN1[2]]
     for i in range(2):
         everypair=[]
         everypair.append(players1[i])
