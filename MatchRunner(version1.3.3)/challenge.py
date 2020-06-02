@@ -121,7 +121,7 @@ def main(playerList,
             for _ in result[isFirst]:
                 if _ not in  ['index', 'exception'] and result[isFirst][_]:
                     playerResults[result[isFirst]['index'][0]][isFirst][_].append(result['name'] if _ != 'time' else result[isFirst]['time'])
-                    
+        print(inf.information[playerResults[0]["path"][11:-3]]+" "+"vs"+" "+inf.information[playerResults[1]["path"][11:-3]]+":"+str(len(playerResults[0][True]["win"])+len(playerResults[0][False]["win"]))+" "+":"+" "+str(len(playerResults[1][True]["win"])+len(playerResults[1][False]["win"])))
     '''
     第三部分, 比赛
     '''
